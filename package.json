@@ -10,7 +10,9 @@
     "db:generate": "npx drizzle-kit generate",
     "db:push": "npx drizzle-kit push",
     "db:studio": "npx drizzle-kit studio",
-    "play": "npx tsx ./src/backend/play.ts"
+    "play": "npx tsx ./src/backend/play.ts",
+    "wrangler:dev": "wrangler dev",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@cloudinary/react": "^1.14.1",
@@ -78,6 +80,7 @@
     "prettier": "^3.5.3",
     "tailwindcss": "^4.1.1",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "wrangler": "^4.20.0"
   }
 }

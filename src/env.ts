@@ -29,5 +29,6 @@ export const env = createEnv({
     MEILISEARCH_ADMIN_API_KEY: process.env.MEILISEARCH_ADMIN_API_KEY,
     NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY:
       process.env.NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY,
+    CRON_SECRET: process.env.CRON_SECRET,
   },
 });
