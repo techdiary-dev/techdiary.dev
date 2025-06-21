@@ -17,7 +17,7 @@ import React, { useCallback, useRef, useState } from "react";
 
 import { ArticleRepositoryInput } from "@/backend/services/inputs/article.input";
 import { useAutosizeTextArea } from "@/hooks/use-auto-resize-textarea";
-import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { useDebouncedCallback } from "@/hooks/use-debounce";
 import { useToggle } from "@/hooks/use-toggle";
 import { formattedTime } from "@/lib/utils";
 import { markdocParser } from "@/utils/markdoc-parser";

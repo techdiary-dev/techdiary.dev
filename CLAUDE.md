@@ -125,6 +125,9 @@ Client-side:
 4. UI components follow shadcn/ui patterns and conventions
 5. All forms use React Hook Form with Zod validation schemas
 
+## Action Development Conventions
+look at `src/backend/services/CLAUDE.md`
+
 ## Special Considerations
 
 - **Bengali Language Support**: Custom font loading (Kohinoor Bangla) and i18n

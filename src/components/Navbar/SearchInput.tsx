@@ -3,10 +3,11 @@
 import { useTranslation } from "@/i18n/use-translation";
 import { meilisearchClient } from "@/lib/meilisearch.client";
 
-import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
+import { useDebouncedCallback } from "@/hooks/use-debounce";
+import { searchBarAtom } from "@/store/search-bar.atom";
 import { useMutation } from "@tanstack/react-query";
+import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
-import React from "react";
 import {
   CommandDialog,
   CommandEmpty,
@@ -15,8 +16,6 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
-import { useAtom } from "jotai";
-import { searchBarAtom } from "@/store/search-bar.atom";
 
 const SearchInput = () => {
   const { _t } = useTranslation();
