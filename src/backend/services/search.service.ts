@@ -1,7 +1,6 @@
-import { env } from "@/env";
+import { meilisearchClient } from "@/lib/meilisearch.admin.client";
 import { and, eq, neq } from "sqlkit";
 import { persistenceRepository } from "../persistence/persistence-repositories";
-import { meilisearchClient } from "@/lib/meilisearch.admin.client";
 
 const index = meilisearchClient.index("articles");
 meilisearchClient
@@ -15,6 +14,10 @@ meilisearchClient
     console.error("Error creating index 'articles':", error);
   });
 
+/**
+ * Sync all articles to the search index
+ * @returns The number of articles synced
+ */
 export const syncAllArticles = async () => {
   try {
     const articles = await persistenceRepository.article.find({
@@ -49,6 +52,11 @@ export const syncAllArticles = async () => {
   }
 };
 
+/**
+ * Sync an article by its ID
+ * @param articleId - The ID of the article to sync
+ * @returns The article that was synced
+ */
 export const syncArticleById = async (articleId: string) => {
   try {
     const [article] = await persistenceRepository.article.find({
@@ -95,6 +103,7 @@ export const syncArticleById = async (articleId: string) => {
 export const deleteArticleById = async (articleId: string) => {
   try {
     const response = await index.deleteDocument(articleId);
+    console.log(`Article ${articleId} deleted successfully`);
     return {
       message: `Article ${articleId} deleted successfully`,
       response,

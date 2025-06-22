@@ -175,10 +175,20 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, uuid }) => {
       },
       onConfirm: () => {
         if (uuid) {
-          updateMyArticleMutation.mutate({
-            article_id: uuid,
-            is_published: !article?.is_published,
-          });
+          updateMyArticleMutation.mutate(
+            {
+              article_id: uuid,
+              is_published: !article?.is_published,
+            },
+            {
+              onSuccess: () => {
+                articleActions.setArticlePublished(
+                  uuid,
+                  !article?.is_published
+                );
+              },
+            }
+          );
         }
       },
     });

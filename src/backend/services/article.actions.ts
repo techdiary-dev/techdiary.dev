@@ -5,18 +5,19 @@ import {
   removeMarkdownSyntax,
   removeNullOrUndefinedFromObject,
 } from "@/lib/utils";
+import { addDays } from "date-fns";
 import * as sk from "sqlkit";
 import { and, desc, eq, like, neq, or } from "sqlkit";
 import { z } from "zod";
+import { ActionResponse } from "../models/action-contracts";
 import { Article, User } from "../models/domain-models";
 import { DatabaseTableName } from "../persistence/persistence-contracts";
 import { persistenceRepository } from "../persistence/persistence-repositories";
-import { handleActionException, ActionException } from "./RepositoryException";
+import { ActionException, handleActionException } from "./RepositoryException";
 import { ArticleRepositoryInput } from "./inputs/article.input";
+import { deleteArticleById, syncArticleById } from "./search.service";
 import { authID } from "./session.actions";
 import { syncTagsWithArticles } from "./tag.action";
-import { addDays } from "date-fns";
-import { ActionResponse } from "../models/action-contracts";
 
 export async function createMyArticle(
   _input: z.infer<typeof ArticleRepositoryInput.createMyArticleInput>
@@ -166,8 +167,6 @@ export async function updateMyArticle(
         excerpt: input.excerpt,
         body: input.body,
         cover_image: input.cover_image,
-        is_published: input.is_published,
-        published_at: input.is_published ? new Date() : null,
         metadata: input.metadata,
       }),
     });
@@ -537,6 +536,12 @@ export async function setArticlePublished(
         published_at: is_published ? new Date() : null,
       },
     });
+    if (articles?.rows?.[0] && is_published) {
+      syncArticleById(article_id);
+    }
+    if (articles?.rows?.[0] && !is_published) {
+      deleteArticleById(article_id);
+    }
     return articles?.rows?.[0];
   } catch (error) {
     handleActionException(error);
