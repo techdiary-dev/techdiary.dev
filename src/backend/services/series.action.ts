@@ -31,7 +31,7 @@ export async function seriesFeed(
 
 export const getSeriesDetailByHandle = async (
   handle?: string
-): Promise<ActionResponse<any>> => {
+): Promise<ActionResponse<PaginatedResult<Series>>> => {
   try {
     if (!handle) {
       // Return paginated series list for current user
