@@ -120,7 +120,7 @@ const ArticleList = () => {
                 </div> */}
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
+                  <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2">
                       <p className="text-sm md:hidden">{_t("Actions")}</p>
                       <DotsHorizontalIcon className="h-5 w-5" />

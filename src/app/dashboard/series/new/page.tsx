@@ -4,8 +4,6 @@ import * as seriesActions from "@/backend/services/series.action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useDebounce } from "@/hooks/use-debounce";
 import {
   closestCenter,
   DndContext,
@@ -31,14 +29,35 @@ import {
   Plus,
   Save,
   Search,
-  Trash2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+interface Article {
+  id: string;
+  title: string;
+  handle: string;
+}
+
+interface SeriesItem {
+  id: string;
+  title: string;
+  article_id: string;
+  type: string;
+}
+
 // SortableArticleItem component for drag-and-drop functionality
-const SortableArticleItem = ({ id, title, onRemove }) => {
+const SortableArticleItem = ({
+  id,
+  title,
+  onRemove,
+}: {
+  id: string;
+  title: string;
+  onRemove: () => void;
+}) => {
   const {
     attributes,
     listeners,
@@ -76,7 +95,7 @@ const SortableArticleItem = ({ id, title, onRemove }) => {
         className="ml-2 text-muted-foreground hover:text-destructive"
         aria-label="Remove article from series"
       >
-        <Trash2 size={16} />
+        <X size={16} />
       </Button>
     </div>
   );
@@ -88,13 +107,9 @@ const NewSeriesPage = () => {
 
   // State for form
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedArticles, setSelectedArticles] = useState([]);
+  const [selectedArticles, setSelectedArticles] = useState<SeriesItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-
-  // Debounced search term for API calls
-  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Setup sensors for drag and drop
   const sensors = useSensors(
@@ -104,13 +119,9 @@ const NewSeriesPage = () => {
     })
   );
 
-  // Fetch user's articles
-  const {
-    data: userArticles = [],
-    isLoading: isArticlesLoading,
-    refetch: refetchArticles,
-  } = useQuery({
-    queryKey: ["user-articles"],
+  // Fetch user's articles (exclude articles already in series)
+  const { data: userArticles = [], isLoading: isArticlesLoading } = useQuery({
+    queryKey: ["user-articles", "available"],
     queryFn: () => seriesActions.getUserArticles(),
   });
 
@@ -121,7 +132,7 @@ const NewSeriesPage = () => {
 
   // Create series mutation
   const createSeriesMutation = useMutation({
-    mutationFn: (formData) => seriesActions.createSeries(formData),
+    mutationFn: (formData: FormData) => seriesActions.createSeries(formData),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["series"] });
       if (data && data.id) {
@@ -154,7 +165,7 @@ const NewSeriesPage = () => {
   };
 
   // Add article to series
-  const addArticleToSeries = (article) => {
+  const addArticleToSeries = (article: Article) => {
     // Check if article already exists in series
     if (selectedArticles.some((item) => item.id === article.id)) {
       return;
@@ -172,14 +183,14 @@ const NewSeriesPage = () => {
   };
 
   // Remove article from series
-  const removeArticleFromSeries = (articleId) => {
+  const removeArticleFromSeries = (articleId: string) => {
     setSelectedArticles((prev) =>
       prev.filter((article) => article.id !== articleId)
     );
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -191,7 +202,6 @@ const NewSeriesPage = () => {
     try {
       const formData = new FormData();
       formData.append("title", title);
-      formData.append("description", description || "");
 
       // Add selected articles data with index
       formData.append(
@@ -245,23 +255,6 @@ const NewSeriesPage = () => {
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter series title"
                   required
-                  className="bg-background border-border"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block font-medium mb-1 text-foreground"
-                >
-                  Description (optional)
-                </label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter series description"
-                  rows={4}
                   className="bg-background border-border"
                 />
               </div>

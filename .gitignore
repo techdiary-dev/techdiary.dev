@@ -11,6 +11,7 @@ bun.lockb
 bun.lock
 .yarn/install-state.gz
 package-lock.json
+.idea/
 
 # testing
 /coverage

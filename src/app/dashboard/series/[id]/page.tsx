@@ -4,7 +4,6 @@ import * as seriesActions from "@/backend/services/series.action";
 import { SortableArticleItem } from "@/components/series/SortableArticleItem";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   closestCenter,
   DndContext,
@@ -68,7 +67,6 @@ const SeriesEditPage = () => {
 
   // Local state for form
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
   const [seriesItems, setSeriesItems] = useState<SeriesItem[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -86,15 +84,14 @@ const SeriesEditPage = () => {
   // Fetch available articles using server actions
   const { data: availableArticles = [], isLoading: isArticlesLoading } =
     useQuery({
-      queryKey: ["articles", "own"],
-      queryFn: () => seriesActions.getUserArticles(),
+      queryKey: ["articles", "own", seriesId],
+      queryFn: () => seriesActions.getUserArticles(isNewSeries ? undefined : seriesId),
     });
 
   // Initialize form with series data when available
   useEffect(() => {
     if (seriesData) {
       setTitle(seriesData.title || "");
-      setDescription(seriesData.description || "");
       setSeriesItems(seriesData.items || []);
     }
   }, [seriesData]);
@@ -162,7 +159,6 @@ const SeriesEditPage = () => {
     try {
       const formData = new FormData();
       formData.append("title", title);
-      formData.append("description", description || "");
 
       // Add series items data
       formData.append("items", JSON.stringify(seriesItems));
@@ -247,23 +243,6 @@ const SeriesEditPage = () => {
                 />
               </div>
 
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block font-medium mb-1 text-foreground"
-                >
-                  Description (optional)
-                </label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter series description"
-                  rows={4}
-                  className="bg-background border-border"
-                />
-              </div>
             </div>
 
             <h2 className="text-xl font-semibold mb-4 text-foreground">

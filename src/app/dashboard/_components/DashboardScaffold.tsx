@@ -70,7 +70,7 @@ const DashboardScaffold: React.FC<
         <div className="p-4 flex items-center gap-2 justify-between">
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
+              <TooltipTrigger asChild>
                 <SidebarTrigger />
               </TooltipTrigger>
               <TooltipContent>
