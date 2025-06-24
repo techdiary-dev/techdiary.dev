@@ -12,13 +12,15 @@ const SeriesPage = () => {
 
   // Use TanStack Query to fetch series data with server actions
   const {
-    data: series,
+    data: seriesResponse,
     isLoading,
     error,
   } = useQuery({
     queryKey: ["series"],
     queryFn: () => seriesActions.getSeriesDetailByHandle(),
   });
+
+  const series = seriesResponse?.success ? seriesResponse.data : null;
 
   // Use mutation for delete operation
   const deleteMutation = useMutation({
@@ -69,7 +71,7 @@ const SeriesPage = () => {
         </Link>
       </div>
 
-      {!series || series.meta.totalCount === 0 ? (
+      {!series || series?.meta?.totalCount === 0 ? (
         <div className="text-center py-12">
           <p className="text-xl text-gray-500 mb-6">
             You don't have any series yet.
@@ -80,7 +82,7 @@ const SeriesPage = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {series.nodes.map((item) => (
+          {series?.nodes?.map((item) => (
             <Card key={item.id} className="overflow-hidden">
               {item.cover_image && (
                 <div className="h-40 overflow-hidden">

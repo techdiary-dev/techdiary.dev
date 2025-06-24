@@ -120,23 +120,28 @@ const NewSeriesPage = () => {
   );
 
   // Fetch user's articles (exclude articles already in series)
-  const { data: userArticles = [], isLoading: isArticlesLoading } = useQuery({
+  const {
+    data: userArticlesResponse,
+    isLoading: isArticlesLoading,
+  } = useQuery({
     queryKey: ["user-articles", "available"],
     queryFn: () => seriesActions.getUserArticles(),
   });
 
+  const userArticles = userArticlesResponse?.success ? userArticlesResponse.data : [];
+
   // Filtered articles based on search term
-  const filteredArticles = userArticles.filter((article) =>
+  const filteredArticles = userArticles.filter((article: Article) =>
     article.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Create series mutation
   const createSeriesMutation = useMutation({
     mutationFn: (formData: FormData) => seriesActions.createSeries(formData),
-    onSuccess: (data) => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["series"] });
-      if (data && data.id) {
-        router.push(`/dashboard/series/${data.id}`);
+      if (response.success && response.data?.id) {
+        router.push(`/dashboard/series/${response.data.id}`);
       } else {
         // If there's no ID, just redirect to the series list
         console.warn(
@@ -342,7 +347,7 @@ const NewSeriesPage = () => {
               </p>
             ) : (
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                {filteredArticles.map((article) => (
+                {filteredArticles.map((article: Article) => (
                   <Card
                     key={article.id}
                     className={`hover:border-primary transition-colors ${

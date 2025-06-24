@@ -1,28 +1,37 @@
 "use server";
 
-import { and, asc, eq, inArray, neq } from "sqlkit";
+import { and, asc, eq, inArray, neq, PaginatedResult } from "sqlkit";
 import { z } from "zod";
+import { ActionResponse } from "../models/action-contracts";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { SeriesInput } from "./inputs/series.input";
 import { handleActionException } from "./RepositoryException";
 import { authID } from "./session.actions";
+import { Series } from "../models/domain-models";
 
 export async function seriesFeed(
   _input: z.infer<typeof SeriesInput.seriesFeedInput>
-) {
+): Promise<ActionResponse<PaginatedResult<Series>>> {
   try {
     const input = await SeriesInput.seriesFeedInput.parseAsync(_input);
 
-    return persistenceRepository.series.paginate({
+    const result = await persistenceRepository.series.paginate({
       limit: input.limit,
       page: input.page,
     });
+
+    return {
+      success: true,
+      data: result,
+    };
   } catch (error) {
-    handleActionException(error);
+    return handleActionException(error);
   }
 }
 
-export const getSeriesDetailByHandle = async (handle?: string) => {
+export const getSeriesDetailByHandle = async (
+  handle?: string
+): Promise<ActionResponse<any>> => {
   try {
     if (!handle) {
       // Return paginated series list for current user
@@ -31,12 +40,17 @@ export const getSeriesDetailByHandle = async (handle?: string) => {
         throw new Error("Unauthorized");
       }
 
-      return persistenceRepository.series.paginate({
+      const result = await persistenceRepository.series.paginate({
         where: eq("owner_id", userId),
         limit: 10,
         page: 1,
         orderBy: [asc("created_at")],
       });
+
+      return {
+        success: true,
+        data: result,
+      };
     }
 
     const [series] = await persistenceRepository.series.find({
@@ -56,7 +70,7 @@ export const getSeriesDetailByHandle = async (handle?: string) => {
       ],
     });
 
-    const serieItems = await persistenceRepository.seriesItems.find({
+    const seriesItems = await persistenceRepository.seriesItems.find({
       where: eq("series_id", series.id),
       orderBy: [asc("index")],
       limit: -1,
@@ -73,16 +87,22 @@ export const getSeriesDetailByHandle = async (handle?: string) => {
         },
       ],
     });
+
     return {
-      series,
-      serieItems,
+      success: true,
+      data: {
+        series,
+        seriesItems,
+      },
     };
   } catch (error) {
     return handleActionException(error);
   }
 };
 
-export const getSeriesById = async (id: string) => {
+export const getSeriesById = async (
+  id: string
+): Promise<ActionResponse<any>> => {
   try {
     const userId = await authID();
     if (!userId) {
@@ -117,15 +137,20 @@ export const getSeriesById = async (id: string) => {
     });
 
     return {
-      ...series,
-      items,
+      success: true,
+      data: {
+        ...series,
+        items,
+      },
     };
   } catch (error) {
     return handleActionException(error);
   }
 };
 
-export const createSeries = async (formData: FormData) => {
+export const createSeries = async (
+  formData: FormData
+): Promise<ActionResponse<Series>> => {
   try {
     const userId = await authID();
     if (!userId) {
@@ -215,13 +240,19 @@ export const createSeries = async (formData: FormData) => {
       }
     }
 
-    return series;
+    return {
+      success: true as const,
+      data: series,
+    };
   } catch (error) {
     return handleActionException(error);
   }
 };
 
-export const updateSeries = async (id: string, formData: FormData) => {
+export const updateSeries = async (
+  id: string,
+  formData: FormData
+): Promise<ActionResponse<any>> => {
   try {
     const userId = await authID();
     if (!userId) {
@@ -297,13 +328,18 @@ export const updateSeries = async (id: string, formData: FormData) => {
       }
     }
 
-    return { success: true };
+    return {
+      success: true,
+      data: null,
+    };
   } catch (error) {
     return handleActionException(error);
   }
 };
 
-export const deleteSeries = async (id: string) => {
+export const deleteSeries = async (
+  id: string
+): Promise<ActionResponse<null>> => {
   try {
     const userId = await authID();
     if (!userId) {
@@ -330,13 +366,18 @@ export const deleteSeries = async (id: string) => {
       where: eq("id", id),
     });
 
-    return { success: true };
+    return {
+      success: true,
+      data: null,
+    };
   } catch (error) {
-    handleActionException(error);
+    return handleActionException(error);
   }
 };
 
-export const getUserArticles = async (excludeSeriesId?: string) => {
+export const getUserArticles = async (
+  excludeSeriesId?: string
+): Promise<ActionResponse<any[]>> => {
   try {
     const userId = await authID();
     if (!userId) {
@@ -400,7 +441,10 @@ export const getUserArticles = async (excludeSeriesId?: string) => {
       availableArticleIds: availableArticles.map((a) => a.id),
     });
 
-    return availableArticles;
+    return {
+      success: true,
+      data: availableArticles,
+    };
   } catch (error) {
     return handleActionException(error);
   }

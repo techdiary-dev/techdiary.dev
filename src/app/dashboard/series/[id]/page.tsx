@@ -72,7 +72,7 @@ const SeriesEditPage = () => {
 
   // Fetch series data using server actions
   const {
-    data: seriesData,
+    data: seriesResponse,
     isLoading: isSeriesLoading,
     error: seriesError,
   } = useQuery({
@@ -81,12 +81,18 @@ const SeriesEditPage = () => {
     enabled: !isNewSeries && Boolean(seriesId),
   });
 
+  const seriesData = seriesResponse?.success ? seriesResponse.data : null;
+
   // Fetch available articles using server actions
-  const { data: availableArticles = [], isLoading: isArticlesLoading } =
-    useQuery({
-      queryKey: ["articles", "own", seriesId],
-      queryFn: () => seriesActions.getUserArticles(isNewSeries ? undefined : seriesId),
-    });
+  const {
+    data: availableArticlesResponse,
+    isLoading: isArticlesLoading,
+  } = useQuery({
+    queryKey: ["articles", "own", seriesId],
+    queryFn: () => seriesActions.getUserArticles(isNewSeries ? undefined : seriesId),
+  });
+
+  const availableArticles = availableArticlesResponse?.success ? availableArticlesResponse.data : [];
 
   // Initialize form with series data when available
   useEffect(() => {
@@ -165,15 +171,17 @@ const SeriesEditPage = () => {
 
       if (isNewSeries) {
         const result = await seriesActions.createSeries(formData);
-        if (result?.id) {
+        if (result?.success && result.data?.id) {
           // Navigate to the edit page for the newly created series
-          router.push(`/dashboard/series/${result.id}`);
+          router.push(`/dashboard/series/${result.data.id}`);
         }
       } else {
-        await seriesActions.updateSeries(seriesId, formData);
-        // Invalidate queries to refresh data
-        queryClient.invalidateQueries({ queryKey: ["series"] });
-        queryClient.invalidateQueries({ queryKey: ["series", seriesId] });
+        const result = await seriesActions.updateSeries(seriesId, formData);
+        if (result?.success) {
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ["series"] });
+          queryClient.invalidateQueries({ queryKey: ["series", seriesId] });
+        }
       }
 
       console.log(

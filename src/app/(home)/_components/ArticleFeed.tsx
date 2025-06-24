@@ -33,8 +33,9 @@ const ArticleFeed = () => {
       seriesActions.seriesFeed({ limit: 5, page: pageParam }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      if (!lastPage?.meta.hasNextPage) return undefined;
-      const _page = lastPage?.meta?.currentPage ?? 1;
+      const data = lastPage?.success ? lastPage.data : null;
+      if (!data?.meta?.hasNextPage) return undefined;
+      const _page = data?.meta?.currentPage ?? 1;
       return _page + 1;
     },
     enabled: feedType === "series",
