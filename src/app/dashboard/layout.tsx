@@ -19,14 +19,19 @@ const layout: React.FC<PropsWithChildren> = async ({ children }) => {
   const session = await sessionActions.getSession();
 
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+
+  const getSidebarOpenState = () => {
+    const isOpen = cookieStore.get("sidebar_state")?.value;
+    if (!isOpen) return true;
+    return cookieStore.get("sidebar_state")?.value === "true";
+  };
 
   if (!session?.user) {
     redirect(`/login?next=${currentPath}`);
   }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
+    <SidebarProvider defaultOpen={getSidebarOpenState()}>
       <DashboardScaffold>{children}</DashboardScaffold>
     </SidebarProvider>
   );

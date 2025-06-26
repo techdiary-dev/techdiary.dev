@@ -1,6 +1,8 @@
+import { ActionResponse } from "@/backend/models/action-contracts";
+
 export interface IOAuthService<T> {
   getAuthorizationUrl(state: string, clientId: string): Promise<string>;
-  getUserInfo(code: string, state: string): Promise<T>;
+  getUserInfo(code: string, state: string): Promise<ActionResponse<T>>;
 }
 
 export interface IGithubUser {
@@ -38,4 +40,11 @@ export interface IGithubUser {
   following: number;
   created_at: Date;
   updated_at: Date;
+}
+
+export interface GithubUserEmailAPIResponse {
+  email: string;
+  verified: boolean;
+  primary: boolean;
+  visibility: string;
 }

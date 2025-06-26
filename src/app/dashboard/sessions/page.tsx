@@ -15,6 +15,7 @@ import {
   Loader,
   LogOut,
 } from "lucide-react";
+import { formatDistance } from "date-fns";
 
 const SessionsPage = () => {
   const authSession = useSession();
@@ -44,52 +45,56 @@ const SessionsPage = () => {
         )}
 
         {sessionQuery.data?.map((session) => (
-          <div key={session.id}>
-            <div className="flex flex-col gap-1 items-start mb-3">
-              <div className="flex items-center gap-2">
-                <ComputerIcon className="h-5 w-5 text-neutral-500" />
-                <span className="font-medium">{session.device}</span>
-              </div>
-              <div className="flex items-center gap-1 text-sm mb-2">
-                <ClockIcon className="h-3.5 w-3.5" />
-                <span>
-                  Last active {formattedTime(session.last_action_at!)}
-                </span>
-              </div>
-
-              <div className="text-xs mb-3">IP: {session.ip}</div>
-
-              {authSession?.session?.id == session.id && (
-                <div className="bg-green-50 px-2 text-green-700 border-green-200">
-                  Current Session
+          <div key={session.id} className="flex gap-3 items-start pb-3">
+            <span className="pt-1">
+              <ComputerIcon className="h-6 w-6 text-neutral-500 " />
+            </span>
+            <div className="flex flex-col gap-1">
+              <span className="font-medium">{session.device}</span>
+              {authSession?.session?.id == session.id ? (
+                <div className="text-green-500 text-xs">This device</div>
+              ) : (
+                <div className="flex items-center gap-1 text-sm">
+                  <ClockIcon className="h-3.5 w-3.5" />
+                  <span>
+                    Last active{" "}
+                    {formatDistance(
+                      new Date(session.last_action_at!),
+                      new Date(),
+                      { addSuffix: true }
+                    )}
+                  </span>
                 </div>
               )}
-              <Button
-                variant={"link"}
-                disabled={authSession?.session?.id == session.id}
-                className="text-destructive text-sm"
-                onClick={() => {
-                  appConfirm.show({
-                    title: _t("Sure to revoke session?"),
-                    children: _t(
-                      "If you revoke the session, you will be logged out from all devices"
-                    ),
-                    labels: {
-                      confirm: _t("Yes"),
-                      cancel: _t("Cancel"),
-                    },
-                    async onConfirm() {
-                      try {
-                        await sessionActions.deleteSession(session?.id);
-                      } finally {
-                        sessionQuery.refetch();
-                      }
-                    },
-                  });
-                }}
-              >
-                Log Out
-              </Button>
+              <div className="text-xs">IP: {session.ip}</div>
+              <span>
+                <Button
+                  variant={"link"}
+                  disabled={authSession?.session?.id == session.id}
+                  className="text-destructive text-sm"
+                  onClick={() => {
+                    appConfirm.show({
+                      title: _t("Sure to revoke session?"),
+                      children: _t(
+                        "If you revoke the session, you will be logged out from all devices"
+                      ),
+                      labels: {
+                        confirm: _t("Yes"),
+                        cancel: _t("Cancel"),
+                      },
+                      async onConfirm() {
+                        try {
+                          await sessionActions.deleteSession(session?.id);
+                        } finally {
+                          sessionQuery.refetch();
+                        }
+                      },
+                    });
+                  }}
+                >
+                  Log Out
+                </Button>
+              </span>
             </div>
           </div>
         ))}

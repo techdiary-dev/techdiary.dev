@@ -12,6 +12,9 @@ export const TagRepositoryInput = {
     color: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
   }),
+  getTag: z.object({
+    name: z.string(),
+  }),
   updateInput: z.object({
     tag_id: z.string(),
     name: z.string().optional(),

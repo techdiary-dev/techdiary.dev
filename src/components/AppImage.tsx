@@ -20,13 +20,12 @@ const AppImage: React.FC<AppImageProps> = ({
   height,
   width,
 }) => {
-  const cld = new Cloudinary({
-    cloud: { cloudName: "techdiary-dev" },
-  });
   let _imageUrl = "";
   let _blurredImageUrl = "/thumbnail-placeholder.png";
-
   if (imageSource?.provider === "cloudinary") {
+    const cld = new Cloudinary({
+      cloud: { cloudName: "techdiary-dev" },
+    });
     _imageUrl = cld
       .image(imageSource?.key)
       .quality("auto")
@@ -38,8 +37,10 @@ const AppImage: React.FC<AppImageProps> = ({
       .format("auto")
       .effect(blur(100000))
       .toURL();
-  } else {
-    _imageUrl = imageSource?.key || "";
+  }
+
+  if (imageSource?.provider === "r2") {
+    _imageUrl = `https://cdn.techdiary.dev/${imageSource.key}`;
   }
 
   return (

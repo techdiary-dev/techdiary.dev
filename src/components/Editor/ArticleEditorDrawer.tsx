@@ -29,6 +29,8 @@ import {
 import { Input } from "../ui/input";
 import { Sheet, SheetContent } from "../ui/sheet";
 import { Textarea } from "../ui/textarea";
+import { actionPromisify } from "@/lib/utils";
+import { slugify } from "@/lib/slug-helper.util";
 
 interface Props {
   article: Article;
@@ -43,9 +45,10 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
   const updateMyArticleMutation = useMutation({
     mutationFn: (
       input: z.infer<typeof ArticleRepositoryInput.updateMyArticleInput>
-    ) => {
-      return articleActions.updateMyArticle(input);
-    },
+    ) =>
+      actionPromisify(articleActions.updateMyArticle(input), {
+        enableToast: true,
+      }),
     onSuccess: () => {
       router.refresh();
     },
@@ -79,6 +82,7 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
           title: article?.metadata?.seo?.title ?? "",
           description: article?.metadata?.seo?.description ?? "",
           keywords: article?.metadata?.seo?.keywords ?? [],
+          canonical_url: article?.metadata?.seo?.canonical_url ?? "",
         },
       },
     },
@@ -98,6 +102,7 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
           title: payload.metadata?.seo?.title ?? "",
           description: payload.metadata?.seo?.description ?? "",
           keywords: payload.metadata?.seo?.keywords ?? [],
+          canonical_url: payload.metadata?.seo?.canonical_url ?? "",
         },
       },
     });
@@ -112,10 +117,10 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
               onSubmit={form.handleSubmit(handleOnSubmit)}
               className="flex flex-col gap-2"
             >
-              {JSON.stringify({
+              {/* {JSON.stringify({
                 errors: form.formState.errors,
                 values: form.watch("tag_ids"),
-              })}
+              })} */}
               {/* <pre>{JSON.stringify(article, null, 2)}</pre> */}
               <div className="flex flex-col gap-6">
                 <FormField
@@ -177,8 +182,13 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
                               page: 1,
                               search: searchTerm,
                             });
+
+                            if (!res.success) {
+                              return [];
+                            }
+
                             return (
-                              res?.map((tag) => ({
+                              res.data?.map((tag) => ({
                                 label: tag.name,
                                 value: tag.id,
                               })) ?? []
@@ -192,22 +202,27 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
                           }
                           creatable
                           onCreate={async (data) => {
+                            const name = slugify(data);
                             const createdResponse = await tagActions.createTag({
-                              name: data,
+                              name,
                             });
                             const old_tags = form.watch("tag_ids") ?? [];
 
+                            if (!createdResponse.success) {
+                              return;
+                            }
+
                             setSelectedTags(function (draft) {
                               draft.push({
-                                id: createdResponse?.id!,
-                                name: data,
+                                id: createdResponse.data.id!,
+                                name: name,
                                 created_at: new Date(),
                                 updated_at: new Date(),
                               });
                             });
                             form.setValue("tag_ids", [
                               ...old_tags,
-                              createdResponse?.id! as string,
+                              createdResponse?.data.id! as string,
                             ]);
                           }}
                           onChange={(e) => {
@@ -247,11 +262,9 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
                     <FormItem>
                       <FormLabel>{_t("SEO Title")}</FormLabel>
                       <FormDescription className="text-xs">
-                        The &quot;SEO title&quot; will be shown in place of your
-                        Title on search engine results pages, such as a Google
-                        search. SEO titles between 40 and 50 characters with
-                        commonly searched words have the best
-                        click-through-rates.
+                        {_t(
+                          "Override your article title for Google search results and social media cards. Keep it 40-50 characters for best performance."
+                        )}
                       </FormDescription>
                       <FormControl>
                         <Input {...field} placeholder={form.watch("title")} />
@@ -261,7 +274,7 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
                   )}
                 />
 
-                <FormField
+                {/* <FormField
                   control={form.control}
                   name="metadata.seo.keywords"
                   render={({ field }) => (
@@ -291,7 +304,7 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                /> */}
 
                 <FormField
                   control={form.control}
@@ -300,13 +313,35 @@ const ArticleEditorDrawer: React.FC<Props> = ({ article, open, onClose }) => {
                     <FormItem>
                       <FormLabel>{_t("SEO Description")}</FormLabel>
                       <FormDescription className="text-xs">
-                        The &quot;SEO description&quot; will be used in place of
-                        your Subtitle on search engine results pages. Good SEO
-                        descriptions utilize keywords, summarize the article and
-                        are between 140-156 characters long.
+                        Override your article description for Google search
+                        results and social media cards. Keep it 140-156
+                        characters and include relevant keywords.
                       </FormDescription>
                       <FormControl>
                         <Textarea {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="metadata.seo.canonical_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{_t("Canonical URL")}</FormLabel>
+                      <FormDescription className="text-xs">
+                        {_t(
+                          "Specify the preferred URL for this content to prevent duplicate content issues. Leave empty to use the default URL."
+                        )}
+                      </FormDescription>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          value={field.value ?? ""}
+                          placeholder="https://example.com/original-post"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

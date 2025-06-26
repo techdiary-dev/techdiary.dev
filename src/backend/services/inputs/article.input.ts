@@ -9,7 +9,7 @@ export const ArticleRepositoryInput = {
     cover_image: z
       .object({
         key: z.string(),
-        provider: z.enum(["cloudinary", "direct"]),
+        provider: z.enum(["cloudinary", "direct", "r2"]),
       })
       .optional()
       .nullable(),
@@ -40,9 +40,10 @@ export const ArticleRepositoryInput = {
     cover_image: z
       .object({
         key: z.string(),
-        provider: z.enum(["cloudinary", "direct"]),
+        provider: z.enum(["cloudinary", "direct", "r2"]),
       })
-      .optional(),
+      .optional()
+      .nullable(),
     is_published: z.boolean().optional(),
   }),
   updateMyArticleInput: z.object({
@@ -58,10 +59,11 @@ export const ArticleRepositoryInput = {
     cover_image: z
       .object({
         key: z.string(),
-        provider: z.enum(["cloudinary", "direct"]),
+        provider: z.enum(["cloudinary", "direct", "r2"]),
         alt: z.string().optional(),
       })
-      .optional(),
+      .optional()
+      .nullable(),
 
     // Optional boolean flag for publication status
     is_published: z.boolean().optional(),
@@ -76,12 +78,11 @@ export const ArticleRepositoryInput = {
             title: z.string().optional(),
             description: z.string().optional(),
             keywords: z.array(z.string()).optional(),
-            // canonical_url: z.string().url().nullable().optional(),
-            // canonical_url: z
-            //   .union([z.string().url(), z.literal(""), z.null()])
-            //   .optional()
-            //   .nullable()
-            //   .transform((val) => (val === "" ? null : val)),
+            canonical_url: z
+              .union([z.string().url(), z.literal(""), z.null()])
+              .optional()
+              .nullable()
+              .transform((val) => (val === "" ? null : val)),
           })
           .nullable()
           .optional(),
@@ -116,6 +117,12 @@ export const ArticleRepositoryInput = {
   }),
 
   myArticleInput: z.object({
+    page: z.number().default(1),
+    limit: z.number().default(10),
+  }),
+
+  tagFeedInput: z.object({
+    tag_id: z.string().uuid(),
     page: z.number().default(1),
     limit: z.number().default(10),
   }),

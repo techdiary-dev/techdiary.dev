@@ -2,14 +2,22 @@ export interface User {
   id: string;
   name: string;
   username: string;
+  is_verified?: boolean;
   email: string;
-  profile_photo: string;
+  profile_photo?: IServerFile | null;
   education: string;
   designation: string;
   bio: string;
   website_url: string;
   location: string;
-  social_links: any;
+  social_links: {
+    github?: string;
+    x?: string;
+    linkedin?: string;
+    facebook?: string;
+    instagram?: string;
+    youtube?: string;
+  };
   profile_readme: string;
   skills: string;
   created_at: Date;
@@ -39,7 +47,7 @@ export interface UserSession {
 
 export interface IServerFile {
   key: string;
-  provider: "cloudinary" | "direct";
+  provider: "cloudinary" | "direct" | "r2";
 }
 
 export interface ArticleMetadata {
@@ -59,12 +67,12 @@ export interface Article {
   excerpt?: string | null;
   body?: string | null;
   cover_image?: IServerFile | null;
-  is_published: boolean;
   published_at?: Date | null;
   approved_at?: Date | null;
   user?: User | null;
   metadata?: ArticleMetadata | null;
   author_id: string;
+  delete_scheduled_at: Date | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -112,4 +120,120 @@ export interface ArticleTag {
   // Relationships
   article?: Article;
   tag?: Tag;
+}
+
+export interface Bookmark {
+  id: string;
+  resource_id: string;
+  resource_type: "ARTICLE" | "COMMENT";
+  user_id: string;
+  created_at: Date;
+}
+
+export interface BookmarkArticlePresentation {
+  id: string;
+  resource_id: string;
+  resource_type: "ARTICLE" | "COMMENT";
+  user_id: string;
+  created_at: Date;
+
+  article: {
+    id: string;
+    title: string;
+    path: string;
+    cover_image?: IServerFile | null;
+    author: {
+      id: string;
+      name: string;
+      username: string;
+      email: string;
+      profile_photo: string;
+    };
+  };
+}
+
+export interface Comment {
+  id: string;
+  resource_id: string;
+  resource_type: "ARTICLE" | "COMMENT";
+  body?: string;
+  user_id: string;
+  created_at: Date;
+}
+
+export interface CommentPresentation {
+  id: string;
+  body?: string;
+  level?: number;
+  created_at?: Date;
+  author?: {
+    id: string;
+    name: string;
+    username: string;
+    email: string;
+  };
+  replies?: CommentPresentation[];
+}
+
+export type REACTION_TYPE =
+  | "LOVE"
+  | "UNICORN"
+  | "WOW"
+  | "FIRE"
+  | "CRY"
+  | "HAHA";
+
+export enum DIRECTORY_NAME {
+  ARTICLE_COVER = "article-cover",
+  ARTICLE_CONTENT = "article-content",
+  USER_AVATARS = "user-avatars",
+  USER_PROFILE_README_CONTENT = "user-profile-readme-content",
+  COMMENT_ATTACHMENT = "comment-attachment",
+  UNCATEGORIES = "uncategories",
+}
+
+export interface Reaction {
+  resource_id: string;
+  resource_type: "ARTICLE" | "COMMENT";
+  reaction_type: REACTION_TYPE;
+  user_id: string;
+  created_at: Date;
+}
+
+export interface ReactionStatus {
+  count: number;
+  is_reacted: boolean;
+  reaction_type?: REACTION_TYPE;
+  reactor_user_ids?: string[];
+}
+
+export interface IUnsplashImage {
+  id: string;
+  slug: string;
+  created_at: Date;
+  updated_at: Date;
+  promoted_at: null;
+  width: number;
+  height: number;
+  color: string;
+  blur_hash: string;
+  description: null | string;
+  alt_description: string;
+  urls: UnsplashImageUrls;
+  likes: number;
+}
+
+interface UnsplashImageUrls {
+  raw: string;
+  full: string;
+  regular: string;
+  small: string;
+  thumb: string;
+  small_s3: string;
+}
+
+export interface KV {
+  id: string;
+  key: string;
+  value: any;
 }

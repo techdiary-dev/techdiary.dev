@@ -1,1 +1,0 @@
-ALTER TABLE "users" RENAME COLUMN "profilePhoto" TO "profile_photo";

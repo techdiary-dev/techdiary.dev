@@ -1,9 +1,13 @@
-import { getTags } from "@/backend/services/tag.action";
-import React from "react";
+import Markdown from "@/lib/markdown/Markdown";
 
-const Page = async () => {
-  const tags = await getTags({ page: 1, limit: -1, search: "ww" });
-  return <pre className="p-10">{JSON.stringify(tags, null, 2)}</pre>;
+const Page = () => {
+  return (
+    <Markdown
+      content={`
+        {% youtube id="hOHKltAiKXQ" /%}
+    `}
+    />
+  );
 };
 
 export default Page;

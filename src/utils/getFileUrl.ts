@@ -22,6 +22,8 @@ const getFileUrl = (fileSource?: IServerFile | null) => {
       .format("auto")
       .effect(blur(100000))
       .toURL();
+  } else if (fileSource?.provider === "r2") {
+    return `https://cdn.techdiary.dev/${fileSource?.key}`;
   } else {
     _imageUrl = fileSource?.key || "";
   }

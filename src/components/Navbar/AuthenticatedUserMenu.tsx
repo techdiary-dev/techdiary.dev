@@ -1,17 +1,17 @@
 "use client";
 
+import * as sessionActions from "@/backend/services/session.actions";
 import { useTranslation } from "@/i18n/use-translation";
 import { useSession } from "@/store/session.atom";
+import Link from "next/link";
 import { useAppConfirm } from "../app-confirm";
-import * as sessionActions from "@/backend/services/session.actions";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import Link from "next/link";
 
 const AuthenticatedUserMenu = () => {
   const { _t } = useTranslation();
@@ -33,22 +33,47 @@ const AuthenticatedUserMenu = () => {
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={authSession?.user?.profile_photo ?? ""} />
+          <AvatarImage src={authSession?.user?.profile_photo_url ?? ""} />
           <AvatarFallback>{authSession?.user?.name.charAt(0)}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem asChild>
-          <Link href={`/@${authSession?.user?.username}`}>
+          <Link
+            className="text-foreground cursor-pointer block"
+            href={`/@${authSession?.user?.username}`}
+          >
             {_t("My profile")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
-          <Link href="/dashboard">{_t("Dashboard")}</Link>
+          <Link
+            className="text-foreground cursor-pointer block"
+            href="/dashboard"
+          >
+            {_t("Dashboard")}
+          </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>{_t("Bookmarks")}</DropdownMenuItem>
-        <DropdownMenuItem>{_t("Settings")}</DropdownMenuItem>
-        <DropdownMenuItem onClick={handleLogout}>
+        <DropdownMenuItem asChild>
+          <Link
+            className="text-foreground cursor-pointer"
+            href="/dashboard/bookmarks"
+          >
+            {_t("Bookmarks")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            className="text-foreground cursor-pointer"
+            href="/dashboard/settings"
+          >
+            {_t("Settings")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          className="cursor-pointer block hover:underline"
+          onClick={handleLogout}
+        >
           {_t("Logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>

@@ -5,4 +5,8 @@ export const UserSessionInput = {
     user_id: z.string(),
     request: z.instanceof(Request),
   }),
+  createBackdoorLoginSessionInput: z.object({
+    user_id: z.string(),
+    secret: z.string(),
+  }),
 };

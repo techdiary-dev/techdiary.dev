@@ -5,7 +5,7 @@ import { and, eq, neq } from "sqlkit";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const articles = await persistenceRepository.article.find({
-    where: and(eq("is_published", true), neq("approved_at", null)),
+    where: and(neq("published_at", null), neq("approved_at", null)),
     columns: ["handle", "updated_at"],
     limit: -1,
     joins: [

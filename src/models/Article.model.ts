@@ -12,7 +12,6 @@ export interface IArticleFeedItem {
   thumbnail: string;
   tags: Tag[];
   excerpt: null;
-  is_published: boolean;
   user: UserReference;
   body: {
     html?: string;
@@ -47,7 +46,6 @@ export interface IArticleDetail {
   bookmarked_users: string[];
   comments_count: null;
   excerpt: null;
-  is_published: boolean;
   is_approved: boolean;
   tags: any[];
   user: UserReference;

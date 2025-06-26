@@ -15,7 +15,7 @@ export interface ISessionUser {
   name: string;
   username: string;
   email: string;
-  profile_photo: string;
+  profile_photo_url: string;
 }
 
 export type SessionResult =

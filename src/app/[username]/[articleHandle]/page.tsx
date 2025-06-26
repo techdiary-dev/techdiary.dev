@@ -2,17 +2,23 @@ import HomeLeftSidebar from "@/app/(home)/_components/HomeLeftSidebar";
 import { persistenceRepository } from "@/backend/persistence/persistence-repositories";
 import * as articleActions from "@/backend/services/article.actions";
 import AppImage from "@/components/AppImage";
+import {
+  CommentSection,
+  CommentSectionProvider,
+} from "@/components/comment-section";
 import HomepageLayout from "@/components/layout/HomepageLayout";
+import ResourceBookmark from "@/components/ResourceBookmark";
+import ResourceReaction from "@/components/ResourceReaction";
+import Markdown from "@/lib/markdown/Markdown";
 import { readingTime, removeMarkdownSyntax } from "@/lib/utils";
 import getFileUrl from "@/utils/getFileUrl";
-import { markdocParser } from "@/utils/markdoc-parser";
 import { Metadata, NextPage } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Article, WithContext } from "schema-dts";
 import { eq } from "sqlkit";
 import ArticleSidebar from "./_components/ArticleSidebar";
+import EditArticleButton from "./_components/EditArticleButton";
 
 interface ArticlePageProps {
   params: Promise<{
@@ -28,16 +34,23 @@ export async function generateMetadata(
   const { articleHandle } = await options.params;
   const [article] = await persistenceRepository.article.find({
     where: eq("handle", articleHandle),
-    columns: ["title", "excerpt", "cover_image", "body"],
+    columns: ["title", "handle", "excerpt", "cover_image", "body"],
     limit: 1,
+    joins: [
+      {
+        table: "users",
+        as: "user",
+        on: {
+          localField: "author_id",
+          foreignField: "id",
+        },
+        type: "left",
+        columns: ["id", "username", "name"],
+      },
+    ],
   });
 
-  if (!article.cover_image) {
-    return {
-      title: article.title,
-      description: removeMarkdownSyntax(article.body ?? "", 20),
-    };
-  }
+  console.log(article);
 
   return {
     title: article.title,
@@ -46,6 +59,9 @@ export async function generateMetadata(
       20
     ),
     openGraph: {
+      title: article.title,
+      url: `https://www.techdiary.dev/@${article?.user?.username}/${article?.handle}`,
+      type: "article",
       images: [
         {
           url: getFileUrl(article.cover_image),
@@ -66,13 +82,23 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
     "@context": "https://schema.org",
     "@type": "Article",
     name: article?.title,
-    image: getFileUrl(article?.cover_image),
+    headline: article?.title,
+    image: article?.cover_image ? getFileUrl(article?.cover_image) : undefined,
     description: article?.excerpt ?? removeMarkdownSyntax(article?.body ?? ""),
+    url: `https://www.techdiary.dev/@${article?.user?.username}/${article?.handle}`,
     author: {
       "@type": "Person",
       name: article?.user?.name,
-      image: article?.user?.profile_photo,
+      image: getFileUrl(article?.user?.profile_photo),
       url: `https://www.techdiary.dev/@${article?.user?.username}`,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "TechDiary",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://www.techdiary.dev/og.png",
+      },
     },
     articleBody: removeMarkdownSyntax(article?.body ?? "", 300),
   };
@@ -80,8 +106,6 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
   if (!article) {
     throw notFound();
   }
-
-  const parsedHTML = markdocParser(article?.body ?? "");
 
   return (
     <>
@@ -107,11 +131,18 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
             </div>
           )}
 
+          {/* <pre>{JSON.stringify(article?.user, null, 2)}</pre> */}
+
           {/* User information */}
           <div className="mb-4 flex items-center my-4">
             <div className="relative rounded-full overflow-hidden border transition-transform duration-300 size-10">
-              <Image
-                src={article?.user?.profile_photo ?? ""}
+              <img
+                src={
+                  Boolean(article?.user?.profile_photo)
+                    ? getFileUrl(article?.user?.profile_photo)
+                    : "https://api.dicebear.com/9.x/personas/svg?seed=" +
+                      article?.user?.name
+                }
                 alt={article?.user?.username ?? ""}
                 width={40}
                 height={40}
@@ -150,8 +181,35 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
             <h1 className="text-2xl font-bold">{article?.title ?? ""}</h1>
           </div>
 
-          <div className="mx-auto content-typography">{parsedHTML}</div>
+          <div className="flex items-center justify-between mb-4">
+            <ResourceReaction
+              resource_type="ARTICLE"
+              resource_id={article.id}
+            />
+
+            <div className="flex gap-1.5 items-center">
+              {article.user?.id && (
+                <EditArticleButton
+                  article_id={article.id}
+                  article_author_id={article.user?.id}
+                />
+              )}
+
+              <ResourceBookmark
+                resource_type="ARTICLE"
+                resource_id={article.id}
+              />
+            </div>
+          </div>
+
+          <div className="mx-auto content-typography">
+            {article.body && <Markdown content={article.body!} />}
+          </div>
         </div>
+
+        <CommentSectionProvider>
+          <CommentSection resource_type="ARTICLE" resource_id={article.id} />
+        </CommentSectionProvider>
       </HomepageLayout>
     </>
   );

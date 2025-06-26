@@ -12,14 +12,21 @@ import SocialLoginCard from "../SocialLoginCard";
 import AuthenticatedUserMenu from "./AuthenticatedUserMenu";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Link from "next/link";
+import { useAtom } from "jotai";
+import { searchBarAtom } from "@/store/search-bar.atom";
 
 const NavbarActions: React.FC = () => {
   const { _t } = useTranslation();
   const authSession = useSession();
+  const [, setSearchOpen] = useAtom(searchBarAtom);
 
   return (
     <div className="flex items-center gap-2">
-      <Button variant="ghost" className="md:hidden">
+      <Button
+        variant="ghost"
+        className="md:hidden"
+        onClick={() => setSearchOpen(true)}
+      >
         <SearchIcon size={18} />
       </Button>
       <LanguageSwitcher />

@@ -37,13 +37,13 @@ const DiscordWidget = () => {
             <>
               <div className="text-sm text-forground-muted flex gap-2">
                 <p className="font-semibold">মোট সদস্য</p>
-                <p>{data?.approximate_member_count}</p>
+                {/* <p>{data?.approximate_member_count}</p> */}
               </div>
 
-              <div className="text-sm text-forground-muted flex gap-2">
+              {/* <div className="text-sm text-forground-muted flex gap-2">
                 <p className="font-semibold">অনলাইনে আছেন</p>
                 <p>{data?.approximate_presence_count}</p>
-              </div>
+              </div> */}
             </>
           )}
         </div>

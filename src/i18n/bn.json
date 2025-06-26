@@ -108,5 +108,9 @@
   "Login Sessions": "লগইন সেশন সমূহ",
   "These are the login sessions of your account. You can use this to revoke access to your account": "এটি আপনার একাউন্ট এর লগইন সেশন তালিকা। আপনি অন্য ডিভাইস থেকে লগাউট করে দিতে পারবেন",
   "You are not logged in": "আপনি লগইন করেননি",
-  "To do this, you must be logged in": "এটি করতে হলে আপনাকে লগইন করতে হবে"
+  "To do this, you must be logged in": "এটি করতে হলে আপনাকে লগইন করতে হবে",
+  "Article will be deleted within $ hours": "আর্টিক্যাল $ ঘণ্টার মধ্যে মুছে যাবে",
+  "Upload Image for Article Content": "আর্টিকেলে ছবি আপলোড করুন",
+  "Copy": "কপি করুন",
+  "Code copied": "কোড কপি করা হয়েছে"
 }

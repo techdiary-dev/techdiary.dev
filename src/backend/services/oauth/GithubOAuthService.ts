@@ -1,7 +1,12 @@
-import {generateRandomString} from "@/lib/utils";
-import {IGithubUser, IOAuthService} from "./oauth-contract";
-import {cookies} from "next/headers";
-import {env} from "@/env";
+import { env } from "@/env";
+import { generateRandomString } from "@/lib/utils";
+import { cookies } from "next/headers";
+import { ActionException, handleActionException } from "../RepositoryException";
+import {
+  GithubUserEmailAPIResponse,
+  IGithubUser,
+  IOAuthService,
+} from "./oauth-contract";
 
 export class GithubOAuthService implements IOAuthService<IGithubUser> {
   async getAuthorizationUrl(): Promise<string> {
@@ -9,7 +14,7 @@ export class GithubOAuthService implements IOAuthService<IGithubUser> {
     const params = new URLSearchParams({
       client_id: env.GITHUB_CLIENT_ID,
       redirect_uri: env.GITHUB_CALLBACK_URL,
-      scope: "user:email",
+      scope: "read:user,user:email",
       state,
     });
     const _cookies = await cookies();
@@ -23,25 +28,32 @@ export class GithubOAuthService implements IOAuthService<IGithubUser> {
     return `https://github.com/login/oauth/authorize?${params.toString()}`;
   }
 
-  async getUserInfo(code: string, state: string): Promise<IGithubUser> {
-    const _cookies = await cookies();
-    const storedState = _cookies.get("github_oauth_state")?.value ?? null;
+  async getUserInfo(code: string, state: string) {
+    try {
+      const _cookies = await cookies();
+      const storedState = _cookies.get("github_oauth_state")?.value ?? null;
 
-    if (code === null || state === null || storedState === null) {
-      throw new Error("Please restart the process.");
+      if (code === null || state === null || storedState === null) {
+        throw new ActionException("Please restart the process.");
+      }
+      if (state !== storedState) {
+        throw new ActionException("Please restart the process.");
+      }
+
+      const githubAccessToken = await validateGitHubCode(
+        code,
+        env.GITHUB_CLIENT_ID,
+        env.GITHUB_CLIENT_SECRET,
+        env.GITHUB_CALLBACK_URL
+      );
+
+      return {
+        success: true as const,
+        data: await getGithubUser(githubAccessToken.access_token),
+      };
+    } catch (error) {
+      return handleActionException(error);
     }
-    if (state !== storedState) {
-      throw new Error("Please restart the process.");
-    }
-
-    const githubAccessToken = await validateGitHubCode(
-      code,
-      env.GITHUB_CLIENT_ID,
-      env.GITHUB_CLIENT_SECRET,
-      env.GITHUB_CALLBACK_URL
-    );
-
-    return await getGithubUser(githubAccessToken.access_token);
   }
 }
 
@@ -82,14 +94,23 @@ export const validateGitHubCode = async (
 };
 
 const getGithubUser = async (accessToken: string): Promise<IGithubUser> => {
-  const githubAPI = await fetch("https://api.github.com/user", {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+  const userInfoAPI = await fetch("https://api.github.com/user", {
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
-  if (!githubAPI.ok) {
-    throw new Error("Failed to get GitHub user");
+
+  const userEmailAPI = await fetch("https://api.github.com/user/emails", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!userInfoAPI.ok || !userEmailAPI.ok) {
+    throw new ActionException("Failed to get GitHub user");
   }
 
-  return (await githubAPI.json()) as IGithubUser;
+  const user = (await userInfoAPI.json()) as IGithubUser;
+  const emails = (await userEmailAPI.json()) as GithubUserEmailAPIResponse[];
+
+  const primaryEmail = emails.find((e) => e.primary);
+  user.email = primaryEmail?.email!;
+
+  return user;
 };

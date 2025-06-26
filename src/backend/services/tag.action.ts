@@ -4,20 +4,46 @@ import { and, eq, inArray, like } from "sqlkit";
 import { z } from "zod";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { TagRepositoryInput } from "./inputs/tag.input";
-import { handleRepositoryException } from "./RepositoryException";
+import { ActionException, handleActionException } from "./RepositoryException";
 
 export const getTags = async (
   _input: z.infer<typeof TagRepositoryInput.findAllInput>
 ) => {
   try {
     const input = await TagRepositoryInput.findAllInput.parseAsync(_input);
-    return persistenceRepository.tags.find({
+    const res = await persistenceRepository.tags.find({
       where: input.search
         ? like("name", `%${input.search.toLowerCase()}%`)
         : undefined,
     });
+    return {
+      data: res,
+      success: true as const,
+    };
   } catch (error) {
-    handleRepositoryException(error);
+    return handleActionException(error);
+  }
+};
+
+export const getTag = async (
+  _input: z.infer<typeof TagRepositoryInput.getTag>
+) => {
+  try {
+    const input = await TagRepositoryInput.getTag.parseAsync(_input);
+    const response = await persistenceRepository.tags.find({
+      where: eq("name", input.name),
+    });
+
+    if (!response[0]) {
+      throw new ActionException("Tag not found");
+    }
+
+    return {
+      data: response[0],
+      success: true as const,
+    };
+  } catch (error) {
+    return handleActionException(error);
   }
 };
 
@@ -34,9 +60,12 @@ export const createTag = async (
       },
     ]);
 
-    return response.rows[0];
+    return {
+      success: true as const,
+      data: response.rows[0],
+    };
   } catch (error) {
-    handleRepositoryException(error);
+    return handleActionException(error);
   }
 };
 
@@ -79,13 +108,7 @@ export const syncTagsWithArticles = async (
         inArray("tag_id", tagsToRemove)
       ),
     });
-    console.log({
-      tagsToRemove,
-      tagsToAdd,
-      attachedTagIds,
-      inputTagIds: input.tag_ids,
-    });
   } catch (error) {
-    handleRepositoryException(error);
+    return handleActionException(error);
   }
 };

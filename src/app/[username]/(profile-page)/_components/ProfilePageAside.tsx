@@ -10,6 +10,7 @@ import Stackoverflow from "@/components/icons/stackoverflow";
 import Twitch from "@/components/icons/twitch";
 import X from "@/components/icons/x";
 import Youtube from "@/components/icons/youtube";
+import getFileUrl from "@/utils/getFileUrl";
 import { Link2Icon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,7 +28,7 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
         width={320}
         height={320}
         src={
-          profile?.profile_photo ||
+          getFileUrl(profile?.profile_photo) ||
           `https://api.dicebear.com/8.x/initials/svg?seed=${profile?.username}`
         }
         alt={profile?.username ?? "Profile photo"}
@@ -134,7 +135,7 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
           </Link>
         )}
 
-        {profile?.social_links?.stackOverflow && (
+        {/* {profile?.social_links?.stackOverflow && (
           <Link
             href={profile?.social_links?.stackOverflow}
             target="_blank"
@@ -152,7 +153,7 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
           >
             <Medium size={30} />
           </Link>
-        )}
+        )} */}
 
         {profile?.social_links?.linkedin && (
           <a
@@ -164,9 +165,9 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
           </a>
         )}
 
-        {profile?.social_links?.twitter && (
+        {profile?.social_links?.x && (
           <Link
-            href={profile?.social_links?.twitter}
+            href={profile?.social_links?.x}
             target="_blank"
             className=" text-forground-muted"
           >
@@ -184,7 +185,7 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
           </Link>
         )}
 
-        {profile?.social_links?.behance && (
+        {/* {profile?.social_links?.behance && (
           <a
             href={profile?.social_links?.behance}
             target="_blank"
@@ -212,7 +213,7 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
           >
             <Twitch size={30} />
           </Link>
-        )}
+        )} */}
 
         {profile?.social_links?.youtube && (
           <a

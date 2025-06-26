@@ -1,4 +1,4 @@
 export interface IServerFile {
-  provider: "cloudinary" | "direct";
+  provider: "cloudinary" | "r2" | "direct";
   key: string;
 }

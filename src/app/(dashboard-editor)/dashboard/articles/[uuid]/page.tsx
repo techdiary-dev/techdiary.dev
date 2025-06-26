@@ -11,7 +11,7 @@ interface Props {
   params: Promise<{ uuid: string }>;
 }
 const page: React.FC<Props> = async ({ params }) => {
-  const sessionUserId = await sessionActions.getSessionUserId();
+  const sessionUserId = await sessionActions.authID();
 
   const _params = await params;
 

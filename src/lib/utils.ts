@@ -1,4 +1,6 @@
+import { ActionResponse } from "@/backend/models/action-contracts";
 import { clsx, type ClassValue } from "clsx";
+import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
 
@@ -85,20 +87,83 @@ export const sanitizedUsername = (username: string) => {
     : decoded.toLowerCase();
 };
 
-export const slugify = (text: string) => {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+export const getImageBase64 = (file: File) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 };
 
-export const removeNullOrUndefinedFromObject = (obj: any) => {
+export const removeUndefinedFromObject = (obj: any) => {
   const newObj = { ...obj };
   Object.keys(newObj).forEach((key) => {
-    if (newObj[key] === null || newObj[key] === undefined) {
+    if (newObj[key] === undefined) {
       delete newObj[key];
     }
   });
   return newObj;
 };
+
+export function filterUndefined<T = unknown>(
+  mapping: Partial<Record<keyof T, any>>
+): Partial<Record<string, any>> {
+  return Object.fromEntries(
+    Object.entries(mapping).filter(([_, value]) => value !== undefined)
+  ) as Partial<Record<string, any>>;
+}
+
+// Improved with automatic type inference
+export const actionPromisify = async <T = any>(
+  action: Promise<ActionResponse<T>>,
+  options?: {
+    enableToast?: boolean;
+    toastOptions?: {
+      loading?: string;
+      success?: string;
+      error?: string;
+    };
+  }
+): Promise<T> => {
+  const promise = new Promise<T>(async (resolve, reject) => {
+    try {
+      const resolvedAction = await action;
+
+      if (!resolvedAction) {
+        reject("Action returned undefined");
+        return;
+      }
+
+      if (!resolvedAction.success) {
+        // @ts-ignore
+        reject(resolvedAction.error ?? "Unknown error occurred");
+        return;
+      }
+
+      if (resolvedAction.success) {
+        resolve(resolvedAction.data);
+        return;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        reject(error.message);
+      } else {
+        reject("An unexpected error occurred");
+      }
+    }
+  });
+
+  if (options?.enableToast) {
+    toast.promise(promise, {
+      loading: options?.toastOptions?.loading ?? "Loading...",
+      success: options?.toastOptions?.success ?? "Success!",
+      error: (errorMsg: string) => errorMsg || "Operation failed",
+    });
+  }
+
+  return promise;
+};
+
+export const sleep = (ms: number) =>
+  new Promise((resolve) => setTimeout(() => resolve("Hello"), ms));

@@ -6,6 +6,7 @@ import React, { useMemo } from "react";
 import ArticleCard from "@/components/ArticleCard";
 import { readingTime } from "@/lib/utils";
 import VisibilitySensor from "@/components/VisibilitySensor";
+import getFileUrl from "@/utils/getFileUrl";
 
 interface UserArticleFeedProps {
   userId: string;
@@ -15,11 +16,23 @@ const UserArticleFeed: React.FC<UserArticleFeedProps> = ({ userId }) => {
   const feedInfiniteQuery = useInfiniteQuery({
     queryKey: ["user-article-feed", userId],
     queryFn: ({ pageParam }) =>
-      articleActions.userArticleFeed({
-        user_id: userId,
-        limit: 5,
-        page: pageParam,
-      }),
+      articleActions.userArticleFeed(
+        {
+          user_id: userId,
+          limit: 5,
+          page: pageParam,
+        },
+        [
+          "id",
+          "title",
+          "handle",
+          "cover_image",
+          "body",
+          "published_at",
+          "created_at",
+          "excerpt",
+        ]
+      ),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const _page = lastPage?.meta?.currentPage ?? 1;
@@ -45,8 +58,11 @@ const UserArticleFeed: React.FC<UserArticleFeedProps> = ({ userId }) => {
         </div>
       )}
 
+      {/* <pre>{JSON.stringify(feedArticles, null, 2)}</pre> */}
+
       {feedArticles?.map((article) => (
         <ArticleCard
+          key={article?.id}
           id={article?.id ?? ""}
           title={article?.title ?? ""}
           handle={article?.handle ?? ""}
@@ -54,14 +70,12 @@ const UserArticleFeed: React.FC<UserArticleFeedProps> = ({ userId }) => {
           author={{
             id: article?.user?.id ?? "",
             name: article?.user?.name ?? "",
-            avatar: article?.user?.profile_photo ?? "",
+            avatar: getFileUrl(article?.user?.profile_photo) ?? "",
             username: article?.user?.username ?? "",
+            is_verified: Boolean(article?.user?.is_verified),
           }}
-          publishedAt={article?.created_at.toDateString() ?? ""}
+          publishedAt={article?.published_at?.toDateString() ?? ""}
           readingTime={readingTime(article?.body ?? "")}
-          likes={0}
-          comments={0}
-          key={article?.id}
         />
       ))}
 

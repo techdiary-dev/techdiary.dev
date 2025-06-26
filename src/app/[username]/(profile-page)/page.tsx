@@ -1,6 +1,7 @@
 import { getUserByUsername } from "@/backend/services/user.action";
 import _t from "@/i18n/_t";
-import { markdocParser } from "@/utils/markdoc-parser";
+import { markdocParser } from "@/lib/markdown/markdoc-parser";
+import Markdown from "@/lib/markdown/Markdown";
 import Image from "next/image";
 import React from "react";
 
@@ -19,7 +20,7 @@ const UserProfilePage: React.FC<UserProfilePageProps> = async ({ params }) => {
     <main className="border rounded-bl-2xl rounded-br-2xl md:col-span-9 col-span-full">
       {profile?.profile_readme ? (
         <div className="p-3 content-typography">
-          {markdocParser(profile?.profile_readme ?? "")}
+          <Markdown content={profile?.profile_readme} />
         </div>
       ) : (
         <div className="py-10 flex flex-col items-center justify-center gap-4">

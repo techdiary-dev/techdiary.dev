@@ -1,7 +1,7 @@
+import { getUserByUsername } from "@/backend/services/user.action";
 import { sanitizedUsername } from "@/lib/utils";
 import React from "react";
 import UserArticleFeed from "./UserArticleFeed";
-import { getUserByUsername } from "@/backend/services/user.action";
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -13,6 +13,7 @@ const Page: React.FC<PageProps> = async ({ params }) => {
 
   return (
     <main className="border rounded-bl-2xl rounded-br-2xl md:col-span-9 col-span-full">
+      {/* <pre>{JSON.stringify(profile, null, 2)}</pre> */}
       <UserArticleFeed userId={profile?.id!} />
     </main>
   );

@@ -1,13 +1,80 @@
 "use server";
 
-import { desc, eq } from "sqlkit";
+import { and, desc, eq } from "sqlkit";
 import { z } from "zod";
 import { User } from "../models/domain-models";
 import { persistenceRepository } from "../persistence/persistence-repositories";
-import { handleRepositoryException } from "./RepositoryException";
-import { UserRepositoryInput } from "./inputs/user.input";
+import { ActionException, handleActionException } from "./RepositoryException";
+import { UserActionInput } from "./inputs/user.input";
 import { drizzleClient } from "@/backend/persistence/clients";
 import { usersTable } from "@/backend/persistence/schemas";
+import { authID } from "./session.actions";
+import { filterUndefined } from "@/lib/utils";
+import { ActionResult } from "next/dist/server/app-render/types";
+import { ActionResponse } from "../models/action-contracts";
+
+/**
+ * Creates or syncs a user account from a social login provider.
+ * If the user exists, links their social account. If not, creates a new user and social link.
+ *
+ * @param _input - The social user data containing service, uid and profile info, validated against UserRepositoryInput.syncSocialUserInput schema
+ * @returns Promise<{user: User, userSocial: UserSocial}> - The user and their social account link
+ * @throws {RepositoryException} If user creation/sync fails or validation fails
+ */
+export async function bootSocialUser(
+  _input: z.infer<typeof UserActionInput.syncSocialUserInput>
+) {
+  try {
+    const input = await UserActionInput.syncSocialUserInput.parseAsync(_input);
+    let [user] = await persistenceRepository.user.find({
+      where: eq("email", input.email),
+      columns: ["id", "name", "username", "email"],
+      orderBy: [desc("created_at")],
+      limit: 1,
+    });
+
+    if (!user) {
+      user = (
+        await persistenceRepository.user.insert([
+          {
+            name: input.name,
+            username: input.username,
+            email: input.email,
+            profile_photo: input.profile_photo,
+            bio: input.bio ?? "",
+          },
+        ])
+      )?.rows?.[0];
+    }
+
+    // check user has social account
+    const [userSocial] = await persistenceRepository.userSocial.find({
+      where: and(
+        eq("service", input.service),
+        eq("service_uid", input.service_uid)
+      ),
+      columns: ["id", "service", "service_uid", "user_id"],
+      limit: 1,
+    });
+
+    if (!userSocial) {
+      await persistenceRepository.userSocial.insert([
+        {
+          service: input.service,
+          service_uid: input.service_uid,
+          user_id: user.id,
+        },
+      ]);
+    }
+
+    return {
+      success: true as const,
+      data: { user, userSocial },
+    };
+  } catch (error) {
+    return handleActionException(error);
+  }
+}
 
 /**
  * Updates a user's profile information.
@@ -16,35 +83,35 @@ import { usersTable } from "@/backend/persistence/schemas";
  * @returns Promise<User> - The updated user
  * @throws {RepositoryException} If update fails or validation fails
  */
-export async function updateUserProfile(
-  _input: z.infer<typeof UserRepositoryInput.updateUserProfileInput>,
+export async function updateMyProfile(
+  _input: z.infer<typeof UserActionInput.updateMyProfileInput>
 ) {
-  try {
-    const input =
-      await UserRepositoryInput.updateUserProfileInput.parseAsync(_input);
-
-    const updatedUser = await persistenceRepository.user.update({
-      where: eq("id", input.id),
-      data: {
-        name: input.name,
-        username: input.username,
-        email: input.email,
-        profile_photo: input.profile_photo,
-        education: input.education,
-        designation: input.designation,
-        bio: input.bio,
-        website_url: input.websiteUrl,
-        location: input.location,
-        social_links: input.social_links,
-        profile_readme: input.profile_readme,
-        skills: input.skills,
-      },
-    });
-
-    return updatedUser?.rows?.[0];
-  } catch (error) {
-    handleRepositoryException(error);
+  const sessionUser = await authID();
+  if (!sessionUser) {
+    throw new ActionException(`User not authenticated`);
   }
+
+  const input = await UserActionInput.updateMyProfileInput.parseAsync(_input);
+
+  const updatedUser = await persistenceRepository.user.update({
+    where: eq("id", sessionUser!),
+    data: filterUndefined<User>({
+      name: input.name,
+      username: input.username,
+      email: input.email,
+      profile_photo: input.profile_photo,
+      education: input.education,
+      designation: input.designation,
+      bio: input.bio,
+      website_url: input.websiteUrl,
+      location: input.location,
+      social_links: input.social_links,
+      profile_readme: input.profile_readme,
+      skills: input.skills,
+    }),
+  });
+
+  return updatedUser?.rows?.[0];
 }
 
 /**
@@ -62,7 +129,7 @@ export async function getUserById(id: string): Promise<User | null> {
     });
     return user;
   } catch (error) {
-    handleRepositoryException(error);
+    handleActionException(error);
     return null;
   }
 }
@@ -76,17 +143,18 @@ export async function getUserById(id: string): Promise<User | null> {
  */
 export async function getUserByUsername(
   username: string,
-  columns?: (keyof User)[],
+  columns?: (keyof User)[]
 ): Promise<User | null> {
   try {
     const [user] = await persistenceRepository.user.find({
+      operationName: "getUserByUsername",
       where: eq("username", username),
       limit: 1,
       columns: columns ? columns : undefined,
     });
     return user;
   } catch (error) {
-    handleRepositoryException(error);
+    handleActionException(error);
     return null;
   }
 }
@@ -106,7 +174,7 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     });
     return user;
   } catch (error) {
-    handleRepositoryException(error);
+    handleActionException(error);
     return null;
   }
 }
@@ -134,7 +202,7 @@ export async function getUsers(page: number = 1, limit: number = 10) {
       ],
     });
   } catch (error) {
-    handleRepositoryException(error);
+    handleActionException(error);
     return null;
   }
 }

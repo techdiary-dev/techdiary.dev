@@ -1,4 +1,5 @@
 import { persistenceRepository } from "@/backend/persistence/persistence-repositories";
+import getFileUrl from "@/utils/getFileUrl";
 import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -88,7 +89,7 @@ export default async function Image(options: ArticlePageProps) {
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <img
               style={{ height: 48, borderRadius: 100 }}
-              src={article.user?.profile_photo ?? ""}
+              src={getFileUrl(article.user?.profile_photo) ?? ""}
               alt="logo"
             />
             <p style={{ fontSize: 23 }}>

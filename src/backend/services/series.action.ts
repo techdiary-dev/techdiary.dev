@@ -1,8 +1,10 @@
+"use server";
+
 import { asc, eq } from "sqlkit";
 import { z } from "zod";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { SeriesInput } from "./inputs/series.input";
-import { handleRepositoryException } from "./RepositoryException";
+import { handleActionException } from "./RepositoryException";
 
 export async function seriesFeed(
   _input: z.infer<typeof SeriesInput.seriesFeedInput>
@@ -15,7 +17,7 @@ export async function seriesFeed(
       page: input.page,
     });
   } catch (error) {
-    handleRepositoryException(error);
+    handleActionException(error);
   }
 }
 
@@ -67,6 +69,6 @@ export const getSeriesDetailByHandle = async (handle: string) => {
       serieItems,
     };
   } catch (error) {
-    handleRepositoryException(error);
+    handleActionException(error);
   }
 };

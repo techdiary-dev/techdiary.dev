@@ -10,6 +10,7 @@ pnpm-lock.yaml
 bun.lockb
 bun.lock
 .yarn/install-state.gz
+package-lock.json
 
 # testing
 /coverage
@@ -32,6 +33,8 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.dev.vars
 
 # vercel
 .vercel
@@ -39,3 +42,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.vscode/mcp.json
+# Sentry Config File
+.env.sentry-build-plugin

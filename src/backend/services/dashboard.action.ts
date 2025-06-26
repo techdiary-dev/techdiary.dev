@@ -1,7 +1,7 @@
 "use server";
 
-import * as sessionActions from "@/backend/services/session.actions";
 import { pgClient } from "@/backend/persistence/clients";
+import { authID } from "@/backend/services/session.actions";
 
 const sql = String.raw;
 
@@ -12,15 +12,15 @@ SELECT (SELECT Count(*)
   AS total_articles,
   (SELECT Count(*)
     FROM   comments
-    WHERE  comments.commentable_type = 'ARTICLE'
-      AND  comments.commentable_id IN (SELECT id
+    WHERE  comments.resource_type = 'ARTICLE'
+      AND  comments.resource_id IN (SELECT id
                                         FROM   articles
                                         WHERE  articles.author_id = $1))
   AS total_comments
 `;
 
 export async function myArticleMatrix() {
-  const sessionUserId = await sessionActions.getSessionUserId();
+  const sessionUserId = await authID();
 
   const totalPostsQuery = await pgClient?.executeSQL<any>(query, [
     sessionUserId!,

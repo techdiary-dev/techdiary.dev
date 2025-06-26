@@ -9,7 +9,17 @@ const dictionaries: {
 export const useTranslation = () => {
   const [lang, setLang] = useAtom(i18nLangAtom);
   return {
-    _t: (key: string) => dictionaries?.[lang || "en"]?.[key] || key,
+    _t: (key: string, placeholderValues?: (string | number)[]) => {
+      let translation = dictionaries?.[lang || "en"]?.[key] || key;
+
+      if (placeholderValues && placeholderValues.length > 0) {
+        placeholderValues.forEach((value) => {
+          translation = translation.replace("$", String(value));
+        });
+      }
+
+      return translation;
+    },
     lang,
     toggle: async () => {
       setLang(lang === "en" ? "bn" : "en");

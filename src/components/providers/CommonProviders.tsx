@@ -11,6 +11,8 @@ import { Provider as JotaiProvider } from "jotai";
 import { ThemeProvider } from "next-themes";
 import { AppConfirmProvider } from "../app-confirm";
 import { AppAlertProvider } from "../app-alert";
+import { AppLoginPopupProvider } from "../app-login-popup";
+import { Toaster } from "../toast";
 
 interface Props {
   session: SessionResult;
@@ -26,7 +28,12 @@ const CommonProviders: React.FC<PropsWithChildren<Props>> = ({
         <SessionProvider session={session}>
           <AppConfirmProvider>
             <AppAlertProvider>
-              <ThemeProvider attribute="data-theme">{children}</ThemeProvider>
+              <AppLoginPopupProvider>
+                <ThemeProvider attribute="data-theme">
+                  <Toaster />
+                  {children}
+                </ThemeProvider>
+              </AppLoginPopupProvider>
             </AppAlertProvider>
           </AppConfirmProvider>
         </SessionProvider>

@@ -1,11 +1,9 @@
 import {
-  AnyPgColumn,
   boolean,
   integer,
   json,
   jsonb,
   pgTable,
-  serial,
   text,
   timestamp,
   uuid,
@@ -17,8 +15,10 @@ export const usersTable = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: varchar("name").notNull(),
   username: varchar("username").notNull(),
+  is_verified: boolean("is_verified").default(false),
   email: varchar("email"),
-  profile_photo: varchar("profile_photo"),
+  profile_photo_url: varchar("profile_photo_url"),
+  profile_photo: json("profile_photo").$type<IServerFile>(),
   education: varchar("education"),
   designation: varchar("designation"),
   bio: varchar("bio"),
@@ -101,9 +101,9 @@ export const articlesTable = pgTable("articles", {
   excerpt: varchar("excerpt"),
   body: text("body"),
   cover_image: jsonb("cover_image").$type<IServerFile>(),
-  is_published: boolean("is_published").default(false),
   published_at: timestamp("published_at"),
   approved_at: timestamp("approved_at"),
+  delete_scheduled_at: timestamp("delete_scheduled_at"),
   metadata: jsonb("metadata"),
   author_id: uuid("author_id")
     .notNull()
@@ -112,17 +112,41 @@ export const articlesTable = pgTable("articles", {
   updated_at: timestamp("updated_at"),
 });
 
+export const bookmarksTable = pgTable("bookmarks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" })
+    .notNull(),
+  resource_id: uuid("resource_id").notNull(),
+  resource_type: varchar("resource_type", { length: 50 }).notNull(), // ARTICLE, COMMENT
+  created_at: timestamp("created_at"),
+  updated_at: timestamp("updated_at"),
+});
+
+// [ { reaction_type: 'LOVE', count: 0, is_reacted: true } ]
+
+export const reactionsTable = pgTable("reactions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  user_id: uuid("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" })
+    .notNull(),
+  resource_id: uuid("resource_id").notNull(),
+  resource_type: varchar("resource_type", { length: 50 }).notNull(), // ARTICLE, COMMENT
+  reaction_type: varchar("reaction_type", { length: 50 }).notNull(), // LIKE, DISLIKE, LOVE, etc.
+  created_at: timestamp("created_at"),
+  updated_at: timestamp("updated_at"),
+});
+
 export const commentsTable = pgTable("comments", {
   id: uuid("id").defaultRandom().primaryKey(),
   body: text("body").notNull(),
-  commentable_type: varchar("commentable_type").notNull(),
-  commentable_id: uuid("commentable_id").notNull(),
+  resource_id: uuid("resource_id").notNull(), // article_id or series_item_id
+  resource_type: varchar("resource_type", { length: 50 }).notNull(), // ARTICLE, SERIES_ITEM
   user_id: uuid("user_id")
     .notNull()
     .references(() => usersTable.id, { onDelete: "cascade" }),
-  parent_id: uuid("parent_id").references((): AnyPgColumn => commentsTable.id, {
-    onDelete: "cascade",
-  }),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow(),
 });
@@ -138,7 +162,7 @@ export const tags = pgTable("tags", {
 });
 
 export const articleTagsTable = pgTable("article_tag", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   article_id: uuid("article_id")
     .notNull()
     .references(() => articlesTable.id, { onDelete: "cascade" }),
@@ -148,4 +172,10 @@ export const articleTagsTable = pgTable("article_tag", {
 
   created_at: timestamp("created_at"),
   updated_at: timestamp("updated_at"),
+});
+
+export const KVTable = pgTable("kv", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  key: text("key").notNull().unique(),
+  value: jsonb("value"),
 });

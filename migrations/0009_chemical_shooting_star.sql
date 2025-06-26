@@ -1,1 +1,0 @@
-ALTER TABLE "articles" RENAME COLUMN "slug" TO "handle";
