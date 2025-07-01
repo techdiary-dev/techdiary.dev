@@ -174,6 +174,30 @@ export const articleTagsTable = pgTable("article_tag", {
   updated_at: timestamp("updated_at"),
 });
 
+export const gistsTable = pgTable("gists", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  is_public: boolean("is_public").default(true),
+  owner_id: uuid("owner_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const gistFilesTable = pgTable("gist_files", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  gist_id: uuid("gist_id")
+    .notNull()
+    .references(() => gistsTable.id, { onDelete: "cascade" }),
+  filename: varchar("filename").notNull(),
+  content: text("content").notNull(),
+  language: varchar("language"), // for syntax highlighting
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
 export const KVTable = pgTable("kv", {
   id: uuid("id").defaultRandom().primaryKey(),
   key: text("key").notNull().unique(),

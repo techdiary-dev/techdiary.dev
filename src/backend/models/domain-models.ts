@@ -232,6 +232,30 @@ interface UnsplashImageUrls {
   small_s3: string;
 }
 
+export interface Gist {
+  id: string;
+  title: string;
+  description?: string | null;
+  is_public: boolean;
+  owner_id: string;
+  owner?: User | null;
+  files?: GistFile[];
+  created_at: Date;
+  updated_at: Date;
+
+  [key: string]: any;
+}
+
+export interface GistFile {
+  id: string;
+  gist_id: string;
+  filename: string;
+  content: string;
+  language?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
 export interface KV {
   id: string;
   key: string;
