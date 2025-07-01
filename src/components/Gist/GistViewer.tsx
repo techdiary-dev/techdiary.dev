@@ -25,7 +25,8 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Gist } from "@/backend/models/domain-models";
+import { Gist, GistFile } from "@/backend/models/domain-models";
+import Markdown from "@/lib/markdown/Markdown";
 
 interface GistViewerProps {
   gist: Gist;
@@ -33,10 +34,24 @@ interface GistViewerProps {
   showActions?: boolean;
 }
 
-export default function GistViewer({ gist, isOwner = false, showActions = true }: GistViewerProps) {
+export default function GistViewer({
+  gist,
+  isOwner = false,
+  showActions = true,
+}: GistViewerProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const appConfirm = useAppConfirm();
+
+  const renderFileContent = (file: GistFile) => {
+    const ext = file.filename ? file.filename.split(".").pop() : "md";
+
+    if (ext === "md") {
+      return file.content;
+    }
+
+    return `\`\`\`${ext} \n${file.content}\n\`\`\``;
+  };
 
   const deleteMutation = useMutation({
     mutationFn: (gistId: string) => actionPromisify(deleteGist(gistId)),
@@ -54,7 +69,8 @@ export default function GistViewer({ gist, isOwner = false, showActions = true }
   const handleDelete = () => {
     appConfirm.show({
       title: "Delete Gist",
-      children: "Are you sure you want to delete this gist? This action cannot be undone.",
+      children:
+        "Are you sure you want to delete this gist? This action cannot be undone.",
       labels: {
         confirm: "Delete",
         cancel: "Cancel",
@@ -101,7 +117,7 @@ export default function GistViewer({ gist, isOwner = false, showActions = true }
                   )}
                 </Badge>
               </div>
-              
+
               {gist.description && (
                 <p className="text-muted-foreground">{gist.description}</p>
               )}
@@ -110,9 +126,13 @@ export default function GistViewer({ gist, isOwner = false, showActions = true }
                 {gist.owner && (
                   <div className="flex items-center gap-2">
                     <Avatar className="w-5 h-5">
-                      <AvatarImage 
-                        src={gist.owner.profile_photo ? getFileUrl(gist.owner.profile_photo) : undefined}
-                        alt={gist.owner.name} 
+                      <AvatarImage
+                        src={
+                          gist.owner.profile_photo
+                            ? getFileUrl(gist.owner.profile_photo)
+                            : undefined
+                        }
+                        alt={gist.owner.name}
                       />
                       <AvatarFallback>
                         {gist.owner.name.charAt(0).toUpperCase()}
@@ -136,7 +156,9 @@ export default function GistViewer({ gist, isOwner = false, showActions = true }
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => router.push(`/gists/${gist.id}/edit`)}>
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/gists/${gist.id}/edit`)}
+                  >
                     <Pencil1Icon className="w-4 h-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
@@ -157,7 +179,10 @@ export default function GistViewer({ gist, isOwner = false, showActions = true }
           {gist.files && gist.files.length > 0 ? (
             <div className="space-y-6">
               {gist.files.map((file) => (
-                <div key={file.id} className="border rounded-lg overflow-hidden">
+                <div
+                  key={file.id}
+                  className="border rounded-lg overflow-hidden"
+                >
                   <div className="flex items-center justify-between py-3 px-4 bg-muted/50 border-b">
                     <div className="flex items-center gap-2">
                       <h3 className="font-medium">{file.filename}</h3>
@@ -186,13 +211,9 @@ export default function GistViewer({ gist, isOwner = false, showActions = true }
                       </Button>
                     </div>
                   </div>
-                  
+
                   <div className="relative">
-                    <pre className="bg-background p-4 overflow-x-auto">
-                      <code className="text-sm font-mono">
-                        {file.content}
-                      </code>
-                    </pre>
+                    <Markdown content={renderFileContent(file)} />
                   </div>
                 </div>
               ))}
