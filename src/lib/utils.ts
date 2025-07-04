@@ -2,7 +2,7 @@ import { ActionResponse } from "@/backend/models/action-contracts";
 import { clsx, type ClassValue } from "clsx";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,7 +22,7 @@ export const generateRandomString = (length: number): string => {
 };
 
 export const zodErrorToString = (err: z.ZodError) => {
-  return err.errors.reduce((acc, curr) => {
+  return err.issues.reduce((acc: string, curr: any) => {
     return acc + curr.message + "\n";
   }, "");
 };

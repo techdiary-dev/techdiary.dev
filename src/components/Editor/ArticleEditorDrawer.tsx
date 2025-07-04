@@ -15,7 +15,7 @@ import { LinkIcon, Loader } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { Button } from "../ui/button";
 import {
   Form,

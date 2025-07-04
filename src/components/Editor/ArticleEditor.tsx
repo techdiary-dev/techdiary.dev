@@ -21,7 +21,7 @@ import { TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { useAppConfirm } from "../app-confirm";
 import AppImage from "../AppImage";
 import ImageDropzoneWithCropper from "../ImageDropzoneWithCropper";

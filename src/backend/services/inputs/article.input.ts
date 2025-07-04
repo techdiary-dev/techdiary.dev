@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const ArticleRepositoryInput = {
   createArticleInput: z.object({
@@ -79,10 +79,10 @@ export const ArticleRepositoryInput = {
             description: z.string().optional(),
             keywords: z.array(z.string()).optional(),
             canonical_url: z
-              .union([z.string().url(), z.literal(""), z.null()])
-              .optional()
+              .union([z.url(), z.literal(""), z.null()])
+              .transform((val) => (val === "" ? null : val))
               .nullable()
-              .transform((val) => (val === "" ? null : val)),
+              .optional(),
           })
           .nullable()
           .optional(),
@@ -122,7 +122,7 @@ export const ArticleRepositoryInput = {
   }),
 
   tagFeedInput: z.object({
-    tag_id: z.string().uuid(),
+    tag_id: z.uuid(),
     page: z.number().default(1),
     limit: z.number().default(10),
   }),

@@ -1,7 +1,7 @@
 "use server";
 
 import { asc, eq } from "sqlkit";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { SeriesInput } from "./inputs/series.input";
 import { handleActionException } from "./RepositoryException";

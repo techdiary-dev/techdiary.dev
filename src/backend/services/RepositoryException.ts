@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const handleActionException = (
   error: unknown
@@ -48,7 +48,7 @@ export class ActionException extends Error {
 }
 
 export const zodErrorToString = (err: z.ZodError) => {
-  return err.errors.reduce((acc, curr) => {
+  return err.issues.reduce((acc: string, curr: any) => {
     return acc + curr.message + "\n";
   }, "");
 };

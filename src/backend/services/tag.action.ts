@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq, inArray, like } from "sqlkit";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { TagRepositoryInput } from "./inputs/tag.input";
 import { ActionException, handleActionException } from "./RepositoryException";

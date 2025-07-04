@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 import { userAgent } from "next/server";
 import { cache } from "react";
 import { eq } from "sqlkit";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { ActionException, handleActionException } from "./RepositoryException";
 import { SessionResult, USER_SESSION_KEY } from "./action-type";

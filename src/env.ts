@@ -1,5 +1,6 @@
+import { StandardSchemaV1 } from "@t3-oss/env-core";
 import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const env = createEnv({
   server: {
@@ -22,7 +23,7 @@ export const env = createEnv({
     CRON_SECRET: z.string().optional(),
   },
   client: {
-    NEXT_PUBLIC_MEILISEARCH_API_HOST: z.string().url(),
+    NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
     NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY: z.string(),
   },
   runtimeEnv: {
@@ -46,5 +47,11 @@ export const env = createEnv({
     S3_BUCKET: process.env.S3_BUCKET,
 
     CRON_SECRET: process.env.CRON_SECRET,
+  },
+  onValidationError(issues: readonly StandardSchemaV1.Issue[]) {
+    console.error("❌ Invalid environment variables:", issues);
+    throw new Error("Invalid environment variables", {
+      cause: JSON.stringify(issues),
+    });
   },
 });

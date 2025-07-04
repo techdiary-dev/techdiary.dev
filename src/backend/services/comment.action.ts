@@ -1,6 +1,6 @@
 "use server";
 
-import z from "zod";
+import z from "zod/v4";
 import { CommentActionInput } from "./inputs/comment.input";
 import { authID } from "./session.actions";
 import { ActionException } from "./RepositoryException";

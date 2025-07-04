@@ -6,7 +6,7 @@ import { removeMarkdownSyntax, removeUndefinedFromObject } from "@/lib/utils";
 import { addDays } from "date-fns";
 import * as sk from "sqlkit";
 import { and, desc, eq, like, neq, or } from "sqlkit";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ActionResponse } from "../models/action-contracts";
 import { Article, User } from "../models/domain-models";
 import { DatabaseTableName } from "../persistence/persistence-contracts";

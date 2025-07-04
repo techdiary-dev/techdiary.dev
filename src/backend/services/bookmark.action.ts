@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq } from "sqlkit";
-import z from "zod";
+import z from "zod/v4";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { pgClient } from "../persistence/clients";
 import { BookmarkActionInput } from "./inputs/bookmark.input";
