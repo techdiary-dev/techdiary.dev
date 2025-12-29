@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import { Toaster } from "@/components/toast";
 import "../styles/app.css";
 
@@ -80,11 +81,13 @@ const RootLayout: React.FC<PropsWithChildren> = async ({ children }) => {
           }}
         />
         <I18nProvider currentLanguage={_cookies.get("language")?.value || "en"}>
-          <CommonProviders session={session}>
-            {children}
-            <Toaster />
-            <CookieConsentPopup />
-          </CommonProviders>
+          <AuthKitProvider>
+            <CommonProviders session={session}>
+              {children}
+              <Toaster />
+              <CookieConsentPopup />
+            </CommonProviders>
+          </AuthKitProvider>
         </I18nProvider>
       </body>
     </html>
