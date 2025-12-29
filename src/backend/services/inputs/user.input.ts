@@ -16,6 +16,19 @@ export const UserActionInput = {
       .nullable(),
     bio: z.string().optional().nullable(),
   }),
+  bootWorkOSUserInput: z.object({
+    auth_id: z.string(), // WorkOS user ID
+    name: z.string(),
+    username: z.string(),
+    email: z.email(),
+    profile_photo: z
+      .object({
+        key: z.string(),
+        provider: z.enum(["cloudinary", "direct", "r2"]),
+      })
+      .optional()
+      .nullable(),
+  }),
   updateMyProfileInput: z.object({
     name: z.string().optional(),
     username: z.string().optional(),

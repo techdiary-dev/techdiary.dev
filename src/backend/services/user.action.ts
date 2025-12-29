@@ -73,6 +73,84 @@ export async function bootSocialUser(
 }
 
 /**
+ * Creates or syncs a user from WorkOS authentication.
+ * If user exists (by email), updates with auth_id.
+ * If not, creates new user with auth_id.
+ *
+ * @param _input - WorkOS user data containing auth_id, name, username, email, profile_photo
+ * @returns Promise<{user: User}> - The user record
+ * @throws {RepositoryException} If user creation/sync fails or validation fails
+ */
+export async function bootWorkOSUser(
+  _input: z.infer<typeof UserActionInput.bootWorkOSUserInput>
+) {
+  try {
+    const input = await UserActionInput.bootWorkOSUserInput.parseAsync(_input);
+
+    // First, check if user already exists with this auth_id
+    let [user] = await persistenceRepository.user.find({
+      where: eq("auth_id", input.auth_id),
+      columns: ["id", "name", "username", "email", "auth_id"],
+      limit: 1,
+    });
+
+    if (user) {
+      // User already linked with this WorkOS account
+      return {
+        success: true as const,
+        data: { user },
+      };
+    }
+
+    // Check if user exists by email (existing user logging in with WorkOS for first time)
+    [user] = await persistenceRepository.user.find({
+      where: eq("email", input.email),
+      columns: ["id", "name", "username", "email", "auth_id"],
+      orderBy: [desc("created_at")],
+      limit: 1,
+    });
+
+    if (user) {
+      // Existing user - update with auth_id
+      await persistenceRepository.user.update({
+        where: eq("id", user.id),
+        data: {
+          auth_id: input.auth_id,
+          updated_at: new Date(),
+        },
+      });
+      user.auth_id = input.auth_id;
+
+      return {
+        success: true as const,
+        data: { user },
+      };
+    }
+
+    // New user - create with auth_id
+    user = (
+      await persistenceRepository.user.insert([
+        {
+          auth_id: input.auth_id,
+          name: input.name,
+          username: input.username.toLowerCase(),
+          email: input.email,
+          profile_photo: input.profile_photo,
+          created_at: new Date(),
+        },
+      ])
+    )?.rows?.[0];
+
+    return {
+      success: true as const,
+      data: { user },
+    };
+  } catch (error) {
+    return handleActionException(error);
+  }
+}
+
+/**
  * Updates a user's profile information.
  *
  * @param _input - The user profile data to update, validated against UserRepositoryInput.updateUserProfileInput schema

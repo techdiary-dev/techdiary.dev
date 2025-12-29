@@ -52,7 +52,7 @@ export function AppLoginPopupProvider({
 
             <Link
               className="flex w-full items-center justify-center space-x-2 rounded-sm border py-2  transition duration-150 hover:opacity-95"
-              href={`/api/auth/github?next=${searchParams.get("next")}`}
+              href={`/api/auth/login?next=${searchParams.get("next") ?? "/"}`}
             >
               <svg
                 role="img"
