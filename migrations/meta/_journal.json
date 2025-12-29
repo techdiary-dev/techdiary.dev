@@ -8,6 +8,13 @@
       "when": 1751109067750,
       "tag": "0000_melted_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1767048088260,
+      "tag": "0001_ordinary_romulus",
+      "breakpoints": true
     }
   ]
 }
