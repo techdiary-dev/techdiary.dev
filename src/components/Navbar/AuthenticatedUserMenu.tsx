@@ -1,6 +1,5 @@
 "use client";
 
-import * as sessionActions from "@/backend/services/session.actions";
 import { useTranslation } from "@/i18n/use-translation";
 import { useSession } from "@/store/session.atom";
 import Link from "next/link";
@@ -18,13 +17,13 @@ const AuthenticatedUserMenu = () => {
   const authSession = useSession();
   const appConfirm = useAppConfirm();
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     appConfirm.show({
       title: _t("Sure to logout?"),
       children: <p>{_t("You will be logged out after this")}</p>,
-      async onConfirm() {
-        await sessionActions.deleteLoginSession();
-        window.location.reload();
+      onConfirm() {
+        // Redirect to logout route (clears local session + WorkOS session)
+        window.location.href = "/api/auth/logout";
       },
     });
   };
