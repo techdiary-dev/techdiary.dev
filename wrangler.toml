@@ -1,6 +1,7 @@
 name = "techdiary-cron"
 compatibility_date = "2024-01-01"
 main = "src/workers/cron-worker.ts"
+# R2 bucket configuration
 
 # Cron triggers configuration
 [triggers]
