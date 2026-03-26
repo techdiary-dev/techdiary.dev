@@ -55,8 +55,14 @@ export async function generateMetadata(
     ],
   });
 
+  const description = removeMarkdownSyntax(
+    article.excerpt ?? article.body ?? "",
+    20
+  );
+
   const openGraph: OpenGraph = {
     title: article.title,
+    description,
     url: `https://www.techdiary.dev/@${article?.user?.username}/${article?.handle}`,
     type: "article",
   };
@@ -72,10 +78,7 @@ export async function generateMetadata(
 
   return {
     title: article.title,
-    description: removeMarkdownSyntax(
-      article.excerpt ?? article.body ?? "",
-      20
-    ),
+    description,
     other: {
       "last-updated": article.published_at?.toString() ?? new Date().toString(),
     },
@@ -112,6 +115,8 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
       },
     },
     articleBody: removeMarkdownSyntax(article?.body ?? "", 300),
+    datePublished: article?.published_at?.toISOString(),
+    dateModified: article?.updated_at?.toISOString(),
   };
 
   if (!article) {

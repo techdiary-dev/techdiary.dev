@@ -14,14 +14,14 @@ import React, { PropsWithChildren } from "react";
 
 export const metadata: Metadata = {
   title: {
-    default: "TechDiary",
+    default: "TechDiary - টেকডায়েরি",
     template: "%s | TechDiary",
   },
   applicationName: "TechDiary",
   referrer: "origin-when-cross-origin",
   keywords: ["TechDiary", "টেকডায়েরি"],
   icons: { icon: "/favicon.png" },
-  description: "Homepage of TechDiary",
+  description: "বাংলায় প্রযুক্তি, কোড ও সমস্যার সমাধান — TechDiary",
   metadataBase: new URL("https://www.techdiary.dev"),
   openGraph: {
     title: "TechDiary - টেকডায়েরি",
@@ -32,13 +32,17 @@ export const metadata: Metadata = {
     type: "website",
     images: ["https://www.techdiary.dev/og.png"],
   },
+  twitter: {
+    card: "summary_large_image",
+    site: "@techdiary_dev",
+  },
 };
 
 const RootLayout: React.FC<PropsWithChildren> = async ({ children }) => {
   const _cookies = await cookies();
   const session = await sessionActions.getSession();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="bn" suppressHydrationWarning>
       <body style={fontKohinoorBanglaRegular.style}>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-F3VRW4H09N"
