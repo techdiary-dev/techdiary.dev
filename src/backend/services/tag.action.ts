@@ -1,10 +1,34 @@
 "use server";
 
 import { and, eq, inArray, like } from "sqlkit";
+import { pgClient } from "../persistence/clients";
 import { z } from "zod/v4";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { TagRepositoryInput } from "./inputs/tag.input";
 import { ActionException, handleActionException } from "./RepositoryException";
+
+const sql = String.raw;
+
+export const getTopTags = async (limit = 8) => {
+  try {
+    const result = await pgClient.executeSQL(
+      sql`
+        SELECT t.id, t.name, t.icon, t.color, COUNT(atp.tag_id) AS article_count
+        FROM tags t
+        INNER JOIN article_tag atp ON atp.tag_id = t.id
+        INNER JOIN articles a ON a.id = atp.article_id
+        WHERE a.published_at IS NOT NULL AND a.approved_at IS NOT NULL
+        GROUP BY t.id
+        ORDER BY article_count DESC
+        LIMIT $1
+      `,
+      [limit]
+    );
+    return { success: true as const, data: result?.rows ?? [] };
+  } catch (error) {
+    return handleActionException(error);
+  }
+};
 
 export const getTags = async (
   _input: z.infer<typeof TagRepositoryInput.findAllInput>
