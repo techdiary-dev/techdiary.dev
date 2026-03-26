@@ -140,7 +140,7 @@ export async function bookmarkStatus(
   try {
     const sessionUserId = await authID();
     if (!sessionUserId) {
-      throw new ActionException("Unauthorized");
+      return { bookmarked: false };
     }
     const input =
       await BookmarkActionInput.bookmarkStatusInput.parseAsync(_input);
