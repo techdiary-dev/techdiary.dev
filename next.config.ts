@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  cacheComponents: true,
   reactStrictMode: false,
   logging: {
     fetches: { fullUrl: true },

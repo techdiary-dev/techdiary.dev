@@ -52,6 +52,7 @@ export const getTags = async (
 export const getTag = async (
   _input: z.infer<typeof TagRepositoryInput.getTag>
 ) => {
+  "use cache";
   try {
     const input = await TagRepositoryInput.getTag.parseAsync(_input);
     const response = await persistenceRepository.tags.find({

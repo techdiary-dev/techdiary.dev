@@ -336,6 +336,62 @@ const feedQuery = useInfiniteQuery({
 - **No test framework**: There are no automated tests — use `bun run play` for backend experimentation
 - **Cloudflare Workers**: `wrangler.toml` is present; `bun run wrangler:dev` starts the worker locally
 
+## Caching & ISR (Incremental Static Regeneration)
+
+The app uses Next.js 16 **Cache Components** (`cacheComponents: true` in `next.config.ts`). All routes render as **Partial Prerender (`◐`)** — the static HTML shell is prerendered at build time; dynamic parts (session, language) stream in via `<Suspense>`.
+
+### Rules
+
+**1. Data fetching functions that are safe to cache (no `cookies()`/`headers()` calls) must use `'use cache'`:**
+
+```ts
+// In a "use server" file — 'use cache' at function level is valid
+export async function articleDetailByHandle(handle: string) {
+  "use cache";
+  cacheLife("hours"); // optional: override default 15min revalidate
+  cacheTag(`article-${handle}`); // optional: enable on-demand invalidation
+  // ... DB query
+}
+```
+
+**2. Set cache lifetime with `cacheLife()` (call inside the `'use cache'` function):**
+
+| Profile | Stale | Revalidate | Use for |
+|---|---|---|---|
+| `"seconds"` | 0s | 1s | near-realtime |
+| `"minutes"` | 1min | 1min | frequently updated |
+| `"hours"` | 5min | 1hr | articles, profiles |
+| `"days"` | 1hr | 1day | tags, static content |
+| `"weeks"` | 1day | 1wk | rarely updated |
+| `"max"` | 30d | 30d | immutable content |
+
+**3. Tag cache entries with `cacheTag()` and bust on mutation with `revalidateTag()`:**
+
+```ts
+// Reader — tag the cache entry
+export async function articleDetailByHandle(handle: string) {
+  "use cache";
+  cacheTag(`article-${handle}`);
+  // ...
+}
+
+// Writer — bust it immediately after update/publish
+export async function updateMyArticle(input) {
+  // ... update DB
+  revalidateTag(`article-${payload.handle}`);
+}
+```
+
+**4. Functions that read `cookies()` or `headers()` can NEVER use `'use cache'`** — they must stay dynamic and be wrapped in `<Suspense>` in the layout/page. Examples: `getSession()`, `authID()`, `LanguageHydrator`.
+
+**5. Dashboard/auth-protected pages** are always dynamic — do not add `'use cache'` to user-specific data fetching (bookmarks, sessions, notifications).
+
+### What NOT to do
+
+- Do NOT use `export const revalidate = N` on pages — it conflicts with `cacheComponents: true`
+- Do NOT add `'use cache'` to functions that call `cookies()` or `headers()` — it will throw a build error
+- Do NOT add `'use cache'` to mutation actions (`createX`, `updateX`, `deleteX`)
+
 # Next.js: ALWAYS read docs before coding
 
 Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.
