@@ -219,6 +219,7 @@ export async function getUserByUsername(
   username: string,
   columns?: (keyof User)[]
 ): Promise<User | null> {
+  "use cache";
   try {
     const [user] = await persistenceRepository.user.find({
       operationName: "getUserByUsername",

@@ -1,6 +1,5 @@
 import { getUserByUsername } from "@/backend/services/user.action";
 import _t from "@/i18n/_t";
-import { markdocParser } from "@/lib/markdown/markdoc-parser";
 import Markdown from "@/lib/markdown/Markdown";
 import Image from "next/image";
 import React from "react";

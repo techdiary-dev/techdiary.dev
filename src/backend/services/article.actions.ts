@@ -1,5 +1,6 @@
 "use server";
 
+import { cacheTag, revalidateTag } from "next/cache";
 import { pgClient } from "@/backend/persistence/clients";
 import { slugify } from "@/lib/slug-helper.util";
 import { removeMarkdownSyntax, removeUndefinedFromObject, generateRandomString } from "@/lib/utils";
@@ -198,6 +199,8 @@ export async function updateMyArticle(
         metadata: input.metadata,
       }),
     });
+
+    revalidateTag(`article-${article.rows[0].handle}`, "max");
 
     if (article.rows[0].published_at) {
       syncArticleById(article.rows[0].id);
@@ -525,6 +528,8 @@ export async function articlesByTag(
 }
 
 export async function articleDetailByHandle(article_handle: string) {
+  "use cache";
+  cacheTag(`article-${article_handle}`);
   try {
     const [article] = await persistenceRepository.article.find({
       where: eq("handle", article_handle),
