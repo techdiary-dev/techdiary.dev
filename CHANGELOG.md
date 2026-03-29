@@ -6,6 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.2.0 — 2026-03-30
+
+### ✨ Features
+- feat: add Gists navigation links to HomeLeftSidebar and AuthenticatedUserMenu (753074b)
+
+---
+
 ## v1.1.0 — 2026-03-29
 
 ### ✨ Features
