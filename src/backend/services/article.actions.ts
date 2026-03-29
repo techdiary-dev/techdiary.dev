@@ -3,7 +3,12 @@
 import { cacheTag, revalidateTag } from "next/cache";
 import { pgClient } from "@/backend/persistence/clients";
 import { slugify } from "@/lib/slug-helper.util";
-import { removeMarkdownSyntax, removeUndefinedFromObject, generateRandomString } from "@/lib/utils";
+import {
+  removeMarkdownSyntax,
+  removeUndefinedFromObject,
+  generateRandomString,
+  resolveArticleExcerpt,
+} from "@/lib/utils";
 import { addDays } from "date-fns";
 import * as sk from "sqlkit";
 import { and, desc, eq, like, neq, or } from "sqlkit";
@@ -299,6 +304,7 @@ export async function deleteArticle(article_id: string) {
       where: eq("id", article_id),
     });
 
+    revalidateTag("tags-list", "max");
     return deletedArticles?.rows?.[0];
   } catch (error) {
     handleActionException(error);
@@ -427,7 +433,7 @@ export async function userArticleFeed(
     response["nodes"] = response["nodes"].map((article) => {
       return {
         ...article,
-        excerpt: article.excerpt ?? removeMarkdownSyntax(article.body),
+        excerpt: resolveArticleExcerpt(article.excerpt, article.body),
       };
     });
 
@@ -498,7 +504,7 @@ export async function articlesByTag(
       cover_image: row.cover_image,
       body: row.body,
       created_at: new Date(row.created_at),
-      excerpt: row.excerpt ?? removeMarkdownSyntax(row.body),
+      excerpt: resolveArticleExcerpt(row.excerpt, row.body),
       user: {
         id: row.user_id,
         name: row.user_name,
@@ -702,6 +708,7 @@ export async function setArticlePublished(
     if (articles?.rows?.[0] && !is_published) {
       deleteArticleById(article_id);
     }
+    revalidateTag("tags-list", "max");
     return articles?.rows?.[0];
   } catch (error) {
     return handleActionException(error);

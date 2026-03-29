@@ -1,5 +1,6 @@
 "use server";
 
+import { cacheTag, revalidateTag } from "next/cache";
 import { and, eq, inArray, like } from "sqlkit";
 import { pgClient } from "../persistence/clients";
 import { z } from "zod/v4";
@@ -8,6 +9,50 @@ import { TagRepositoryInput } from "./inputs/tag.input";
 import { ActionException, handleActionException } from "./RepositoryException";
 
 const sql = String.raw;
+
+export type TagWithArticleCount = {
+  id: string;
+  name: string;
+  icon: unknown;
+  color: string | null;
+  article_count: number;
+};
+
+/** All tags that have at least one published article, with counts, highest count first (then A–Z by name). */
+export async function getTagsWithArticleCounts() {
+  "use cache";
+  cacheTag("tags-list");
+  try {
+    const result = await pgClient.executeSQL(
+      sql`
+        SELECT
+          t.id,
+          t.name,
+          t.icon,
+          t.color,
+          COUNT(DISTINCT a.id)::int AS article_count
+        FROM tags t
+        INNER JOIN article_tag atp ON atp.tag_id = t.id
+        INNER JOIN articles a ON a.id = atp.article_id
+        WHERE a.published_at IS NOT NULL AND a.approved_at IS NOT NULL
+        GROUP BY t.id, t.name, t.icon, t.color
+        ORDER BY article_count DESC, LOWER(t.name) ASC
+      `,
+      []
+    );
+    const rows = (result?.rows ?? []) as Record<string, unknown>[];
+    const data: TagWithArticleCount[] = rows.map((row) => ({
+      id: String(row.id),
+      name: String(row.name),
+      icon: row.icon,
+      color: row.color != null ? String(row.color) : null,
+      article_count: Number(row.article_count ?? 0),
+    }));
+    return { success: true as const, data };
+  } catch (error) {
+    return handleActionException(error);
+  }
+}
 
 export const getTopTags = async (limit = 8) => {
   try {
@@ -133,6 +178,8 @@ export const syncTagsWithArticles = async (
         inArray("tag_id", tagsToRemove)
       ),
     });
+
+    revalidateTag("tags-list", "max");
   } catch (error) {
     return handleActionException(error);
   }
