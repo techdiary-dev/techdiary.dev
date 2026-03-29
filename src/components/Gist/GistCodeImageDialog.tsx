@@ -415,6 +415,30 @@ export default function GistCodeImageDialog({
                 {content}
               </SyntaxHighlighter>
             </div>
+            <div
+              aria-hidden
+              className="select-none pointer-events-none"
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                marginTop: 10,
+                paddingTop: 4,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 11,
+                  lineHeight: 1,
+                  color: "rgba(255, 255, 255, 0.32)",
+                  letterSpacing: "0.05em",
+                  fontFamily:
+                    'ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif',
+                  fontWeight: 500,
+                }}
+              >
+                techdiary.dev
+              </span>
+            </div>
           </div>
         </div>
 
