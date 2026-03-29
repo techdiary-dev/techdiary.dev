@@ -6,6 +6,22 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.4.0 — 2026-03-30
+
+### ✨ Features
+- feat: extend resource type support to include GIST across comments and reactions (e4e6a86)
+- feat: enhance CommentSection with loading states and improved layout (eaf6639)
+- feat: implement resolveArticleExcerpt utility for improved excerpt handling (bccf312)
+
+### 🐛 Bug Fixes
+- fix: enhance comment functionality with update and delete actions (c80f529)
+
+### 🔧 Other Changes
+- refactor: improve comment item layout and transition effects (9268b61)
+- refactor: adjust layout and styling in ArticleCard and UserInformationCard components (a9caafc)
+
+---
+
 ## v1.3.0 — 2026-03-30
 
 ### ✨ Features
