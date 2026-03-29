@@ -9,7 +9,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import {
   ChevronDown,
-  ChevronRight,
   Loader2,
   MessageSquare,
   Pencil,
@@ -426,15 +425,17 @@ const CommentItem = (props: {
               <button
                 type="button"
                 onClick={() => setIsCollapsed(!isCollapsed)}
-                className="inline-flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="inline-flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-expanded={!isCollapsed}
                 aria-label={isCollapsed ? _t("Expand comment") : _t("Collapse comment")}
               >
-                {isCollapsed ? (
-                  <ChevronRight className="size-3.5" aria-hidden />
-                ) : (
-                  <ChevronDown className="size-3.5" aria-hidden />
-                )}
+                <ChevronDown
+                  className={cn(
+                    "size-3.5 transition-transform duration-300 ease-out motion-reduce:transition-none",
+                    isCollapsed && "-rotate-90"
+                  )}
+                  aria-hidden
+                />
               </button>
               <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0">
                 {username ? (
@@ -465,172 +466,185 @@ const CommentItem = (props: {
               </div>
             </div>
 
-            {!isCollapsed && (
-              <>
-                <div className="mb-2">
-                  {isEditing ? (
-                    <div className="space-y-1.5">
-                      <Textarea
-                        value={editDraft}
-                        onChange={(e) => setEditDraft(e.target.value)}
-                        className="min-h-[88px] resize-y border-0 bg-muted/40 text-sm focus-visible:ring-1"
-                        disabled={updateMutation.isPending}
-                      />
-                      <div className="flex flex-wrap gap-1.5">
-                        <Button
-                          size="sm"
-                          type="button"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => {
-                            const t = editDraft.trim();
-                            if (!t) return;
-                            updateMutation.mutate(t);
-                          }}
-                          disabled={updateMutation.isPending}
-                        >
-                          {updateMutation.isPending ? (
-                            <Loader2 className="size-3 animate-spin" aria-hidden />
-                          ) : null}
-                          {_t("Save")}
-                        </Button>
-                        <Button
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => {
-                            setIsEditing(false);
-                            setEditDraft(props.comment.body ?? "");
-                          }}
-                          disabled={updateMutation.isPending}
-                        >
-                          {_t("Cancel")}
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="max-w-none text-sm leading-snug text-foreground break-words whitespace-pre-wrap">
-                      {props.comment.body}
-                    </div>
+            <div
+              className={cn(
+                "grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+                isCollapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
+              )}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div
+                  className={cn(
+                    "transition-opacity duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0",
+                    isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
                   )}
-                </div>
+                  aria-hidden={isCollapsed}
+                >
+                  <div className="mb-2">
+                    {isEditing ? (
+                      <div className="space-y-1.5">
+                        <Textarea
+                          value={editDraft}
+                          onChange={(e) => setEditDraft(e.target.value)}
+                          className="min-h-[88px] resize-y border-0 bg-muted/40 text-sm focus-visible:ring-1"
+                          disabled={updateMutation.isPending}
+                        />
+                        <div className="flex flex-wrap gap-1.5">
+                          <Button
+                            size="sm"
+                            type="button"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => {
+                              const t = editDraft.trim();
+                              if (!t) return;
+                              updateMutation.mutate(t);
+                            }}
+                            disabled={updateMutation.isPending}
+                          >
+                            {updateMutation.isPending ? (
+                              <Loader2 className="size-3 animate-spin" aria-hidden />
+                            ) : null}
+                            {_t("Save")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => {
+                              setIsEditing(false);
+                              setEditDraft(props.comment.body ?? "");
+                            }}
+                            disabled={updateMutation.isPending}
+                          >
+                            {_t("Cancel")}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="max-w-none text-sm leading-snug text-foreground break-words whitespace-pre-wrap">
+                        {props.comment.body}
+                      </div>
+                    )}
+                  </div>
 
-                {props.mutating && mutatingId == props.comment.id ? (
-                  <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Loader2 className="size-3 animate-spin" aria-hidden />
-                    {_t("Pending")}…
-                  </p>
-                ) : (
-                  <div className="flex flex-wrap items-center gap-x-0.5 gap-y-1">
-                    {isOwner && !isEditing && (
-                      <>
+                  {props.mutating && mutatingId == props.comment.id ? (
+                    <p className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Loader2 className="size-3 animate-spin" aria-hidden />
+                      {_t("Pending")}…
+                    </p>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-x-0.5 gap-y-1">
+                      {isOwner && !isEditing && (
+                        <>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-1.5 text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() => {
+                              setEditDraft(props.comment.body ?? "");
+                              setIsEditing(true);
+                            }}
+                          >
+                            <Pencil className="size-3 mr-0.5" aria-hidden />
+                            {_t("Edit")}
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 px-1.5 text-xs text-muted-foreground hover:text-destructive"
+                                disabled={deleteMutation.isPending}
+                              >
+                                <Trash2 className="size-3 mr-0.5" aria-hidden />
+                                {_t("Delete")}
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                  {_t("Delete this comment?")}
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  {(replies?.length ?? 0) > 0
+                                    ? _t(
+                                        "This will remove this comment and all nested replies under it."
+                                      )
+                                    : _t("This cannot be undone.")}
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>{_t("Cancel")}</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteMutation.mutate()}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  {_t("Delete")}
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                      {level < 2 && !isEditing && (
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           className="h-7 px-1.5 text-xs text-muted-foreground hover:text-foreground"
-                          onClick={() => {
-                            setEditDraft(props.comment.body ?? "");
-                            setIsEditing(true);
-                          }}
+                          onClick={() => setShowReplyBox(!showReplyBox)}
                         >
-                          <Pencil className="size-3 mr-0.5" aria-hidden />
-                          {_t("Edit")}
+                          <MessageSquare className="size-3 mr-0.5" aria-hidden />
+                          {_t("Reply")}
                         </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-1.5 text-xs text-muted-foreground hover:text-destructive"
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="size-3 mr-0.5" aria-hidden />
-                              {_t("Delete")}
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                {_t("Delete this comment?")}
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {(replies?.length ?? 0) > 0
-                                  ? _t(
-                                      "This will remove this comment and all nested replies under it."
-                                    )
-                                  : _t("This cannot be undone.")}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{_t("Cancel")}</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => deleteMutation.mutate()}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                {_t("Delete")}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </>
-                    )}
-                    {level < 2 && !isEditing && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-1.5 text-xs text-muted-foreground hover:text-foreground"
-                        onClick={() => setShowReplyBox(!showReplyBox)}
-                      >
-                        <MessageSquare className="size-3 mr-0.5" aria-hidden />
-                        {_t("Reply")}
-                      </Button>
-                    )}
-                    {!isEditing && (
-                      <div className="inline-flex">
-                        <ResourceReaction
-                          resource_type="COMMENT"
-                          resource_id={props.comment.id}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                      {!isEditing && (
+                        <div className="inline-flex">
+                          <ResourceReaction
+                            resource_type="COMMENT"
+                            resource_id={props.comment.id}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                {showReplyBox && (
-                  <div className="mt-2 pt-1">
-                    <CommentEditor
-                      onSubmit={(value) => {
-                        mutation.mutate({
-                          body: value,
-                          comment_id: generated_comment_id(),
-                        });
-                        setShowReplyBox(false);
-                      }}
-                      isLoading={false}
-                      placeholder={`Reply to ${props.comment.author?.username}`}
-                      variant="compact"
-                    />
-                  </div>
-                )}
+                  {showReplyBox && (
+                    <div className="mt-2 pt-1">
+                      <CommentEditor
+                        onSubmit={(value) => {
+                          mutation.mutate({
+                            body: value,
+                            comment_id: generated_comment_id(),
+                          });
+                          setShowReplyBox(false);
+                        }}
+                        isLoading={false}
+                        placeholder={`Reply to ${props.comment.author?.username}`}
+                        variant="compact"
+                      />
+                    </div>
+                  )}
 
-                {replies && replies.length > 0 && (
-                  <ul className="mt-1 flex list-none flex-col gap-0 pl-0">
-                    {replies.map((reply) => (
-                      <li key={reply.id}>
-                        <CommentItem
-                          comment={reply}
-                          mutating={mutation.isPending}
-                          listQueryKey={props.listQueryKey}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            )}
+                  {replies && replies.length > 0 && (
+                    <ul className="mt-1 flex list-none flex-col gap-0 pl-0">
+                      {replies.map((reply) => (
+                        <li key={reply.id}>
+                          <CommentItem
+                            comment={reply}
+                            mutating={mutation.isPending}
+                            listQueryKey={props.listQueryKey}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </article>
