@@ -13,6 +13,7 @@ import { IServerFile } from "../models/domain-models";
 
 export const usersTable = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
+  auth_id: varchar("auth_id").notNull().unique(),
   name: varchar("name").notNull(),
   username: varchar("username").notNull(),
   is_verified: boolean("is_verified").default(false),

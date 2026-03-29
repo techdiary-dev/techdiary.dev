@@ -2,7 +2,7 @@ import { ActionResponse } from "@/backend/models/action-contracts";
 import { clsx, type ClassValue } from "clsx";
 import toast from "react-hot-toast";
 import { twMerge } from "tailwind-merge";
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -22,7 +22,7 @@ export const generateRandomString = (length: number): string => {
 };
 
 export const zodErrorToString = (err: z.ZodError) => {
-  return err.errors.reduce((acc, curr) => {
+  return err.issues.reduce((acc: string, curr: any) => {
     return acc + curr.message + "\n";
   }, "");
 };
@@ -48,6 +48,20 @@ export function removeMarkdownSyntax(md?: string | null, words_count = 65) {
     .split(" ")
     .slice(0, words_count)
     .join(" ");
+}
+
+export function extractImageUrlsFromMarkdown(markdown: string): string[] {
+  const imageRegex = /!\[.*?\]\((.*?)\)/g;
+  const urls: string[] = [];
+  let match: RegExpExecArray | null;
+
+  while ((match = imageRegex.exec(markdown)) !== null) {
+    if (match[1]) {
+      urls.push(match[1]);
+    }
+  }
+
+  return urls;
 }
 
 export function readingTime(text: string) {
@@ -167,3 +181,7 @@ export const actionPromisify = async <T = any>(
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(() => resolve("Hello"), ms));
+
+export const getAvatarPlaceholder = (name: string) => {
+  return `https://api.dicebear.com/9.x/initials/svg?seed=${name}`;
+};

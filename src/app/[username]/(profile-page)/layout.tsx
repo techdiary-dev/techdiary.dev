@@ -2,6 +2,7 @@ import { getUserByUsername } from "@/backend/services/user.action";
 import BaseLayout from "@/components/layout/BaseLayout";
 import _t from "@/i18n/_t";
 import { sanitizedUsername } from "@/lib/utils";
+import { Metadata } from "next";
 import Image from "next/image";
 import React from "react";
 import ProfileNavigation from "./_components/ProfileNavigation";
@@ -10,6 +11,33 @@ import ProfilePageAside from "./_components/ProfilePageAside";
 interface ProfilePageLayoutProps {
   children: React.ReactNode;
   params: Promise<{ username: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const sanitized = sanitizedUsername(username);
+  const profile = await getUserByUsername(sanitized, ["name", "username", "bio"]);
+
+  if (!profile) {
+    return { title: `@${sanitized} — TechDiary` };
+  }
+
+  return {
+    title: `${profile.name} (@${profile.username})`,
+    description: profile.bio
+      ? profile.bio
+      : `${profile.name}-এর লেখা পড়ুন TechDiary-তে`,
+    openGraph: {
+      title: `${profile.name} (@${profile.username}) — TechDiary`,
+      description: profile.bio ?? `Articles by ${profile.name} on TechDiary`,
+      url: `https://www.techdiary.dev/@${profile.username}`,
+      type: "profile",
+    },
+  };
 }
 
 const layout: React.FC<ProfilePageLayoutProps> = async ({

@@ -1,12 +1,13 @@
 "use server";
 
+import { cacheTag, revalidateTag } from "next/cache";
 import { pgClient } from "@/backend/persistence/clients";
 import { slugify } from "@/lib/slug-helper.util";
-import { removeMarkdownSyntax, removeUndefinedFromObject } from "@/lib/utils";
+import { removeMarkdownSyntax, removeUndefinedFromObject, generateRandomString } from "@/lib/utils";
 import { addDays } from "date-fns";
 import * as sk from "sqlkit";
 import { and, desc, eq, like, neq, or } from "sqlkit";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { ActionResponse } from "../models/action-contracts";
 import { Article, User } from "../models/domain-models";
 import { DatabaseTableName } from "../persistence/persistence-contracts";
@@ -29,8 +30,37 @@ export async function createMyArticle(
     const input =
       await ArticleRepositoryInput.createMyArticleInput.parseAsync(_input);
 
-    // Default to "untitled" if title is empty
-    const titleToUse = input.title?.trim() || "Untitled Article";
+    // Generate title with unique suffix if title is empty or just whitespace
+    let titleToUse = input.title?.trim();
+    if (!titleToUse) {
+      // Generate a unique untitled with 6 character random suffix
+      const randomSuffix = generateRandomString(6);
+      titleToUse = `untitled-${randomSuffix}`;
+      
+      // Ensure this title is unique
+      let attempts = 0;
+      const maxAttempts = 10;
+      while (attempts < maxAttempts) {
+        const existingArticle = await persistenceRepository.article.find({
+          where: eq("title", titleToUse),
+          columns: ["id"],
+          limit: 1,
+        });
+        
+        if (existingArticle.length === 0) {
+          break; // Title is unique
+        }
+        
+        // Generate a new random suffix and try again
+        const newRandomSuffix = generateRandomString(6);
+        titleToUse = `untitled-${newRandomSuffix}`;
+        attempts++;
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new ActionException("Failed to generate a unique title after multiple attempts");
+      }
+    }
 
     // Generate a unique handle based on the title
     const handle = await getUniqueArticleHandle(titleToUse);
@@ -43,7 +73,7 @@ export async function createMyArticle(
 
     const article = await persistenceRepository.article.insert([
       {
-        title: input.title,
+        title: titleToUse,
         handle: handle,
         excerpt: input.excerpt ?? null,
         body: input.body ?? null,
@@ -169,6 +199,8 @@ export async function updateMyArticle(
         metadata: input.metadata,
       }),
     });
+
+    revalidateTag(`article-${article.rows[0].handle}`, "max");
 
     if (article.rows[0].published_at) {
       syncArticleById(article.rows[0].id);
@@ -496,6 +528,8 @@ export async function articlesByTag(
 }
 
 export async function articleDetailByHandle(article_handle: string) {
+  "use cache";
+  cacheTag(`article-${article_handle}`);
   try {
     const [article] = await persistenceRepository.article.find({
       where: eq("handle", article_handle),

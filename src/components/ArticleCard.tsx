@@ -1,17 +1,15 @@
 "use client";
 
 import { useTranslation } from "@/i18n/use-translation";
-import { formattedTime } from "@/lib/utils";
-import { useSession } from "@/store/session.atom";
+import { formattedTime, getAvatarPlaceholder } from "@/lib/utils";
+import { VerifiedIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
-import { useLoginPopup } from "./app-login-popup";
 import ResourceBookmark from "./ResourceBookmark";
 import ResourceReaction from "./ResourceReaction";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import UserInformationCard from "./UserInformationCard";
-import { VerifiedIcon } from "lucide-react";
 
 interface ArticleCardProps {
   id: string;
@@ -19,6 +17,7 @@ interface ArticleCardProps {
   handle: string;
   excerpt: string;
   coverImage?: string;
+  galleryImages?: string[];
   author: {
     id: string;
     name: string;
@@ -39,6 +38,7 @@ const ArticleCard = ({
   author,
   publishedAt,
   readingTime,
+  galleryImages,
 }: ArticleCardProps) => {
   const { lang } = useTranslation();
 
@@ -59,8 +59,7 @@ const ArticleCard = ({
                 src={
                   Boolean(author.avatar)
                     ? author.avatar
-                    : "https://api.dicebear.com/9.x/personas/svg?seed=" +
-                      author.name
+                    : getAvatarPlaceholder(author.name)
                 }
                 alt={author.name ?? ""}
                 className="w-full h-full object-cover transition-opacity duration-300 ease-in-out opacity-100"
@@ -119,6 +118,22 @@ const ArticleCard = ({
             </div>
           </Link>
         )}
+
+        <div className="grid gap-2 grid-cols-2  auto-rows-auto">
+          {galleryImages?.map((image) => (
+            <Link
+              key={image}
+              href={articleUrl}
+              className="relative rounded-sm overflow-hidden group cursor-pointer"
+            >
+              <img
+                src={image}
+                alt={title}
+                className="w-full h-auto object-cover"
+              />
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between">

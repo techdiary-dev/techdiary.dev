@@ -10,16 +10,20 @@ import HomepageLayout from "@/components/layout/HomepageLayout";
 import ResourceBookmark from "@/components/ResourceBookmark";
 import ResourceReaction from "@/components/ResourceReaction";
 import Markdown from "@/lib/markdown/Markdown";
-import { readingTime, removeMarkdownSyntax } from "@/lib/utils";
+import {
+  getAvatarPlaceholder,
+  readingTime,
+  removeMarkdownSyntax,
+} from "@/lib/utils";
 import getFileUrl from "@/utils/getFileUrl";
 import { Metadata, NextPage } from "next";
+import { OpenGraph } from "next/dist/lib/metadata/types/opengraph-types";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Article, WithContext } from "schema-dts";
 import { eq } from "sqlkit";
 import ArticleSidebar from "./_components/ArticleSidebar";
 import EditArticleButton from "./_components/EditArticleButton";
-import { OpenGraph } from "next/dist/lib/metadata/types/opengraph-types";
 
 interface ArticlePageProps {
   params: Promise<{
@@ -51,8 +55,14 @@ export async function generateMetadata(
     ],
   });
 
+  const description = removeMarkdownSyntax(
+    article.excerpt ?? article.body ?? "",
+    20
+  );
+
   const openGraph: OpenGraph = {
     title: article.title,
+    description,
     url: `https://www.techdiary.dev/@${article?.user?.username}/${article?.handle}`,
     type: "article",
   };
@@ -68,10 +78,10 @@ export async function generateMetadata(
 
   return {
     title: article.title,
-    description: removeMarkdownSyntax(
-      article.excerpt ?? article.body ?? "",
-      20
-    ),
+    description,
+    other: {
+      "last-updated": article.published_at?.toString() ?? new Date().toString(),
+    },
     openGraph,
   };
 }
@@ -105,6 +115,8 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
       },
     },
     articleBody: removeMarkdownSyntax(article?.body ?? "", 300),
+    datePublished: article?.published_at?.toISOString(),
+    dateModified: article?.updated_at?.toISOString(),
   };
 
   if (!article) {
@@ -144,8 +156,7 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
                 src={
                   Boolean(article?.user?.profile_photo)
                     ? getFileUrl(article?.user?.profile_photo)
-                    : "https://api.dicebear.com/9.x/personas/svg?seed=" +
-                      article?.user?.name
+                    : getAvatarPlaceholder(article?.user?.name ?? "")
                 }
                 alt={article?.user?.username ?? ""}
                 width={40}

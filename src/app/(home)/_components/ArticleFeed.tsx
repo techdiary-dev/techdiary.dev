@@ -3,7 +3,7 @@
 import * as articleActions from "@/backend/services/article.actions";
 import ArticleCard from "@/components/ArticleCard";
 import VisibilitySensor from "@/components/VisibilitySensor";
-import { readingTime } from "@/lib/utils";
+import { extractImageUrlsFromMarkdown, readingTime } from "@/lib/utils";
 import getFileUrl from "@/utils/getFileUrl";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -81,6 +81,14 @@ const ArticleFeed = () => {
                 title={article?.title ?? ""}
                 excerpt={article?.excerpt ?? ""}
                 coverImage={getFileUrl(article?.cover_image!)}
+                galleryImages={
+                  !article?.cover_image
+                    ? extractImageUrlsFromMarkdown(article?.body ?? "")?.splice(
+                        0,
+                        4
+                      )
+                    : []
+                }
                 author={{
                   id: article?.user?.id ?? "",
                   name: article?.user?.name ?? "",

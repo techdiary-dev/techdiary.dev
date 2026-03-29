@@ -2,7 +2,7 @@ import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse } from "next/server";
 
 import { env } from "@/env";
-import { z } from "zod";
+import { z } from "zod/v4";
 import { authID } from "@/backend/services/session.actions";
 import { s3Client } from "@/backend/s3.client";
 

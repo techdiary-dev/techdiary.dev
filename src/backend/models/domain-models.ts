@@ -1,14 +1,15 @@
 export interface User {
   id: string;
+  auth_id: string;
   name: string;
   username: string;
   is_verified?: boolean;
   email: string;
   profile_photo?: IServerFile | null;
-  education: string;
-  designation: string;
-  bio: string;
-  website_url: string;
+  education?: string | null;
+  designation?: string | null;
+  bio?: string | null;
+  website_url?: string | null;
   location: string;
   social_links: {
     github?: string;

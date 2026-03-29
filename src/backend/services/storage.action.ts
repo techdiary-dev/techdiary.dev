@@ -1,11 +1,11 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 import { handleActionException } from "./RepositoryException";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { env } from "@/env";
 import { s3Client } from "../s3.client";
 
 const schema = z.object({
-  url: z.string().url(),
+  url: z.url(),
   key: z.string(),
 });
 

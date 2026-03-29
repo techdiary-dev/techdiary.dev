@@ -21,7 +21,7 @@ import { Loader } from "lucide-react";
 import React from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
+import z from "zod/v4";
 
 interface Props {
   user: User;

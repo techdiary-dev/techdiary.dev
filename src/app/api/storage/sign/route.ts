@@ -2,7 +2,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 
-import { z } from "zod";
+import { z } from "zod/v4";
 import { env } from "@/env";
 import { authID } from "@/backend/services/session.actions";
 import { s3Client } from "@/backend/s3.client";

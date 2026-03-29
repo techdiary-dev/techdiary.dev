@@ -2,7 +2,7 @@
 
 import { useTranslation } from "@/i18n/use-translation";
 import { Clipboard } from "lucide-react";
-import React, { PropsWithChildren, useTransition } from "react";
+import React from "react";
 import toast from "react-hot-toast";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";

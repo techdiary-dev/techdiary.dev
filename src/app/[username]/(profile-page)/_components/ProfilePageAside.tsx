@@ -1,15 +1,11 @@
 import { User } from "@/backend/models/domain-models";
-import Behance from "@/components/icons/behance";
-import Dribbble from "@/components/icons/Dribbble";
 import Facebook from "@/components/icons/facebook";
 import Github from "@/components/icons/github";
 import Instagram from "@/components/icons/instagram";
 import Linkinedin from "@/components/icons/linkinedin";
-import Medium from "@/components/icons/medium";
-import Stackoverflow from "@/components/icons/stackoverflow";
-import Twitch from "@/components/icons/twitch";
 import X from "@/components/icons/x";
 import Youtube from "@/components/icons/youtube";
+import { getAvatarPlaceholder } from "@/lib/utils";
 import getFileUrl from "@/utils/getFileUrl";
 import { Link2Icon } from "lucide-react";
 import Image from "next/image";
@@ -27,9 +23,10 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
         className="w-[28%] md:w-full rounded"
         width={320}
         height={320}
+        unoptimized={!profile?.profile_photo}
         src={
           getFileUrl(profile?.profile_photo) ||
-          `https://api.dicebear.com/8.x/initials/svg?seed=${profile?.username}`
+          getAvatarPlaceholder(profile?.name ?? "")
         }
         alt={profile?.username ?? "Profile photo"}
       />

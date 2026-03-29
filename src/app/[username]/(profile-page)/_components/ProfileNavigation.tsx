@@ -29,7 +29,7 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ username }) => {
           "border-b-4 border-primary": pathname === `/@${username}/articles`,
         })}
       >
-        {_t("My articles")}
+        {_t("Articles")}
       </Link>
     </nav>
   );

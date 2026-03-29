@@ -1,13 +1,21 @@
 "use client";
 
+import * as tagActions from "@/backend/services/tag.action";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useTranslation } from "@/i18n/use-translation";
 import { homeSidebarOpenAtom } from "@/store/home-sidebar.atom";
+import { useSession } from "@/store/session.atom";
+import { useQuery } from "@tanstack/react-query";
 import { useAtom } from "jotai";
-import { BookmarkIcon, HomeIcon, PlusIcon } from "lucide-react";
-import Image from "next/image";
+import {
+  BookmarkIcon,
+  BellIcon,
+  HomeIcon,
+  PlusIcon,
+  UserIcon,
+  HashIcon,
+} from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
 const HomeLeftSidebar = () => {
   const [open, setOpen] = useAtom(homeSidebarOpenAtom);
@@ -27,185 +35,104 @@ const HomeLeftSidebar = () => {
 
 export default HomeLeftSidebar;
 
-const tags = [
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782237/static-assets/tag-icons/nbws9ynczmavj86ontfz.svg",
-    label: "nodejs",
-    link: "/tags/nodejs",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782240/static-assets/tag-icons/kvyqqabeipmca7utxf8e.svg",
-    label: "ts",
-    link: "/tags/typescript",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782237/static-assets/tag-icons/na8zbg5d1tuxt5yp6kay.svg",
-    label: "js",
-    link: "/tags/javascript",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782235/static-assets/tag-icons/tritkwhlognysckvztmw.svg",
-    label: "java",
-    link: "/tags/java",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782237/static-assets/tag-icons/w9zqspigpdgdmglbjo1g.svg",
-    label: "python",
-    link: "/tags/python",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782233/static-assets/tag-icons/zydwlue3nnnbeyyl8pum.svg",
-    label: "dart",
-    link: "/tags/dart",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782235/static-assets/tag-icons/qcbazadpuxskoaacu6mn.svg",
-    label: "go",
-    link: "/tags/go",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782237/static-assets/tag-icons/akx8gxzfgqdyvcffpadi.svg",
-    label: "php",
-    link: "/tags/php",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782239/static-assets/tag-icons/uruwktd4r0g7chwf7f3g.svg",
-    label: "ruby",
-    link: "/tags/ruby",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782235/static-assets/tag-icons/ivz6wh9hmtynuug99gcl.svg",
-    label: "html",
-    link: "/tags/html",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782233/static-assets/tag-icons/qap8jcvbl5dvjbktnnxo.svg",
-    label: "css",
-    link: "/tags/css",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782236/static-assets/tag-icons/hcddvgvejmha0hr8emkz.svg",
-    label: "laravel",
-    link: "/tags/laravel",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782235/static-assets/tag-icons/wtxrrpsfqguomzqjavam.svg",
-    label: "graphql",
-    link: "/tags/graphql",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782239/static-assets/tag-icons/erfbu54l2mquphszheck.svg",
-    label: "react",
-    link: "/tags/reactjs",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782240/static-assets/tag-icons/rh7xfiz28bxklfzymftd.svg",
-    label: "vue",
-    link: "/tags/vue",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782240/static-assets/tag-icons/wsunggfipja7edqsybg5.svg",
-    label: "svelte",
-    link: "/tags/svelte",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782232/static-assets/tag-icons/xbazdwl9wpdqi1naqtib.svg",
-    label: "angular",
-    link: "/tags/angular",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782233/static-assets/tag-icons/jb9r6xjy7yi1gkeqqvnh.svg",
-    label: "flutter",
-    link: "/tags/flutter",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782237/static-assets/tag-icons/odut7ffl8spzdkbhceeu.svg",
-    label: "kubernetes",
-    link: "/tags/kubernetes",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782233/static-assets/tag-icons/kow5csrider7v1eizt1q.svg",
-    label: "docker",
-    link: "/tags/docker",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782233/static-assets/tag-icons/jkepqds7ziutsnle1e4a.svg",
-    label: "aws",
-    link: "/tags/aws",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782234/static-assets/tag-icons/vvx5vhoos8jgkutp48ll.svg",
-    label: "git",
-    link: "/tags/git",
-  },
-  {
-    icon: "https://res.cloudinary.com/techdiary-dev/image/upload/v1620782234/static-assets/tag-icons/hwsbp19pfifwr367xtoh.svg",
-    label: "github",
-    link: "/tags/github",
-  },
-];
-
 const Sidebar = () => {
   const { _t } = useTranslation();
-  const [count, setCount] = useState(10);
+  const session = useSession();
+  const isLoggedIn = Boolean(session?.user);
+
+  const tagsQuery = useQuery({
+    queryKey: ["top-tags"],
+    queryFn: () => tagActions.getTopTags(8),
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const tags = tagsQuery.data?.success ? tagsQuery.data.data : [];
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="mb-2 mt-4 flex flex-col gap-4">
-        <Link href={"/"} className="flex items-center gap-2 text-foreground">
-          <HomeIcon size={18} />
-          <span className="text-sm">{_t("Home")}</span>
-        </Link>
+    <div className="flex flex-col gap-6 pt-4">
+      {/* Section 1 — Primary navigation */}
+      <div className="flex flex-col gap-1">
+        <NavLink href="/" icon={<HomeIcon size={17} />} label={_t("Home")} />
         <Link
-          href={"/dashboard/bookmarks"}
-          className="flex items-center gap-2 text-foreground"
+          href="/dashboard/articles/new"
+          className="flex items-center gap-2.5 mt-1 px-2 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
         >
-          <BookmarkIcon size={18} />
-          <span className="text-sm">{_t("Bookmarks")}</span>
-        </Link>
-        <Link
-          href={"/dashboard/articles/new"}
-          className="flex items-center gap-2 text-foreground"
-        >
-          <PlusIcon size={18} />
-          <span className="text-sm">{_t("New diary")}</span>
+          <PlusIcon size={17} />
+          {_t("Write a diary")}
         </Link>
       </div>
 
-      <div>
-        <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
-          {_t("Top tags")}
-        </h3>
-
-        <div className="flex flex-col gap-2">
-          {tags.slice(0, count).map((tag, index) => (
-            <Link
-              href={tag.link}
-              className="flex items-center gap-2 text-forground-muted"
-              key={index}
-            >
-              <Image
-                src={tag.icon}
-                width={20}
-                height={20}
-                sizes="20px"
-                alt={tag?.label}
-              />
-              <p className="text-forground-muted">{tag?.label}</p>
-            </Link>
-          ))}
+      {/* Section 2 — Personal (logged-in only) */}
+      {isLoggedIn && (
+        <div className="flex flex-col gap-1">
+          <p className="px-2 mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {_t("Personal")}
+          </p>
+          <NavLink
+            href={`/@${session!.user!.username}`}
+            icon={<UserIcon size={17} />}
+            label={_t("My Profile")}
+          />
+          <NavLink
+            href={`/@${session!.user!.username}/articles`}
+            icon={<PlusIcon size={17} />}
+            label={_t("My Articles")}
+          />
+          <NavLink
+            href="/dashboard/bookmarks"
+            icon={<BookmarkIcon size={17} />}
+            label={_t("Bookmarks")}
+          />
+          <NavLink
+            href="/dashboard/notifications"
+            icon={<BellIcon size={17} />}
+            label={_t("Notifications")}
+          />
         </div>
+      )}
 
-        {count === 10 && (
-          <button
-            className="mt-2 text-sm"
-            onClick={() => setCount(tags.length)}
-          >
-            {_t("All tags")}
-            ...
-          </button>
+      {/* Section 3 — Topics */}
+      <div className="flex flex-col gap-1">
+        <p className="px-2 mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {_t("Topics")}
+        </p>
+        {tags.map((tag: any) => (
+          <NavLink
+            key={tag.id}
+            href={`/tags/${tag.name}`}
+            icon={<HashIcon size={17} />}
+            label={tag.name}
+          />
+        ))}
+        {tagsQuery.isLoading && (
+          <div className="flex flex-col gap-2 px-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-4 w-24 rounded bg-muted animate-pulse" />
+            ))}
+          </div>
+        )}
+        {!tagsQuery.isLoading && tags.length === 0 && (
+          <p className="px-2 text-sm text-muted-foreground">{_t("No tags found")}</p>
         )}
       </div>
     </div>
   );
 };
+
+const NavLink = ({
+  href,
+  icon,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}) => (
+  <Link
+    href={href}
+    className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors"
+  >
+    <span className="text-muted-foreground">{icon}</span>
+    {label}
+  </Link>
+);

@@ -1,29 +1,29 @@
 import type { Metadata } from "next";
-import { Toaster } from "@/components/toast";
+import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import "../styles/app.css";
 
-import * as sessionActions from "@/backend/services/session.actions";
 import CommonProviders from "@/components/providers/CommonProviders";
-import I18nProvider from "@/components/providers/I18nProvider";
+import LanguageHydrator from "@/components/providers/LanguageHydrator";
+import SessionHydrator from "@/components/providers/SessionHydrator";
 import { CookieConsentPopup } from "@/components/CookieConsentPopup";
 import { fontKohinoorBanglaRegular } from "@/lib/fonts";
-import { cookies } from "next/headers";
+import { Toaster } from "@/components/toast";
 import Script from "next/script";
-import React, { PropsWithChildren } from "react";
+import React, { PropsWithChildren, Suspense } from "react";
 
 export const metadata: Metadata = {
   title: {
-    default: "TechDiary",
+    default: "TechDiary - টেকডায়েরি",
     template: "%s | TechDiary",
   },
   applicationName: "TechDiary",
   referrer: "origin-when-cross-origin",
-  keywords: ["TechDiary", "টেকডায়েরি"],
+  keywords: ["TechDiary", "টেকডায়েরি"],
   icons: { icon: "/favicon.png" },
-  description: "Homepage of TechDiary",
+  description: "বাংলায় প্রযুক্তি, কোড ও সমস্যার সমাধান — TechDiary",
   metadataBase: new URL("https://www.techdiary.dev"),
   openGraph: {
-    title: "TechDiary - টেকডায়েরি",
+    title: "TechDiary - টেকডায়েরি",
     description: "চিন্তা, সমস্যা, সমাধান",
     url: "https://www.techdiary.dev",
     siteName: "TechDiary",
@@ -31,13 +31,15 @@ export const metadata: Metadata = {
     type: "website",
     images: ["https://www.techdiary.dev/og.png"],
   },
+  twitter: {
+    card: "summary_large_image",
+    site: "@techdiary_dev",
+  },
 };
 
-const RootLayout: React.FC<PropsWithChildren> = async ({ children }) => {
-  const _cookies = await cookies();
-  const session = await sessionActions.getSession();
+const RootLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="bn" suppressHydrationWarning>
       <body style={fontKohinoorBanglaRegular.style}>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-F3VRW4H09N"
@@ -79,13 +81,15 @@ const RootLayout: React.FC<PropsWithChildren> = async ({ children }) => {
             `,
           }}
         />
-        <I18nProvider currentLanguage={_cookies.get("language")?.value || "en"}>
-          <CommonProviders session={session}>
+        <AuthKitProvider>
+          <CommonProviders>
+            <Suspense><SessionHydrator /></Suspense>
+            <Suspense><LanguageHydrator /></Suspense>
             {children}
             <Toaster />
             <CookieConsentPopup />
           </CommonProviders>
-        </I18nProvider>
+        </AuthKitProvider>
       </body>
     </html>
   );

@@ -18,8 +18,8 @@ export const size = {
 };
 export const contentType = "image/png";
 
-const getFileLocation = async (path: string) => {
-  const logoData = await readFile(join(process.cwd(), path));
+const getFileLocation = async (relativePath: string) => {
+  const logoData = await readFile(join(process.cwd(), "public", relativePath));
   return Uint8Array.from(logoData).buffer;
 };
 
@@ -102,7 +102,7 @@ export default async function Image(options: ArticlePageProps) {
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <img
               style={{ height: 48 }}
-              src={(await getFileLocation("/public/logo-lg.png")) as any}
+              src={(await getFileLocation("logo-lg.png")) as any}
               alt="logo"
             />
             <p style={{ fontSize: 28 }}>Techdiary</p>
@@ -115,7 +115,7 @@ export default async function Image(options: ArticlePageProps) {
       fonts: [
         {
           name: "BANGLA_FONT",
-          data: await getFileLocation("/public/fonts/HindSiliguri-Regular.ttf"),
+          data: await getFileLocation("fonts/HindSiliguri-Regular.ttf"),
           style: "normal",
           weight: 400,
         },

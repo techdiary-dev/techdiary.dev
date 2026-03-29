@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod/v4";
 
 export const UserActionInput = {
   syncSocialUserInput: z.object({
@@ -6,7 +6,7 @@ export const UserActionInput = {
     service_uid: z.string(),
     name: z.string(),
     username: z.string(),
-    email: z.string().email(),
+    email: z.email(),
     profile_photo: z
       .object({
         key: z.string(),
@@ -16,10 +16,23 @@ export const UserActionInput = {
       .nullable(),
     bio: z.string().optional().nullable(),
   }),
+  bootWorkOSUserInput: z.object({
+    auth_id: z.string(), // WorkOS user ID
+    name: z.string(),
+    username: z.string(),
+    email: z.email(),
+    profile_photo: z
+      .object({
+        key: z.string(),
+        provider: z.enum(["cloudinary", "direct", "r2"]),
+      })
+      .optional()
+      .nullable(),
+  }),
   updateMyProfileInput: z.object({
     name: z.string().optional(),
     username: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.email().optional(),
     profile_photo: z
       .object({
         key: z.string(),
@@ -30,7 +43,7 @@ export const UserActionInput = {
     education: z.string().optional().nullable(),
     designation: z.string().optional().nullable(),
     bio: z.string().optional().nullable(),
-    websiteUrl: z.string().url().optional().nullable(),
+    websiteUrl: z.url().optional().nullable(),
     location: z.string().optional().nullable(),
     social_links: z
       .object({
@@ -38,10 +51,9 @@ export const UserActionInput = {
           .union([
             z.literal(""),
             z
-              .string()
               .url()
               .regex(/^https:\/\/(www\.)?github\.com\/[A-Za-z0-9_-]+\/?$/, {
-                message: "Invalid GitHub profile URL",
+                error: "Invalid GitHub profile URL",
               }),
           ])
           .optional(),
@@ -49,12 +61,11 @@ export const UserActionInput = {
           .union([
             z.literal(""),
             z
-              .string()
               .url()
               .regex(
                 /^https:\/\/(www\.)?(twitter\.com|x\.com)\/[A-Za-z0-9_]+\/?$/,
                 {
-                  message: "Invalid X (Twitter) profile URL",
+                  error: "Invalid X (Twitter) profile URL",
                 }
               ),
           ])
@@ -63,12 +74,11 @@ export const UserActionInput = {
           .union([
             z.literal(""),
             z
-              .string()
               .url()
               .regex(
                 /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/,
                 {
-                  message: "Invalid LinkedIn profile URL",
+                  error: "Invalid LinkedIn profile URL",
                 }
               ),
           ])
@@ -77,10 +87,9 @@ export const UserActionInput = {
           .union([
             z.literal(""),
             z
-              .string()
               .url()
               .regex(/^https:\/\/(www\.)?facebook\.com\/[A-Za-z0-9.]+\/?$/, {
-                message: "Invalid Facebook profile URL",
+                error: "Invalid Facebook profile URL",
               }),
           ])
           .optional(),
@@ -88,10 +97,9 @@ export const UserActionInput = {
           .union([
             z.literal(""),
             z
-              .string()
               .url()
               .regex(/^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9_.]+\/?$/, {
-                message: "Invalid Instagram profile URL",
+                error: "Invalid Instagram profile URL",
               }),
           ])
           .optional(),
@@ -99,12 +107,11 @@ export const UserActionInput = {
           .union([
             z.literal(""),
             z
-              .string()
               .url()
               .regex(
                 /^https:\/\/(www\.)?youtube\.com\/(@[A-Za-z0-9_-]+|(c|channel|user)\/[A-Za-z0-9_-]+)\/?$/,
                 {
-                  message: "Invalid YouTube profile URL",
+                  error: "Invalid YouTube profile URL",
                 }
               ),
           ])
