@@ -6,11 +6,30 @@ import { useTranslation } from "@/i18n/use-translation";
 import { formattedTime } from "@/lib/utils";
 import { useSession } from "@/store/session.atom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import toast from "react-hot-toast";
+import {
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useImmer } from "use-immer";
 import { useLoginPopup } from "./app-login-popup";
 import ResourceReaction from "./ResourceReaction";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "./ui/alert-dialog";
+import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
 const Context = React.createContext<
@@ -76,7 +95,8 @@ export const CommentSection = (props: {
 
       queryClient.setQueryData(
         ["comments", props.resource_id, props.resource_type],
-        (old: any) => {
+        (old: CommentPresentation[] | undefined) => {
+          const prev = old ?? [];
           return [
             {
               id: payload.comment_id || crypto.randomUUID(),
@@ -91,7 +111,7 @@ export const CommentSection = (props: {
               replies: [],
               created_at: new Date(),
             } satisfies CommentPresentation,
-            ...old,
+            ...prev,
           ];
         }
       );
@@ -111,6 +131,12 @@ export const CommentSection = (props: {
   });
 
   const generated_comment_id = () => crypto.randomUUID();
+  const listQueryKey = [
+    "comments",
+    props.resource_id,
+    props.resource_type,
+  ] as const;
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="mb-6">
@@ -133,6 +159,7 @@ export const CommentSection = (props: {
             key={comment.id}
             comment={comment}
             mutating={mutation.isPending}
+            listQueryKey={listQueryKey}
           />
         ))}
       </div>
@@ -197,19 +224,58 @@ const CommentEditor = (props: {
 const CommentItem = (props: {
   comment: CommentPresentation;
   mutating?: boolean;
+  listQueryKey: readonly [string, string, string];
 }) => {
   const { _t } = useTranslation();
+  const queryClient = useQueryClient();
   const session = useSession();
   const appLoginPopup = useLoginPopup();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showReplyBox, setShowReplyBox] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editDraft, setEditDraft] = useState(props.comment.body ?? "");
   const { mutatingId, setMutatingId } = useCommentSection();
   const [replies, setReplies] = useImmer<CommentPresentation[]>(
     props.comment.replies ?? []
   );
 
+  const isOwner = Boolean(
+    session?.user?.id &&
+      props.comment.author?.id &&
+      session.user.id === props.comment.author.id
+  );
+
   const level = useMemo(() => props.comment.level ?? 0, [props.comment]);
   const generated_comment_id = () => crypto.randomUUID();
+
+  const updateMutation = useMutation({
+    mutationFn: (body: string) =>
+      commentActions.updateMyComment({ id: props.comment.id, body }),
+    onSuccess: (res) => {
+      if (res && "success" in res && res.success) {
+        void queryClient.invalidateQueries({ queryKey: [...props.listQueryKey] });
+        setIsEditing(false);
+        toast.success(_t("Comment updated"));
+        return;
+      }
+      const err = res && "error" in res ? res.error : _t("Something went wrong");
+      toast.error(err);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => commentActions.deleteMyComment({ id: props.comment.id }),
+    onSuccess: (res) => {
+      if (res && "success" in res && res.success) {
+        void queryClient.invalidateQueries({ queryKey: [...props.listQueryKey] });
+        toast.success(_t("Comment deleted"));
+        return;
+      }
+      const err = res && "error" in res ? res.error : _t("Something went wrong");
+      toast.error(err);
+    },
+  });
+
   const mutation = useMutation({
     mutationFn: (payload: { body: string; comment_id: string }) =>
       commentActions.createMyComment({
@@ -239,20 +305,12 @@ const CommentItem = (props: {
           created_at: new Date(),
         } satisfies CommentPresentation);
       });
-      console.log("Mutating comment with ID:", payload.comment_id);
 
       setMutatingId(payload.comment_id);
     },
-    onError: (error) => {
-      // reverse the optimistic update if there's an error
-      // Optionally, you can show an error message to the user
-    },
   });
 
-  const levelMargin = useMemo(
-    () => Math.min(level, 8) * 30,
-    [props.comment.level]
-  );
+  const levelMargin = useMemo(() => Math.min(level, 8) * 30, [level]);
   return (
     <div
       data-comment-id={props.comment.id}
@@ -279,9 +337,46 @@ const CommentItem = (props: {
         <>
           {/* Comment Content */}
           <div className="mb-2">
-            <div className="prose prose-sm max-w-none text-foreground">
-              {props.comment.body}
-            </div>
+            {isEditing ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={editDraft}
+                  onChange={(e) => setEditDraft(e.target.value)}
+                  className="min-h-[100px]"
+                  disabled={updateMutation.isPending}
+                />
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    size="sm"
+                    type="button"
+                    onClick={() => {
+                      const t = editDraft.trim();
+                      if (!t) return;
+                      updateMutation.mutate(t);
+                    }}
+                    disabled={updateMutation.isPending}
+                  >
+                    {_t("Save")}
+                  </Button>
+                  <Button
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditDraft(props.comment.body ?? "");
+                    }}
+                    disabled={updateMutation.isPending}
+                  >
+                    {_t("Cancel")}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap">
+                {props.comment.body}
+              </div>
+            )}
           </div>
 
           {/* Comment Actions */}
@@ -291,9 +386,62 @@ const CommentItem = (props: {
               {_t("Pending")}...
             </p>
           ) : (
-            <div className="flex items-center gap-4 mb-3">
-              {level < 2 && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-3">
+              {isOwner && !isEditing && (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      setEditDraft(props.comment.body ?? "");
+                      setIsEditing(true);
+                    }}
+                  >
+                    <Pencil className="size-3.5 mr-1" />
+                    {_t("Edit")}
+                  </Button>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-muted-foreground hover:text-destructive"
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 className="size-3.5 mr-1" />
+                        {_t("Delete")}
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>{_t("Delete this comment?")}</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {(replies?.length ?? 0) > 0
+                            ? _t(
+                                "This will remove this comment and all nested replies under it."
+                              )
+                            : _t("This cannot be undone.")}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>{_t("Cancel")}</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteMutation.mutate()}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {_t("Delete")}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </>
+              )}
+              {level < 2 && !isEditing && (
                 <button
+                  type="button"
                   className="text-sm flex items-center hover:underline cursor-pointer"
                   onClick={() => setShowReplyBox(!showReplyBox)}
                 >
@@ -301,10 +449,12 @@ const CommentItem = (props: {
                   <span>{_t("Reply")}</span>
                 </button>
               )}
-              <ResourceReaction
-                resource_type="COMMENT"
-                resource_id={props.comment.id}
-              />
+              {!isEditing && (
+                <ResourceReaction
+                  resource_type="COMMENT"
+                  resource_id={props.comment.id}
+                />
+              )}
             </div>
           )}
 
@@ -331,6 +481,7 @@ const CommentItem = (props: {
               key={reply.id}
               comment={reply}
               mutating={mutation.isPending}
+              listQueryKey={props.listQueryKey}
             />
           ))}
         </>

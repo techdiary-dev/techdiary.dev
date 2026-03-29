@@ -3,9 +3,13 @@
 import z from "zod/v4";
 import { CommentActionInput } from "./inputs/comment.input";
 import { authID } from "./session.actions";
-import { ActionException } from "./RepositoryException";
+import {
+  ActionException,
+  handleActionException,
+} from "./RepositoryException";
 import { persistenceRepository } from "../persistence/persistence-repositories";
-import { eq } from "sqlkit";
+import { pgClient } from "../persistence/clients";
+import { and, eq, inArray } from "sqlkit";
 import { CommentPresentation } from "../models/domain-models";
 
 const sql = String.raw;
@@ -19,11 +23,12 @@ export const getComments = async (
     SELECT get_comments($1, $2) as comments
   `;
 
-  const execution_response: any = await pgClient?.executeSQL(query, [
+  const execution_response: unknown = await pgClient.executeSQL(query, [
     input.resource_id,
     input.resource_type,
   ]);
-  return execution_response?.rows?.[0]?.comments || [];
+  const rows = execution_response as { rows?: { comments?: CommentPresentation[] }[] };
+  return rows?.rows?.[0]?.comments || [];
 };
 
 export const createMyComment = async (
@@ -75,13 +80,89 @@ export const createMyComment = async (
   return created?.rows?.[0];
 };
 
-export const deleteComment = async (
-  input: z.infer<typeof CommentActionInput.delete>
+export const updateMyComment = async (
+  _input: z.infer<typeof CommentActionInput.update>
 ) => {
-  const { id } = input;
+  try {
+    const input = await CommentActionInput.update.parseAsync(_input);
+    const userId = await authID();
+    if (!userId) {
+      throw new ActionException("Unauthorized");
+    }
 
-  // Delete the comment from the database
-  // await db.delete(commentsTable).where(commentsTable.id.eq(id));
+    const [existing] = await persistenceRepository.comment.find({
+      where: eq("id", input.id),
+      limit: 1,
+    });
+    if (!existing) {
+      throw new ActionException("Comment not found");
+    }
+    if (existing.user_id !== userId) {
+      throw new ActionException("Unauthorized");
+    }
 
-  // return { success: true };
+    await persistenceRepository.comment.update({
+      where: and(eq("id", input.id), eq("user_id", userId)),
+      data: { body: input.body, updated_at: new Date() },
+    });
+
+    return { success: true as const, data: { id: input.id } };
+  } catch (error) {
+    return handleActionException(error);
+  }
+};
+
+/** Deletes the comment and all nested replies; reactions on those comments are removed first. */
+export const deleteMyComment = async (
+  _input: z.infer<typeof CommentActionInput.delete>
+) => {
+  try {
+    const input = await CommentActionInput.delete.parseAsync(_input);
+    const userId = await authID();
+    if (!userId) {
+      throw new ActionException("Unauthorized");
+    }
+
+    const [root] = await persistenceRepository.comment.find({
+      where: eq("id", input.id),
+      limit: 1,
+    });
+    if (!root) {
+      throw new ActionException("Comment not found");
+    }
+    if (root.user_id !== userId) {
+      throw new ActionException("Unauthorized");
+    }
+
+    const idsQuery = sql`
+      WITH RECURSIVE subtree AS (
+        SELECT id FROM comments WHERE id = $1::uuid
+        UNION ALL
+        SELECT c.id FROM comments c
+        INNER JOIN subtree s ON c.resource_id = s.id AND c.resource_type = 'COMMENT'
+      )
+      SELECT id FROM subtree
+    `;
+    const idResult = await pgClient.executeSQL(idsQuery, [input.id]);
+    const rows = idResult?.rows as { id: string }[] | undefined;
+    const ids = (rows ?? []).map((r) => r.id);
+    if (ids.length === 0) {
+      throw new ActionException("Comment not found");
+    }
+
+    await persistenceRepository.reaction.delete({
+      where: and(
+        eq("resource_type", "COMMENT"),
+        inArray("resource_id", ids)
+      ),
+    });
+
+    await persistenceRepository.comment.delete({
+      where: inArray("id", ids),
+    });
+
+    return { success: true as const, data: { id: input.id } };
+  } catch (error) {
+    return handleActionException(error);
+  }
 };

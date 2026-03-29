@@ -13,7 +13,7 @@ export const CommentActionInput = {
   }),
   update: z.object({
     id: z.uuid(),
-    body: z.string().min(1).max(500),
+    body: z.string().min(1).max(5000),
   }),
   delete: z.object({
     id: z.uuid(),
