@@ -7,7 +7,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { FaceIcon } from "@radix-ui/react-icons";
 
 interface ResourceReactionProps {
-  resource_type: "ARTICLE" | "COMMENT";
+  resource_type: "ARTICLE" | "COMMENT" | "GIST";
   resource_id: string;
 }
 const ResourceReaction = ({

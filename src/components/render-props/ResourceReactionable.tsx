@@ -9,7 +9,7 @@ import React from "react";
 import { useLoginPopup } from "../app-login-popup";
 
 interface Props {
-  resource_type: "ARTICLE" | "COMMENT";
+  resource_type: "ARTICLE" | "COMMENT" | "GIST";
   resource_id: string;
   render: ({
     toggle,

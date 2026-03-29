@@ -156,7 +156,7 @@ export interface BookmarkArticlePresentation {
 export interface Comment {
   id: string;
   resource_id: string;
-  resource_type: "ARTICLE" | "COMMENT";
+  resource_type: "ARTICLE" | "COMMENT" | "GIST";
   body?: string;
   user_id: string;
   created_at: Date;
@@ -196,7 +196,7 @@ export enum DIRECTORY_NAME {
 
 export interface Reaction {
   resource_id: string;
-  resource_type: "ARTICLE" | "COMMENT";
+  resource_type: "ARTICLE" | "COMMENT" | "GIST";
   reaction_type: REACTION_TYPE;
   user_id: string;
   created_at: Date;

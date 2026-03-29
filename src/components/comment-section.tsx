@@ -79,7 +79,7 @@ function CommentListSkeleton() {
 
 export const CommentSection = (props: {
   resource_id: string;
-  resource_type: "ARTICLE" | "COMMENT";
+  resource_type: "ARTICLE" | "COMMENT" | "GIST";
   className?: string;
 }) => {
   const { _t } = useTranslation();

@@ -63,6 +63,17 @@ export const createMyComment = async (
         throw new ActionException("Parent comment not found");
       }
       break;
+    case "GIST": {
+      const [gistExists] = await persistenceRepository.gist.find({
+        where: eq("id", resource_id),
+        limit: 1,
+        columns: ["id"],
+      });
+      if (!gistExists) {
+        throw new ActionException("Resource not found");
+      }
+      break;
+    }
     default:
       throw new ActionException("Invalid resource type");
   }
