@@ -33,7 +33,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Styling**: Tailwind CSS 4, shadcn/ui components
 - **Backend**: Next.js Server Actions, Drizzle ORM (migrations only)
 - **Database**: PostgreSQL
-- **Authentication**: GitHub OAuth
+- **Authentication**: WorkOS (primary), GitHub OAuth (legacy fallback)
 - **Search**: MeilSearch
 - **File Storage**: Cloudinary / Cloudflare R2
 - **State Management**: Jotai, TanStack Query, React Hook Form with Zod validation
@@ -52,6 +52,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Route groups using Next.js App Router:
   - `(home)` - Main homepage and article feed
   - `(dashboard-editor)` - Protected dashboard routes
+  - `gists` - Gist browsing, creation, and viewing
   - `[username]` - User profile pages
   - `[username]/[articleHandle]` - Individual article pages
 - API routes in `/api/` for OAuth and development
@@ -79,6 +80,7 @@ Key entities and their relationships:
 - **Tags** - Article categorization
 - **Bookmarks** - User content saving
 - **Reactions** - Emoji-based reactions (LOVE, FIRE, WOW, etc.)
+- **Gists** - Code snippets with multiple files (`gists` + `gist_files` tables)
 - **User Sessions** - Session management
 - **User Socials** - OAuth provider connections
 
@@ -208,7 +210,7 @@ persistenceRepository.article.paginate({ where, orderBy, limit, page })
 persistenceRepository.article.find({ where, columns, joins })
 ```
 
-Available repositories: `user`, `userSocial`, `userSession`, `article`, `bookmark`, `comment`, `reaction`, `articleTagPivot`, `tags`, `series`, `seriesItems`, `kv`.
+Available repositories: `user`, `userSocial`, `userSession`, `article`, `bookmark`, `comment`, `reaction`, `articleTagPivot`, `tags`, `series`, `seriesItems`, `kv`, `gist`, `gistFile`.
 
 For complex multi-join queries, raw SQL is executed directly via `pgClient.executeSQL()`.
 
