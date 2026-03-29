@@ -55,7 +55,7 @@ export async function toggleResourceBookmark(
     ]);
     return { bookmarked: true };
   } catch (error) {
-    handleActionException(error);
+    return handleActionException(error);
   }
 }
 
@@ -126,7 +126,7 @@ export async function myBookmarks(
       },
     };
   } catch (error) {
-    handleActionException(error);
+    return handleActionException(error);
   }
 }
 
@@ -160,5 +160,6 @@ export async function bookmarkStatus(
     return { bookmarked: Boolean(existingBookmark) };
   } catch (error) {
     handleActionException(error);
+    return { bookmarked: false };
   }
 }
