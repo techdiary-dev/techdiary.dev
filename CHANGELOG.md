@@ -6,6 +6,23 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.3.0 — 2026-03-30
+
+### ✨ Features
+- feat: add footer with attribution to techdiary.dev in GistCodeImageDialog (b7c15b9)
+- feat: add clipboard copy functionality to GistCodeImageDialog (01831a8)
+- feat: add image export functionality to GistViewer (f9c31ba)
+
+### 🐛 Bug Fixes
+- fix: improve error handling in bookmark and reaction services (6199497)
+
+### 🔧 Other Changes
+- refactor: streamline Gist retrieval logic and enhance error handling (062cac5)
+- refactor: enhance bookmarks handling and improve state management (6368aaa)
+- docs: update CLAUDE.md to reflect authentication and Gist enhancements (14c7236)
+
+---
+
 ## v1.2.0 — 2026-03-30
 
 ### ✨ Features

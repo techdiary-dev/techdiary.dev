@@ -27,6 +27,12 @@ interface BookmarkData {
   meta: BookmarkMeta;
 }
 
+function isBookmarksSuccess(
+  page: Awaited<ReturnType<typeof myBookmarks>> | undefined
+): page is BookmarkData {
+  return Boolean(page && "meta" in page && "nodes" in page);
+}
+
 const BookmarksPage = () => {
   const { _t } = useTranslation();
   const feedInfiniteQuery = useInfiniteQuery({
@@ -35,15 +41,16 @@ const BookmarksPage = () => {
       myBookmarks({ limit: 10, page: pageParam, offset: 0 }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      const _page = lastPage?.meta?.currentPage ?? 1;
-      const _totalPages = lastPage?.meta?.totalPages ?? 1;
+      if (!isBookmarksSuccess(lastPage)) return null;
+      const _page = lastPage.meta.currentPage;
+      const _totalPages = lastPage.meta.totalPages;
       return _page + 1 <= _totalPages ? _page + 1 : null;
     },
   });
 
   const hasItems = useMemo(() => {
-    const length = feedInfiniteQuery.data?.pages.flat()[0]?.nodes.length ?? 0;
-    return length > 0;
+    const firstOk = feedInfiniteQuery.data?.pages.find(isBookmarksSuccess);
+    return (firstOk?.nodes.length ?? 0) > 0;
   }, [feedInfiniteQuery]);
 
   const appConfirm = useAppConfirm();
@@ -65,8 +72,9 @@ const BookmarksPage = () => {
             <article key={i} className=" bg-muted h-20 animate-pulse" />
           ))}
 
-        {feedInfiniteQuery.data?.pages.map((page) => {
-          return page?.nodes.map((bookmark) => (
+        {feedInfiniteQuery.data?.pages.flatMap((page) => {
+          if (!isBookmarksSuccess(page)) return [];
+          return page.nodes.map((bookmark) => (
             <article
               key={bookmark.id}
               className="flex justify-between flex-col md:flex-row py-3 space-y-2"

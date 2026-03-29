@@ -125,20 +125,16 @@ export async function getGist(
       ],
     });
 
-    // check visibility
-    if (!gistFindResponse[0].is_public) {
-      if (gistFindResponse[0].owner_id !== sessionUserId) {
-        throw new ActionException("Not authorized to view this gist");
-      }
-    }
-
-    if (gistFindResponse[0]) {
-      gist = gistFindResponse[0];
-    }
-
-    if (!gist) {
+    const row = gistFindResponse[0];
+    if (!row) {
       throw new ActionException("Gist not found");
     }
+
+    if (!row.is_public && row.owner_id !== sessionUserId) {
+      throw new ActionException("Not authorized to view this gist");
+    }
+
+    gist = row;
 
     const gistFiles = await persistenceRepository.gistFile.find({
       where: eq("gist_id", gist.id),

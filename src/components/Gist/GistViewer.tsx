@@ -18,6 +18,8 @@ import {
   Link2Icon,
   FileIcon,
 } from "@radix-ui/react-icons";
+import { ImageIcon } from "lucide-react";
+import GistCodeImageDialog from "@/components/Gist/GistCodeImageDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -86,6 +88,9 @@ export default function GistViewer({
   const router = useRouter();
   const queryClient = useQueryClient();
   const appConfirm = useAppConfirm();
+  const [imageExportFile, setImageExportFile] = useState<GistFile | null>(
+    null
+  );
 
   const renderFileContent = (file: GistFile) => {
     const ext = file.filename ? file.filename.split(".").pop() : undefined;
@@ -257,6 +262,16 @@ export default function GistViewer({
                   <FileExtBadge filename={file.filename} />
                 </div>
                 <div className="flex items-center gap-0.5 shrink-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground"
+                    title="Export as image (Carbon-style)"
+                    onClick={() => setImageExportFile(file)}
+                  >
+                    <ImageIcon className="h-4 w-4" />
+                  </Button>
                   <CopyButton
                     title="Copy content"
                     icon="copy"
@@ -286,6 +301,16 @@ export default function GistViewer({
           No files in this gist
         </div>
       )}
+
+      <GistCodeImageDialog
+        open={imageExportFile !== null}
+        onOpenChange={(open) => {
+          if (!open) setImageExportFile(null);
+        }}
+        filename={imageExportFile?.filename ?? ""}
+        content={imageExportFile?.content ?? ""}
+        language={imageExportFile?.language}
+      />
     </div>
   );
 }

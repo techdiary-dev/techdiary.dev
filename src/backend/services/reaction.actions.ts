@@ -11,6 +11,24 @@ import { ReactionStatus } from "../models/domain-models";
 
 const sql = String.raw;
 
+const REACTION_TYPES = [
+  "LOVE",
+  "UNICORN",
+  "WOW",
+  "FIRE",
+  "CRY",
+  "HAHA",
+] as const;
+
+function emptyReactionStatuses(): ReactionStatus[] {
+  return REACTION_TYPES.map((reaction_type) => ({
+    reaction_type,
+    count: 0,
+    is_reacted: false,
+    reactor_user_ids: [],
+  }));
+}
+
 export async function toogleReaction(
   _input: z.infer<typeof ReactionActionInput.toggleReactionInput>
 ) {
@@ -66,7 +84,7 @@ export async function toogleReaction(
       is_reacted: true,
     };
   } catch (error) {
-    handleActionException(error);
+    return handleActionException(error);
   }
 }
 
@@ -117,18 +135,17 @@ export async function getResourceReactions(
     }
 
     // Return all types, filling missing ones with count: 0
-    return ["LOVE", "UNICORN", "WOW", "FIRE", "CRY", "HAHA"].map(
-      (reaction_type) => {
-        const entry = reactionMap.get(reaction_type);
-        return {
-          reaction_type,
-          count: entry?.count ?? 0,
-          is_reacted: entry?.is_reacted ?? false,
-          reactor_user_ids: entry?.reactor_user_ids ?? [],
-        };
-      }
-    );
+    return REACTION_TYPES.map((reaction_type) => {
+      const entry = reactionMap.get(reaction_type);
+      return {
+        reaction_type,
+        count: entry?.count ?? 0,
+        is_reacted: entry?.is_reacted ?? false,
+        reactor_user_ids: entry?.reactor_user_ids ?? [],
+      };
+    });
   } catch (error) {
     handleActionException(error);
+    return emptyReactionStatuses();
   }
 }
