@@ -11,6 +11,7 @@ export default function robots(): MetadataRoute.Robots {
     sitemap: [
       "https://www.techdiary.dev/sitemaps/articles/sitemap.xml",
       "https://www.techdiary.dev/sitemaps/profiles/sitemap.xml",
+      "https://www.techdiary.dev/sitemaps/gists/sitemap.xml",
     ],
   };
 }

@@ -10,5 +10,7 @@ export enum DatabaseTableName {
   reactions = "reactions",
   tags = "tags",
   article_tag = "article_tag",
+  gists = "gists",
+  gist_files = "gist_files",
   kv = "kv",
 }

@@ -11,6 +11,8 @@ import {
   UserSession,
   Comment,
   UserSocial,
+  Gist,
+  GistFile,
   KV,
 } from "../models/domain-models";
 import { pgClient } from "./clients";
@@ -79,6 +81,18 @@ const commentRepository = new Repository<Comment>(
   repositoryConfig
 );
 
+const gistRepository = new Repository<Gist>(
+  DatabaseTableName.gists,
+  pgClient,
+  repositoryConfig
+);
+
+const gistFileRepository = new Repository<GistFile>(
+  DatabaseTableName.gist_files,
+  pgClient,
+  repositoryConfig
+);
+
 const kvRepository = new Repository<KV>(DatabaseTableName.kv, pgClient, {
   logging: true,
 });
@@ -95,5 +109,7 @@ export const persistenceRepository = {
   tags: tagRepository,
   series: seriesRepository,
   seriesItems: seriesItemsRepository,
+  gist: gistRepository,
+  gistFile: gistFileRepository,
   kv: kvRepository,
 };
