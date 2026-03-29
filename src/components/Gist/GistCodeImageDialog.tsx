@@ -23,7 +23,7 @@ import {
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Download, Loader2 } from "lucide-react";
+import { ClipboardCopy, Download, Loader2 } from "lucide-react";
 import { domToBlob } from "modern-screenshot";
 
 type PrismTheme = typeof vscDarkPlus;
@@ -140,25 +140,21 @@ export default function GistCodeImageDialog({
     [filename, language],
   );
 
-  const handleExport = useCallback(async () => {
+  /**
+   * Radix Dialog centers with transform; rasterizing that subtree skews the SVG/canvas.
+   * Clone to document.body with transform:none so export matches the preview.
+   */
+  const createCaptureBlob = useCallback(async (): Promise<Blob | null> => {
     const el = captureRef.current;
-    if (!el) {
-      toast.error("Nothing to capture");
-      return;
-    }
-    setExporting(true);
+    if (!el) return null;
+
+    await document.fonts.ready;
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+
     let clone: HTMLElement | null = null;
     try {
-      await document.fonts.ready;
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
-      });
-
-      /**
-       * Radix Dialog centers with transform; rasterizing that subtree skews the SVG/canvas
-       * (black band, clipped right side). Clone to document.body with transform:none and
-       * explicit size so the export matches the preview without ancestor transforms.
-       */
       const naturalW = Math.ceil(Math.max(el.scrollWidth, el.offsetWidth));
       clone = el.cloneNode(true) as HTMLElement;
       clone.style.position = "fixed";
@@ -172,7 +168,6 @@ export default function GistCodeImageDialog({
       clone.style.transform = "none";
       clone.style.boxSizing = "border-box";
       clone.style.overflow = "visible";
-      /* Below the dialog (z-50) so export doesn’t flash on top of the UI; rasterizer still reads the DOM. */
       clone.style.zIndex = "40";
       clone.style.pointerEvents = "none";
       document.body.appendChild(clone);
@@ -191,7 +186,18 @@ export default function GistCodeImageDialog({
         backgroundColor: null,
       });
 
-      if (!blob || blob.size < 32) {
+      if (!blob || blob.size < 32) return null;
+      return blob;
+    } finally {
+      clone?.remove();
+    }
+  }, []);
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const blob = await createCaptureBlob();
+      if (!blob) {
         toast.error("Could not create image");
         return;
       }
@@ -209,10 +215,34 @@ export default function GistCodeImageDialog({
       console.error(e);
       toast.error("Could not create image");
     } finally {
-      clone?.remove();
       setExporting(false);
     }
-  }, [filename]);
+  }, [createCaptureBlob, filename]);
+
+  const handleCopyImage = useCallback(async () => {
+    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined") {
+      toast.error("Copying images is not supported in this browser");
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const blob = await createCaptureBlob();
+      if (!blob) {
+        toast.error("Could not create image");
+        return;
+      }
+
+      const type = blob.type && blob.type.startsWith("image/") ? blob.type : "image/png";
+      await navigator.clipboard.write([new ClipboardItem({ [type]: blob })]);
+      toast.success("Image copied to clipboard");
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not copy image");
+    } finally {
+      setExporting(false);
+    }
+  }, [createCaptureBlob]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -301,7 +331,7 @@ export default function GistCodeImageDialog({
           </label>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-auto px-6 py-4 w-full min-w-0 flex justify-center">
+        <div className="flex-1 min-h-0 overflow-auto px-6 py-4 w-full min-w-0 flex justify-center items-start">
           <div
             ref={captureRef}
             style={{
@@ -388,15 +418,33 @@ export default function GistCodeImageDialog({
           </div>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t shrink-0 gap-2 sm:gap-0">
+        <DialogFooter className="px-6 py-4 border-t shrink-0 flex flex-wrap gap-2 sm:justify-end">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleCopyImage}
+            disabled={exporting}
+          >
+            {exporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Working…
+              </>
+            ) : (
+              <>
+                <ClipboardCopy className="h-4 w-4 mr-2" />
+                Copy image
+              </>
+            )}
           </Button>
           <Button onClick={handleExport} disabled={exporting}>
             {exporting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Exporting…
+                Working…
               </>
             ) : (
               <>
