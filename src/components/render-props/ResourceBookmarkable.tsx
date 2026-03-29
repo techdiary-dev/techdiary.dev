@@ -32,9 +32,10 @@ export const ResourceBookmarkable: React.FC<Props> = ({
     mutationFn: () =>
       bookmarkAction.toggleResourceBookmark({ resource_id, resource_type }),
 
-    // Ensure state is accurate after success
     onSuccess: (data) => {
-      setBookmarked(data?.bookmarked ?? false);
+      if (data && "bookmarked" in data) {
+        setBookmarked(data.bookmarked);
+      }
     },
   });
 
