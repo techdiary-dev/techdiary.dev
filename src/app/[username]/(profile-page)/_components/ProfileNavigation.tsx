@@ -31,6 +31,14 @@ const ProfileNavigation: React.FC<ProfileNavigationProps> = ({ username }) => {
       >
         {_t("Articles")}
       </Link>
+      <Link
+        href={`/@${username}/gists`}
+        className={clsx("pr-2 text-muted-foreground p-2", {
+          "border-b-4 border-primary": pathname === `/@${username}/gists`,
+        })}
+      >
+        {_t("Gists")}
+      </Link>
     </nav>
   );
 };

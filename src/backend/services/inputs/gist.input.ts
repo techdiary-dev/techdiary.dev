@@ -15,13 +15,24 @@ export const UpdateGistInput = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title too long").optional(),
   description: z.string().optional(),
   is_public: z.boolean().optional(),
-  files: z.array(z.object({
-    id: z.string().optional(), // for existing files
-    filename: z.string().min(1, "Filename is required"),
-    content: z.string().min(1, "File content is required"),
-    language: z.string().optional(),
-    _action: z.enum(["create", "update", "delete"]).optional(),
-  })).optional(),
+  files: z.array(
+    z.discriminatedUnion("_action", [
+      z.object({
+        _action: z.literal("delete"),
+        id: z.string(),
+        filename: z.string().optional(),
+        content: z.string().optional(),
+        language: z.string().optional(),
+      }),
+      z.object({
+        _action: z.enum(["create", "update"]).optional(),
+        id: z.string().optional(),
+        filename: z.string().min(1, "Filename is required"),
+        content: z.string().min(1, "File content is required"),
+        language: z.string().optional(),
+      }),
+    ])
+  ).optional(),
 });
 
 export const GetGistInput = z.object({

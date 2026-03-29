@@ -9,17 +9,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-// import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 import { actionPromisify } from "@/lib/utils";
-import { PlusIcon, TrashIcon } from "@radix-ui/react-icons";
+import {
+  DragHandleDots2Icon,
+  PlusIcon,
+  TrashIcon,
+  EyeOpenIcon,
+  LockClosedIcon,
+  ArrowLeftIcon,
+} from "@radix-ui/react-icons";
+import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Gist } from "@/backend/models/domain-models";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface GistFile {
+  _key: string;
   id?: string;
   filename: string;
   content: string;
@@ -32,6 +58,85 @@ interface GistEditorProps {
   onSuccess?: (gistId: string) => void;
 }
 
+function makeKey() {
+  return crypto.randomUUID();
+}
+
+function toEditorFiles(gist: Gist | null | undefined): GistFile[] {
+  if (gist?.files?.length) {
+    return gist.files.map((f) => ({ ...f, _key: f.id ?? makeKey() }));
+  }
+  return [{ _key: makeKey(), filename: "", content: "", language: "" }];
+}
+
+interface SortableFileItemProps {
+  file: GistFile;
+  total: number;
+  onUpdate: (key: string, field: keyof GistFile, value: string) => void;
+  onRemove: (key: string) => void;
+}
+
+function SortableFileItem({ file, total, onUpdate, onRemove }: SortableFileItemProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: file._key });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="border rounded-lg overflow-hidden"
+    >
+      {/* File header bar */}
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 border-b">
+        <button
+          type="button"
+          className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 p-0.5"
+          {...attributes}
+          {...listeners}
+          aria-label="Drag to reorder"
+        >
+          <DragHandleDots2Icon className="w-4 h-4" />
+        </button>
+
+        <Input
+          value={file.filename}
+          onChange={(e) => onUpdate(file._key, "filename", e.target.value)}
+          placeholder="filename.js"
+          required
+          className="h-7 text-sm font-mono bg-transparent border-0 shadow-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
+        />
+
+        {total > 1 && (
+          <button
+            type="button"
+            onClick={() => onRemove(file._key)}
+            title="Remove file"
+            className="shrink-0 p-1 rounded text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            <TrashIcon className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Content */}
+      <Textarea
+        value={file.content}
+        onChange={(e) => onUpdate(file._key, "content", e.target.value)}
+        placeholder="Enter file content..."
+        rows={12}
+        required
+        className="font-mono text-sm resize-none rounded-none border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+      />
+    </div>
+  );
+}
+
 export default function GistEditor({ gist, onSuccess }: GistEditorProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -39,73 +144,87 @@ export default function GistEditor({ gist, onSuccess }: GistEditorProps) {
   const [title, setTitle] = useState(gist?.title || "");
   const [description, setDescription] = useState(gist?.description || "");
   const [isPublic, setIsPublic] = useState(gist?.is_public ?? true);
-  const [files, setFiles] = useState<GistFile[]>(
-    gist?.files?.length 
-      ? gist.files 
-      : [{ filename: "", content: "", language: "" }]
+  const [files, setFiles] = useState<GistFile[]>(() => toEditorFiles(gist));
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateGistInputType) =>
-      actionPromisify(createGist(data)),
+    mutationFn: (data: CreateGistInputType) => actionPromisify(createGist(data)),
     onSuccess: (data) => {
-      toast.success("Gist created successfully!");
+      toast.success("Gist created!");
       queryClient.invalidateQueries({ queryKey: ["gists"] });
       onSuccess?.(data.id);
-      if (!onSuccess) {
-        router.push(`/gists/${data.id}`);
-      }
+      if (!onSuccess) router.push(`/gists/${data.id}`);
     },
-    onError: (error) => {
-      toast.error("Failed to create gist");
-      console.error(error);
-    },
+    onError: () => toast.error("Failed to create gist"),
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateGistInputType }) =>
       actionPromisify(updateGist(id, data)),
     onSuccess: (data) => {
-      toast.success("Gist updated successfully!");
+      toast.success("Gist updated!");
       queryClient.invalidateQueries({ queryKey: ["gists"] });
       queryClient.invalidateQueries({ queryKey: ["gist", gist?.id] });
       onSuccess?.(data.id);
     },
-    onError: (error) => {
-      toast.error("Failed to update gist");
-      console.error(error);
-    },
+    onError: () => toast.error("Failed to update gist"),
   });
 
-  const addFile = () => {
-    const newFile: GistFile = {
-      filename: "",
-      content: "",
-      language: "",
-    };
-    setFiles([...files, newFile]);
+  const visibleFiles = files.filter((f) => f._action !== "delete");
+
+  const addFile = (position: "top" | "bottom" = "bottom") => {
+    const newFile: GistFile = { _key: makeKey(), filename: "", content: "", language: "" };
+    setFiles((prev) =>
+      position === "top" ? [newFile, ...prev] : [...prev, newFile]
+    );
   };
 
-  const removeFile = (index: number) => {
-    if (files.length === 1) {
+  const removeFile = (key: string) => {
+    if (visibleFiles.length === 1) {
       toast.error("At least one file is required");
       return;
     }
-
-    const newFiles = files.filter((_, i) => i !== index);
-    setFiles(newFiles);
+    setFiles((prev) => {
+      const file = prev.find((f) => f._key === key);
+      if (!file) return prev;
+      if (file.id) {
+        return prev.map((f) =>
+          f._key === key ? { ...f, _action: "delete" as const } : f
+        );
+      }
+      return prev.filter((f) => f._key !== key);
+    });
   };
 
-  const updateFile = (index: number, field: keyof GistFile, value: string) => {
-    const newFiles = [...files];
-    newFiles[index] = { ...newFiles[index], [field]: value };
-    if (gist && newFiles[index].id && !newFiles[index]._action) {
-      newFiles[index]._action = "update";
+  const updateFile = (key: string, field: keyof GistFile, value: string) => {
+    setFiles((prev) =>
+      prev.map((f) => {
+        if (f._key !== key) return f;
+        const updated = { ...f, [field]: value };
+        if (gist && updated.id && !updated._action) updated._action = "update";
+        return updated;
+      })
+    );
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setFiles((prev) => {
+        const visible = prev.filter((f) => f._action !== "delete");
+        const deleted = prev.filter((f) => f._action === "delete");
+        const oldIndex = visible.findIndex((f) => f._key === active.id);
+        const newIndex = visible.findIndex((f) => f._key === over.id);
+        return [...arrayMove(visible, oldIndex, newIndex), ...deleted];
+      });
     }
-    setFiles(newFiles);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -113,162 +232,155 @@ export default function GistEditor({ gist, onSuccess }: GistEditorProps) {
       return;
     }
 
-    if (files.some((f) => !f.filename.trim() || !f.content.trim())) {
+    if (visibleFiles.some((f) => !f.filename.trim() || !f.content.trim())) {
       toast.error("All files must have a filename and content");
       return;
     }
 
-    const data = {
+    const base = {
       title: title.trim(),
       description: description.trim() || undefined,
       is_public: isPublic,
-      files: files.map((f) => ({
-        ...f,
-        filename: f.filename.trim(),
-        content: f.content.trim(),
-        language: f.language?.trim() || undefined,
-      })),
     };
 
     if (gist) {
-      updateMutation.mutate({ id: gist.id, data });
+      const filePayload: UpdateGistInputType["files"] = [
+        ...files
+          .filter((f) => f._action === "delete" && f.id)
+          .map((f) => ({ _action: "delete" as const, id: f.id! })),
+        ...visibleFiles.map((f) => ({
+          id: f.id,
+          _action: f._action as "create" | "update" | undefined,
+          filename: f.filename.trim(),
+          content: f.content.trim(),
+          language: f.language?.trim() || undefined,
+        })),
+      ];
+      updateMutation.mutate({ id: gist.id, data: { ...base, files: filePayload } });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate({
+        ...base,
+        files: visibleFiles.map((f) => ({
+          filename: f.filename.trim(),
+          content: f.content.trim(),
+          language: f.language?.trim() || undefined,
+        })),
+      });
     }
   };
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
 
+  const AddFileButton = ({ position }: { position: "top" | "bottom" }) => (
+    <button
+      type="button"
+      onClick={() => addFile(position)}
+      className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+    >
+      <PlusIcon className="w-3.5 h-3.5" />
+      Add file
+    </button>
+  );
+
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{gist ? "Edit Gist" : "Create New Gist"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Gist title..."
-                required
-              />
-            </div>
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      {gist && (
+        <Link
+          href={`/gists/${gist.id}`}
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeftIcon className="w-3.5 h-3.5" />
+          Back to gist
+        </Link>
+      )}
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Gist description (optional)..."
-                rows={3}
-              />
-            </div>
+      {/* Meta section */}
+      <div className="space-y-4">
+        <div>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Gist title…"
+            required
+            className="w-full text-2xl font-bold bg-transparent border-0 outline-none placeholder:text-muted-foreground/40 focus:ring-0"
+          />
+        </div>
+        <div>
+          <input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add a description…"
+            className="w-full text-sm bg-transparent border-0 outline-none text-muted-foreground placeholder:text-muted-foreground/40 focus:ring-0"
+          />
+        </div>
 
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="is_public"
-                checked={isPublic}
-                onChange={(e) => setIsPublic(e.target.checked)}
-                className="w-4 h-4"
-              />
-              <Label htmlFor="is_public">Public gist</Label>
-            </div>
+        <div className="flex items-center gap-3">
+          <Switch
+            id="is_public"
+            checked={isPublic}
+            onCheckedChange={setIsPublic}
+          />
+          <Label htmlFor="is_public" className="flex items-center gap-1.5 cursor-pointer select-none">
+            {isPublic ? (
+              <><EyeOpenIcon className="w-3.5 h-3.5" />Public</>
+            ) : (
+              <><LockClosedIcon className="w-3.5 h-3.5" />Private</>
+            )}
+          </Label>
+        </div>
+      </div>
 
+      <Separator />
+
+      {/* Files section */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-muted-foreground">
+            {visibleFiles.length} {visibleFiles.length === 1 ? "file" : "files"}
+          </span>
+          <AddFileButton position="top" />
+        </div>
+
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={visibleFiles.map((f) => f._key)}
+            strategy={verticalListSortingStrategy}
+          >
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <Label>Files *</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addFile}
-                  className="flex items-center gap-2"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Add File
-                </Button>
-              </div>
-
-              <div className="space-y-6">
-                {files.map((file, index) => (
-                  <div key={index} className="border rounded-lg p-4 space-y-4">
-                    <div className="flex gap-4 items-end">
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor={`filename-${index}`}>Filename *</Label>
-                        <Input
-                          id={`filename-${index}`}
-                          value={file.filename}
-                          onChange={(e) =>
-                            updateFile(index, "filename", e.target.value)
-                          }
-                          placeholder="filename.js"
-                          required
-                        />
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        <Label htmlFor={`language-${index}`}>Language</Label>
-                        <Input
-                          id={`language-${index}`}
-                          value={file.language || ""}
-                          onChange={(e) =>
-                            updateFile(index, "language", e.target.value)
-                          }
-                          placeholder="javascript"
-                        />
-                      </div>
-                      {files.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeFile(index)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor={`content-${index}`}>Content *</Label>
-                      <Textarea
-                        id={`content-${index}`}
-                        value={file.content}
-                        onChange={(e) =>
-                          updateFile(index, "content", e.target.value)
-                        }
-                        placeholder="Enter file content..."
-                        rows={15}
-                        className="font-mono text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {visibleFiles.map((file) => (
+                <SortableFileItem
+                  key={file._key}
+                  file={file}
+                  total={visibleFiles.length}
+                  onUpdate={updateFile}
+                  onRemove={removeFile}
+                />
+              ))}
             </div>
+          </SortableContext>
+        </DndContext>
 
-            <div className="flex gap-4">
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Saving..." : gist ? "Update Gist" : "Create Gist"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        <div className="flex items-center justify-between pt-2">
+          <AddFileButton position="bottom" />
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => gist ? router.push(`/gists/${gist.id}`) : router.back()}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" size="sm" disabled={isLoading}>
+              {isLoading ? "Saving…" : gist ? "Update gist" : "Create gist"}
+            </Button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

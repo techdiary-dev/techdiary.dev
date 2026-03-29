@@ -1,64 +1,45 @@
-"use client";
-
-import { getGist } from "@/backend/services/gist.actions";
+import {
+  getGist,
+  getPublicGistCached,
+} from "@/backend/services/gist.actions";
+import { authID } from "@/backend/services/session.actions";
 import GistEditor from "@/components/Gist/GistEditor";
-import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { actionPromisify } from "@/lib/utils";
-import { useSession } from "@/store/session.atom";
-import { useQuery } from "@tanstack/react-query";
-import { notFound, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
 
 interface EditGistPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function EditGistPage({ params }: EditGistPageProps) {
-  const session = useSession();
-  const router = useRouter();
+export async function generateMetadata({
+  params,
+}: EditGistPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const gist = await getPublicGistCached(id);
 
-  const gistQuery = useQuery({
-    queryKey: ["gist", params.id],
-    queryFn: () => actionPromisify(getGist({ id: params.id })),
-  });
+  return {
+    title: gist ? `Edit: ${gist.title} — Techdiary` : "Edit Gist — Techdiary",
+    robots: { index: false },
+  };
+}
 
-  // Redirect if not owner
-  useEffect(() => {
-    if (gistQuery.data && session?.user?.id !== gistQuery.data.owner_id) {
-      router.push(`/gists/${params.id}`);
-    }
-  }, [gistQuery.data, session?.user?.id, router, params.id]);
+export default async function EditGistPage({ params }: EditGistPageProps) {
+  const { id } = await params;
 
-  if (gistQuery.isLoading) {
-    return (
-      <div className="max-w-4xl mx-auto p-6">
-        <Card>
-          <CardContent className="space-y-4 p-6">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-32 w-full" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const [result, sessionUserId] = await Promise.all([
+    getGist({ id }),
+    authID(),
+  ]);
 
-  if (gistQuery.isError || !gistQuery.data) {
+  if (!result.success || !result.data) {
     notFound();
   }
 
-  const gist = gistQuery.data;
+  const gist = result.data;
 
-  // Don't render if not owner (will redirect)
-  if (session?.user?.id !== gist.owner_id) {
-    return null;
+  if (!sessionUserId || sessionUserId !== gist.owner_id) {
+    redirect(`/gists/${id}`);
   }
 
-  return (
-    <GistEditor
-      gist={gist}
-      onSuccess={(gistId) => router.push(`/gists/${gistId}`)}
-    />
-  );
+  return <GistEditor gist={gist} />;
 }

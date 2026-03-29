@@ -2,6 +2,7 @@
 
 import { pgClient } from "@/backend/persistence/clients";
 import { removeUndefinedFromObject } from "@/lib/utils";
+import { cacheTag, revalidateTag } from "next/cache";
 import { eq } from "sqlkit";
 import { ActionResponse } from "../models/action-contracts";
 import { Gist } from "../models/domain-models";
@@ -20,6 +21,33 @@ import { ActionException, handleActionException } from "./RepositoryException";
 import { authID } from "./session.actions";
 
 const sql = String.raw;
+
+export async function getPublicGistCached(id: string): Promise<Gist | null> {
+  "use cache";
+  cacheTag(`gist-${id}`);
+
+  const [gist] = await persistenceRepository.gist.find({
+    limit: 1,
+    where: eq("id", id),
+    joins: [
+      {
+        table: "users",
+        as: "owner",
+        type: "left",
+        on: { localField: "owner_id", foreignField: "id" },
+      },
+    ],
+  });
+
+  if (!gist || !gist.is_public) return null;
+
+  const files = await persistenceRepository.gistFile.find({
+    where: eq("gist_id", gist.id),
+  });
+
+  gist.files = files ?? [];
+  return gist;
+}
 
 export async function createGist(
   _input: CreateGistInputType
@@ -60,6 +88,8 @@ export async function createGist(
       ...gistInsertResponse.rows[0],
       files: gistFiles.rows,
     };
+
+    revalidateTag("gists-public", "max");
 
     return {
       success: true,
@@ -201,6 +231,9 @@ export async function updateGist(
       throw new ActionException("Failed to fetch updated gist");
     }
 
+    revalidateTag(`gist-${gistId}`, "max");
+    revalidateTag("gists-public", "max");
+
     return { success: true, data: result.data };
   } catch (error) {
     return handleActionException(error);
@@ -234,6 +267,9 @@ export async function deleteGist(
     await persistenceRepository.gist.delete({
       where: eq("id", gistId),
     });
+
+    revalidateTag(`gist-${gistId}`, "max");
+    revalidateTag("gists-public", "max");
 
     return { success: true, data: undefined };
   } catch (error) {
