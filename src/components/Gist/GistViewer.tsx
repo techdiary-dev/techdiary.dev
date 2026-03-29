@@ -24,6 +24,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Gist, GistFile } from "@/backend/models/domain-models";
 import Markdown from "@/lib/markdown/Markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 interface GistViewerProps {
   gist: Gist;
@@ -90,10 +92,23 @@ export default function GistViewer({
     const lang = file.language?.trim() || ext;
 
     if (lang === "md" || lang === "markdown") {
-      return file.content;
+      return (
+        <div className="px-5 py-4 prose prose-sm dark:prose-invert max-w-none">
+          <Markdown content={file.content} />
+        </div>
+      );
     }
 
-    return `\`\`\`${lang ?? ""}\n${file.content}\n\`\`\``;
+    return (
+      <SyntaxHighlighter
+        language={lang ?? "text"}
+        style={vscDarkPlus}
+        customStyle={{ margin: 0, borderRadius: 0, fontSize: "13px", lineHeight: "1.6" }}
+        wrapLines
+      >
+        {file.content}
+      </SyntaxHighlighter>
+    );
   };
 
   const deleteMutation = useMutation({
@@ -261,7 +276,7 @@ export default function GistViewer({
 
               {/* File content */}
               <div className="overflow-x-auto">
-                <Markdown content={renderFileContent(file)} />
+                {renderFileContent(file)}
               </div>
             </div>
           ))}
