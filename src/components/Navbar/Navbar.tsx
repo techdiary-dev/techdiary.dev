@@ -20,12 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ Trailing }) => {
               Techdiary
             </span>
           </Link>
-          <Link
-            href="/gists"
-            className="text-sm text-muted-foreground hover:text-foreground px-2"
-          >
-            Gists
-          </Link>
+
         </div>
         <SearchInput />
         <NavbarActions />

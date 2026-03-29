@@ -14,6 +14,7 @@ import {
   PlusIcon,
   UserIcon,
   HashIcon,
+  CodeIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -53,6 +54,7 @@ const Sidebar = () => {
       {/* Section 1 — Primary navigation */}
       <div className="flex flex-col gap-1">
         <NavLink href="/" icon={<HomeIcon size={17} />} label={_t("Home")} />
+        <NavLink href="/gists" icon={<CodeIcon size={17} />} label={_t("Gists")} />
         <Link
           href="/dashboard/articles/new"
           className="flex items-center gap-2.5 mt-1 px-2 py-1.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-opacity"
@@ -77,6 +79,11 @@ const Sidebar = () => {
             href={`/@${session!.user!.username}/articles`}
             icon={<PlusIcon size={17} />}
             label={_t("My Articles")}
+          />
+          <NavLink
+            href={`/@${session!.user!.username}/gists`}
+            icon={<CodeIcon size={17} />}
+            label={_t("My Gists")}
           />
           <NavLink
             href="/dashboard/bookmarks"

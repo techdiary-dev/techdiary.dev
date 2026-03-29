@@ -55,6 +55,14 @@ const AuthenticatedUserMenu = () => {
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
+            className="text-foreground cursor-pointer block"
+            href={`/@${authSession?.user?.username}/gists`}
+          >
+            {_t("My Gists")}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
             className="text-foreground cursor-pointer"
             href="/dashboard/bookmarks"
           >
