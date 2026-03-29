@@ -33,7 +33,7 @@ interface ArticlePageProps {
 }
 
 export async function generateMetadata(
-  options: ArticlePageProps
+  options: ArticlePageProps,
 ): Promise<Metadata> {
   // read route params
   const { articleHandle } = await options.params;
@@ -57,7 +57,7 @@ export async function generateMetadata(
 
   const description = removeMarkdownSyntax(
     article.excerpt ?? article.body ?? "",
-    20
+    20,
   );
 
   const openGraph: OpenGraph = {
@@ -89,7 +89,7 @@ export async function generateMetadata(
 const Page: NextPage<ArticlePageProps> = async ({ params }) => {
   const _params = await params;
   const article = await articleActions.articleDetailByHandle(
-    _params.articleHandle
+    _params.articleHandle,
   );
 
   const jsonLd: WithContext<Article> = {
@@ -180,7 +180,7 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
                       month: "long",
                       day: "numeric",
                       year: "numeric",
-                    }
+                    },
                   )}
                 </time>
                 <span className="mx-1.5">·</span>
@@ -230,7 +230,7 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
           </div>
 
           <div className="mx-auto content-typography">
-            {article.body && <Markdown content={article.body!} />}
+            {article?.body && <Markdown content={article?.body!} />}
           </div>
         </div>
 

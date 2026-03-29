@@ -26,9 +26,9 @@ const UserInformationCard: React.FC<Props> = ({ userId }) => {
     return (
       <>
         <div className="h-45 relative flex flex-col gap-2">
-          <div className="flex gap-4 items-center">
-            <div className="size-[56px] bg-gray-200 dark:bg-gray-800 animate-pulse flex-none rounded-full" />
-            <div className="flex-1 flex flex-col gap-2">
+          <div className="flex gap-4 items-start">
+            <div className="size-[56px] shrink-0 bg-gray-200 dark:bg-gray-800 animate-pulse rounded-full" />
+            <div className="min-w-0 flex-1 flex flex-col gap-2">
               <div className="h-4 bg-gray-200 dark:bg-gray-800 animate-pulse" />
               <div className="h-3 bg-gray-200 dark:bg-gray-800 w-8/12 animate-pulse" />
             </div>
@@ -43,22 +43,22 @@ const UserInformationCard: React.FC<Props> = ({ userId }) => {
   return (
     <div>
       {/* Profile Header */}
-      <div className="py-3 flex items-center">
-        {/* Avatar */}
+      <div className="py-3 flex items-start gap-4">
+        {/* Avatar — shrink-0 + fixed square so long names never squash the image */}
         {query.data?.profile_photo && (
-          <div className="relative mr-4">
+          <div className="relative shrink-0 size-14 overflow-hidden rounded-full border-2 border-white/90 shadow-md bg-muted">
             <Image
               src={getFileUrl(query.data?.profile_photo) ?? ""}
               alt={query.data?.name ?? ""}
               width={56}
               height={56}
-              className="w-14 h-14 rounded-full object-cover border-2 border-white/90 shadow-md"
+              className="size-full object-cover"
             />
           </div>
         )}
 
         {/* Name */}
-        <div>
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-bold">{query.data?.name}</h2>
             {query.data?.is_verified && (

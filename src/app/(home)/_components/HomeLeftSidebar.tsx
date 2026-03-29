@@ -15,6 +15,7 @@ import {
   UserIcon,
   HashIcon,
   CodeIcon,
+  TagsIcon,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -47,7 +48,10 @@ const Sidebar = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  const tags = tagsQuery.data?.success ? tagsQuery.data.data : [];
+  const tags = (tagsQuery.data?.success ? tagsQuery.data.data : []) as {
+    id: string;
+    name: string;
+  }[];
 
   return (
     <div className="flex flex-col gap-6 pt-4">
@@ -103,7 +107,12 @@ const Sidebar = () => {
         <p className="px-2 mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {_t("Topics")}
         </p>
-        {tags.map((tag: any) => (
+        <NavLink
+          href="/tags"
+          icon={<TagsIcon size={17} />}
+          label={_t("All tags")}
+        />
+        {tags.map((tag) => (
           <NavLink
             key={tag.id}
             href={`/tags/${tag.name}`}

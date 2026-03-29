@@ -20,6 +20,11 @@ import {
 } from "@radix-ui/react-icons";
 import { ImageIcon } from "lucide-react";
 import GistCodeImageDialog from "@/components/Gist/GistCodeImageDialog";
+import {
+  CommentSection,
+  CommentSectionProvider,
+} from "@/components/comment-section";
+import ResourceReaction from "@/components/ResourceReaction";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -241,6 +246,10 @@ export default function GistViewer({
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3 py-1">
+        <ResourceReaction resource_type="GIST" resource_id={gist.id} />
+      </div>
+
       <Separator />
 
       {/* Files */}
@@ -301,6 +310,14 @@ export default function GistViewer({
           No files in this gist
         </div>
       )}
+
+      <CommentSectionProvider>
+        <CommentSection
+          resource_type="GIST"
+          resource_id={gist.id}
+          className="max-w-4xl px-0"
+        />
+      </CommentSectionProvider>
 
       <GistCodeImageDialog
         open={imageExportFile !== null}

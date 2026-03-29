@@ -27,6 +27,17 @@ export const zodErrorToString = (err: z.ZodError) => {
   }, "");
 };
 
+/** Prefer stored excerpt when non-empty; otherwise derive from markdown body. */
+export function resolveArticleExcerpt(
+  excerpt: string | null | undefined,
+  body: string | null | undefined,
+  words_count = 65
+): string {
+  const trimmed = excerpt?.trim();
+  if (trimmed) return trimmed;
+  return removeMarkdownSyntax(body, words_count) ?? "";
+}
+
 export function removeMarkdownSyntax(md?: string | null, words_count = 65) {
   return md
     ?.replace(/!\[.*?\]\(.*?\)/g, "") // Remove images
