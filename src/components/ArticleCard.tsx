@@ -51,7 +51,7 @@ const ArticleCard = ({
       <div className="mb-4 flex items-center">
         <HoverCard openDelay={0}>
           <HoverCardTrigger asChild>
-            <div className="relative rounded-full overflow-hidden border border-neutral-200 bg-neutral-100 transition-transform duration-300 size-8 opacity-100 cursor-pointer">
+            <div className="relative shrink-0 rounded-full overflow-hidden border border-neutral-200 bg-neutral-100 transition-transform duration-300 size-8 opacity-100 cursor-pointer">
               <Image
                 width={32}
                 height={32}
