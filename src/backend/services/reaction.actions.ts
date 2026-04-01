@@ -1,13 +1,14 @@
 "use server";
 
 import z from "zod/v4";
-import { BookmarkActionInput } from "./inputs/bookmark.input";
 import { authID } from "./session.actions";
 import { ActionException, handleActionException } from "./RepositoryException";
 import { persistenceRepository } from "../persistence/persistence-repositories";
+import { pgClient } from "../persistence/clients";
 import { and, eq } from "sqlkit";
 import { ReactionActionInput } from "./inputs/reaction.input";
 import { ReactionStatus } from "../models/domain-models";
+import { inngest } from "@/lib/inngest";
 
 const sql = String.raw;
 
@@ -30,7 +31,7 @@ function emptyReactionStatuses(): ReactionStatus[] {
 }
 
 export async function toogleReaction(
-  _input: z.infer<typeof ReactionActionInput.toggleReactionInput>
+  _input: z.infer<typeof ReactionActionInput.toggleReactionInput>,
 ) {
   try {
     const sessionUserId = await authID();
@@ -47,7 +48,7 @@ export async function toogleReaction(
         eq("resource_id", input.resource_id),
         eq("resource_type", input.resource_type),
         eq("reaction_type", input.reaction_type),
-        eq("user_id", sessionUserId)
+        eq("user_id", sessionUserId),
       ),
     });
 
@@ -58,7 +59,7 @@ export async function toogleReaction(
           eq("resource_id", input.resource_id),
           eq("resource_type", input.resource_type),
           eq("reaction_type", input.reaction_type),
-          eq("user_id", sessionUserId)
+          eq("user_id", sessionUserId),
         ),
       });
       return {
@@ -78,6 +79,23 @@ export async function toogleReaction(
         created_at: new Date(),
       },
     ]);
+
+    // Send notification event for insert path only (log errors, don't fail mutation)
+    inngest
+      .send({
+        name: "app/notification.requested",
+        data: {
+          actor_id: sessionUserId,
+          reaction_request: {
+            resource_id: input.resource_id,
+            resource_type: input.resource_type,
+            reaction_type: input.reaction_type,
+          },
+        },
+      })
+      .catch((err) => {
+        console.error("[inngest] Failed to send reaction notification:", err);
+      });
     return {
       reaction_type: input.reaction_type,
       resource_id: input.resource_id,
@@ -89,7 +107,7 @@ export async function toogleReaction(
 }
 
 export async function getResourceReactions(
-  _input: z.infer<typeof ReactionActionInput.getReactionsInput>
+  _input: z.infer<typeof ReactionActionInput.getReactionsInput>,
 ) {
   try {
     const input =

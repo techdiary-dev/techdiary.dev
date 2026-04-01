@@ -13,4 +13,5 @@ export enum DatabaseTableName {
   gists = "gists",
   gist_files = "gist_files",
   kv = "kv",
+  notifications = "notifications",
 }
