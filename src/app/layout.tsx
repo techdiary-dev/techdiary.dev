@@ -3,11 +3,13 @@ import { AuthKitProvider } from "@workos-inc/authkit-nextjs/components";
 import "../styles/app.css";
 
 import CommonProviders from "@/components/providers/CommonProviders";
+import RootProviders from "@/components/providers/root-providers";
 import LanguageHydrator from "@/components/providers/LanguageHydrator";
 import SessionHydrator from "@/components/providers/SessionHydrator";
 import { CookieConsentPopup } from "@/components/CookieConsentPopup";
 import { fontKohinoorBanglaRegular } from "@/lib/fonts";
 import { Toaster } from "@/components/toast";
+import { THEME_INIT_SCRIPT } from "@/lib/theme-init-script";
 import Script from "next/script";
 import React, { PropsWithChildren, Suspense } from "react";
 
@@ -41,6 +43,9 @@ const RootLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <html lang="bn" suppressHydrationWarning>
       <body style={fontKohinoorBanglaRegular.style}>
+        <Script id="theme-init" strategy="beforeInteractive">
+          {THEME_INIT_SCRIPT}
+        </Script>
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-F3VRW4H09N"
           strategy="afterInteractive"
@@ -82,13 +87,25 @@ const RootLayout: React.FC<PropsWithChildren> = ({ children }) => {
           }}
         />
         <AuthKitProvider>
-          <CommonProviders>
-            <Suspense><SessionHydrator /></Suspense>
-            <Suspense><LanguageHydrator /></Suspense>
-            {children}
-            <Toaster />
-            <CookieConsentPopup />
-          </CommonProviders>
+          <Suspense
+            fallback={
+              <CommonProviders>
+                <Suspense><SessionHydrator /></Suspense>
+                <Suspense><LanguageHydrator /></Suspense>
+                {children}
+                <Toaster />
+                <CookieConsentPopup />
+              </CommonProviders>
+            }
+          >
+            <RootProviders>
+              <Suspense><SessionHydrator /></Suspense>
+              <Suspense><LanguageHydrator /></Suspense>
+              {children}
+              <Toaster />
+              <CookieConsentPopup />
+            </RootProviders>
+          </Suspense>
         </AuthKitProvider>
       </body>
     </html>
