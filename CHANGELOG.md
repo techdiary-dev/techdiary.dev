@@ -6,6 +6,22 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.7.0 — 2026-04-02
+
+### ✨ Features
+- feat: enhance notification display with actor profile images (c3db2ac)
+- feat: update documentation and agent rules for Next.js and file storage strategy (3ef4213)
+
+### 🐛 Bug Fixes
+- fix: update profile photo handling in notifications (2d4f4be)
+
+### 🔧 Other Changes
+- refactor: simplify Notification model's actor property (1d94a84)
+- refactor: improve formatting and structure in comment section component (2744811)
+- refactor: streamline get_comments function definition (a3d0512)
+
+---
+
 ## v1.6.0 — 2026-04-01
 
 ### ✨ Features
