@@ -293,9 +293,5 @@ export interface Notification {
   payload?: NotificationPayload | null;
   read_at?: Date | null;
   created_at: Date;
-  actor?:
-    | (Pick<User, "id" | "name" | "username" | "profile_photo"> & {
-        profile_photo_url?: string | null;
-      })
-    | null;
+  actor?: Pick<User, "id" | "name" | "username" | "profile_photo"> | null;
 }
