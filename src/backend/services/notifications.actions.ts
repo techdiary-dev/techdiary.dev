@@ -49,7 +49,8 @@ export async function listMyNotifications(
           json_build_object(
             'id', u.id,
             'name', u.name,
-            'username', u.username
+            'username', u.username,
+            'profile_photo', u.profile_photo
           )
         ELSE NULL END AS actor
       FROM notifications n

@@ -8,8 +8,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import type { IServerFile } from "@/backend/models/domain-models";
 import { useTranslation } from "@/i18n/use-translation";
 import { cn, formattedTime, getAvatarPlaceholder } from "@/lib/utils";
+import getFileUrl from "@/utils/getFileUrl";
 import {
   useInfiniteQuery,
   useMutation,
@@ -299,10 +301,7 @@ const NotificationPage = () => {
 
       {!hasItems && !feedQuery.isFetching && !feedQuery.isError && (
         <div className="mt-10 flex min-h-[200px] flex-col items-center justify-center gap-3 border-b border-dashed border-border pb-10 text-center">
-          <Bell
-            className="size-9 text-muted-foreground"
-            strokeWidth={1.25}
-          />
+          <Bell className="size-9 text-muted-foreground" strokeWidth={1.25} />
           <div className="space-y-1">
             <p className="font-medium text-foreground">
               {_t("No notifications yet")}
@@ -335,100 +334,115 @@ const NotificationPage = () => {
           {feedQuery.data?.pages.flatMap((page) => {
             if (!isNotificationSuccess(page)) return [];
             return page.nodes.map((notification) => {
-            const isUnread = !notification.read_at;
-            const link = notificationLink(
-              notification.type,
-              notification.payload,
-            );
-            const profileHref = actorProfileHref(notification);
-            const actorLabel = actorDisplayName(notification, _t);
-            const { Icon: TypeIcon, labelKey: typeLabelKey } =
-              notificationTypeIcon(notification.type);
+              const isUnread = !notification.read_at;
+              const link = notificationLink(
+                notification.type,
+                notification.payload,
+              );
+              const profileHref = actorProfileHref(notification);
+              const actorLabel = actorDisplayName(notification, _t);
+              const { Icon: TypeIcon, labelKey: typeLabelKey } =
+                notificationTypeIcon(notification.type);
 
-            const created = new Date(notification.created_at);
-            const timeTitle = created.toLocaleString();
+              const created = new Date(notification.created_at);
+              const timeTitle = created.toLocaleString();
 
-            return (
-              <li key={notification.id}>
-                <div
-                  className={cn(
-                    "flex gap-3 border-l-2 py-3 pl-3 transition-colors",
-                    isUnread ? "border-l-primary" : "border-l-transparent",
-                    !isUnread && "hover:bg-muted/40",
-                  )}
-                >
-                  <div className="relative shrink-0">
-                    {profileHref ? (
-                      <Link
-                        href={profileHref}
-                        className="block rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                        aria-label={_t("View profile of $", [actorLabel])}
-                      >
-                        <NotificationActorAvatar label={actorLabel} />
-                      </Link>
-                    ) : (
-                      <NotificationActorAvatar label={actorLabel} />
+              return (
+                <li key={notification.id}>
+                  <div
+                    className={cn(
+                      "flex gap-3 border-l-2 py-3 pl-3 transition-colors",
+                      isUnread ? "border-l-primary" : "border-l-transparent",
+                      !isUnread && "hover:bg-muted/40",
                     )}
-                    <span
-                      className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center border border-border bg-background text-muted-foreground"
-                      title={_t(typeLabelKey)}
-                      aria-hidden
-                    >
-                      <TypeIcon className="size-3" strokeWidth={2} />
-                    </span>
-                  </div>
-
-                  <Link
-                    href={link}
-                    className="group/link flex min-w-0 flex-1 flex-col gap-1 py-0.5 pr-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    <p className="text-sm leading-snug text-foreground">
-                      <span className="font-semibold">{actorLabel}</span>{" "}
-                      <span
-                        className={cn(
-                          "font-normal",
-                          isUnread
-                            ? "text-foreground/90"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {notificationBodyAfterActor(notification, _t)}
-                      </span>
-                    </p>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <time dateTime={created.toISOString()} title={timeTitle}>
-                        {formattedTime(created)}
-                      </time>
-                      <ChevronRight className="size-3.5 opacity-0 transition-opacity group-hover/link:opacity-70" />
-                    </div>
-                  </Link>
-
-                  {isUnread && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
-                          disabled={markReadMutation.isPending}
-                          aria-label={_t("Mark as read")}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            markReadMutation.mutate(notification.id);
-                          }}
+                    <div className="relative shrink-0">
+                      {profileHref ? (
+                        <Link
+                          href={profileHref}
+                          className="block rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                          aria-label={_t("View profile of $", [actorLabel])}
                         >
-                          <Check className="size-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="left">
-                        {_t("Mark as read")}
-                      </TooltipContent>
-                    </Tooltip>
-                  )}
-                </div>
-              </li>
-            );
+                          <NotificationActorAvatar
+                            label={actorLabel}
+                            profilePhoto={notification.actor?.profile_photo}
+                            profilePhotoUrl={
+                              notification.actor?.profile_photo_url
+                            }
+                          />
+                        </Link>
+                      ) : (
+                        <NotificationActorAvatar
+                          label={actorLabel}
+                          profilePhoto={notification.actor?.profile_photo}
+                          profilePhotoUrl={
+                            notification.actor?.profile_photo_url
+                          }
+                        />
+                      )}
+                      <span
+                        className="absolute -bottom-0.5 -right-0.5 flex size-5 items-center justify-center border border-border bg-background text-muted-foreground"
+                        title={_t(typeLabelKey)}
+                        aria-hidden
+                      >
+                        <TypeIcon className="size-3" strokeWidth={2} />
+                      </span>
+                    </div>
+
+                    <Link
+                      href={link}
+                      className="group/link flex min-w-0 flex-1 flex-col gap-1 py-0.5 pr-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    >
+                      <p className="text-sm leading-snug text-foreground">
+                        <span className="font-semibold">{actorLabel}</span>{" "}
+                        <span
+                          className={cn(
+                            "font-normal",
+                            isUnread
+                              ? "text-foreground/90"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {notificationBodyAfterActor(notification, _t)}
+                        </span>
+                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <time
+                          dateTime={created.toISOString()}
+                          title={timeTitle}
+                        >
+                          {formattedTime(created)}
+                        </time>
+                        <ChevronRight className="size-3.5 opacity-0 transition-opacity group-hover/link:opacity-70" />
+                      </div>
+                    </Link>
+
+                    {isUnread && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="size-9 shrink-0 text-muted-foreground hover:text-foreground"
+                            disabled={markReadMutation.isPending}
+                            aria-label={_t("Mark as read")}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              markReadMutation.mutate(notification.id);
+                            }}
+                          >
+                            <Check className="size-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left">
+                          {_t("Mark as read")}
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </li>
+              );
             });
           })}
         </ul>
@@ -449,14 +463,22 @@ const NotificationPage = () => {
   );
 };
 
-function NotificationActorAvatar({ label }: { label: string }) {
+function NotificationActorAvatar({
+  label,
+  profilePhoto,
+  profilePhotoUrl,
+}: {
+  label: string;
+  profilePhoto?: IServerFile | null;
+  profilePhotoUrl?: string | null;
+}) {
+  const fromStructured = profilePhoto ? getFileUrl(profilePhoto) : "";
+  const fromLegacyUrl = profilePhotoUrl?.trim() ?? "";
+  const src = fromStructured || fromLegacyUrl || getAvatarPlaceholder(label);
+
   return (
     <Avatar className="size-10 border border-border bg-background">
-      <AvatarImage
-        src={getAvatarPlaceholder(label)}
-        alt=""
-        className="object-cover"
-      />
+      <AvatarImage src={src} alt="" className="object-cover" />
       <AvatarFallback className="text-xs font-medium">
         {label.replace(/^@/, "").slice(0, 2).toUpperCase()}
       </AvatarFallback>
