@@ -11,10 +11,13 @@ const Page: React.FC<PageProps> = async ({ params }) => {
   const username = sanitizedUsername(_params?.username);
   const profile = await getUserByUsername(username, ["id", "username"]);
 
+  if (!profile?.id) {
+    return null;
+  }
+
   return (
     <main className="border rounded-bl-2xl rounded-br-2xl md:col-span-9 col-span-full mt-3">
-      {/* <pre>{JSON.stringify(profile, null, 2)}</pre> */}
-      <UserArticleFeed userId={profile?.id!} />
+      <UserArticleFeed userId={profile.id} />
     </main>
   );
 };
