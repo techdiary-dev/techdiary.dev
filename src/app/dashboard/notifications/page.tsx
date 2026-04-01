@@ -367,7 +367,9 @@ const NotificationPage = () => {
                             label={actorLabel}
                             profilePhoto={notification.actor?.profile_photo}
                             profilePhotoUrl={
-                              notification.actor?.profile_photo_url
+                              notification.actor?.profile_photo
+                                ? getFileUrl(notification.actor.profile_photo)
+                                : null
                             }
                           />
                         </Link>
@@ -376,7 +378,9 @@ const NotificationPage = () => {
                           label={actorLabel}
                           profilePhoto={notification.actor?.profile_photo}
                           profilePhotoUrl={
-                            notification.actor?.profile_photo_url
+                            notification.actor?.profile_photo
+                              ? getFileUrl(notification.actor.profile_photo)
+                              : null
                           }
                         />
                       )}
