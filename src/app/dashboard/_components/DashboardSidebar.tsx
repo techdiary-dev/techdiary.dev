@@ -16,11 +16,11 @@ import {
   Bookmark,
   Home,
   KeySquareIcon,
-  Settings,
   Settings2,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useUnreadNotificationCount } from "@/components/notifications/use-unread-notification-count";
 
 const DashboardSidebar = () => {
   const { _t } = useTranslation();
@@ -35,11 +35,6 @@ const DashboardSidebar = () => {
     //   title: _t("Series"),
     //   url: "/series",
     //   icon: Home,
-    // },
-    // {
-    //   title: _t("Notifications"),
-    //   url: "/notifications",
-    //   icon: BellIcon,
     // },
     {
       title: _t("Bookmarks"),
@@ -64,8 +59,28 @@ const DashboardSidebar = () => {
           <SidebarGroupLabel>{_t("Dashboard")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item, key) => (
+              {items.slice(0, 1).map((item, key) => (
                 <SidebarMenuItem key={key}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathName === `/dashboard${item.url}`}
+                  >
+                    <Link
+                      className="text-muted-foreground"
+                      href={`/dashboard${item.url}`}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+              <DashboardNotificationsMenuItem
+                pathName={pathName}
+                label={_t("Notifications")}
+              />
+              {items.slice(1).map((item, key) => (
+                <SidebarMenuItem key={`rest-${key}`}>
                   <SidebarMenuButton
                     asChild
                     isActive={pathName === `/dashboard${item.url}`}
@@ -87,5 +102,36 @@ const DashboardSidebar = () => {
     </Sidebar>
   );
 };
+
+function DashboardNotificationsMenuItem({
+  pathName,
+  label,
+}: {
+  pathName: string;
+  label: string;
+}) {
+  const { data: unread = 0 } = useUnreadNotificationCount();
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={pathName === "/dashboard/notifications"}
+      >
+        <Link
+          className="text-muted-foreground flex w-full min-w-0 items-center gap-2"
+          href="/dashboard/notifications"
+        >
+          <BellIcon className="shrink-0" />
+          <span className="min-w-0 flex-1 truncate">{label}</span>
+          {unread > 0 ? (
+            <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground tabular-nums">
+              {unread > 99 ? "99+" : unread}
+            </span>
+          ) : null}
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
 
 export default DashboardSidebar;
