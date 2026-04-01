@@ -5,10 +5,7 @@
 -- Function: public.get_comments(p_resource_id uuid, p_resource_type character varying, p_parent_id uuid DEFAULT NULL::uuid, p_current_level integer DEFAULT 0)
 
 
-CREATE OR REPLACE FUNCTION get_comments(
-    p_resource_id uuid, p_resource_type character varying, 
-    p_parent_id uuid DEFAULT NULL::uuid, p_current_level integer DEFAULT 0
-)
+CREATE OR REPLACE FUNCTION public.get_comments(p_resource_id uuid, p_resource_type character varying, p_parent_id uuid DEFAULT NULL::uuid, p_current_level integer DEFAULT 0)
  RETURNS json
  LANGUAGE plpgsql
 AS $function$
