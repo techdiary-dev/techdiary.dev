@@ -52,6 +52,7 @@
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
     "immer": "^10.1.1",
+    "inngest": "^4.1.0",
     "jotai": "^2.12.2",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.484.0",

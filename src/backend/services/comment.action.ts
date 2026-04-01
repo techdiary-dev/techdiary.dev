@@ -11,6 +11,7 @@ import { persistenceRepository } from "../persistence/persistence-repositories";
 import { pgClient } from "../persistence/clients";
 import { and, eq, inArray } from "sqlkit";
 import { CommentPresentation } from "../models/domain-models";
+import { inngest } from "@/lib/inngest";
 
 const sql = String.raw;
 
@@ -40,38 +41,45 @@ export const createMyComment = async (
   }
   const { resource_id, resource_type, body } = input;
 
+  let notificationRecipientId: string | null = null;
+  let notificationPayload: Record<string, string> = {};
+
   switch (resource_type) {
-    case "ARTICLE":
-      // Validate that the resource exists
-      const [exists] = await persistenceRepository.article.find({
+    case "ARTICLE": {
+      const [article] = await persistenceRepository.article.find({
         where: eq("id", resource_id),
         limit: 1,
-        columns: ["id"],
+        columns: ["id", "author_id", "title", "handle"],
       });
-      if (!exists) {
-        throw new ActionException("Resource not found");
-      }
+      if (!article) throw new ActionException("Resource not found");
+      notificationRecipientId = article.author_id;
+      notificationPayload = {
+        article_id: article.id,
+        article_handle: article.handle,
+        article_title: article.title,
+      };
       break;
-    case "COMMENT":
-      // Validate that the parent comment exists
-      const [parentExists] = await persistenceRepository.comment.find({
+    }
+    case "COMMENT": {
+      const [parentComment] = await persistenceRepository.comment.find({
         where: eq("id", resource_id),
         limit: 1,
-        columns: ["id"],
+        columns: ["id", "user_id"],
       });
-      if (!parentExists) {
-        throw new ActionException("Parent comment not found");
-      }
+      if (!parentComment) throw new ActionException("Parent comment not found");
+      notificationRecipientId = parentComment.user_id;
+      notificationPayload = { comment_id: parentComment.id };
       break;
+    }
     case "GIST": {
-      const [gistExists] = await persistenceRepository.gist.find({
+      const [gist] = await persistenceRepository.gist.find({
         where: eq("id", resource_id),
         limit: 1,
-        columns: ["id"],
+        columns: ["id", "owner_id", "title"],
       });
-      if (!gistExists) {
-        throw new ActionException("Resource not found");
-      }
+      if (!gist) throw new ActionException("Resource not found");
+      notificationRecipientId = gist.owner_id;
+      notificationPayload = { gist_id: gist.id };
       break;
     }
     default:
@@ -87,6 +95,40 @@ export const createMyComment = async (
       user_id: sessionId,
     },
   ]);
+
+  // Fetch actor info for notification payload
+  const [actor] = await persistenceRepository.user.find({
+    where: eq("id", sessionId),
+    limit: 1,
+    columns: ["id", "name", "username"],
+  });
+
+  // Send notification event (log errors, don't fail the mutation)
+  if (notificationRecipientId) {
+    const notificationType =
+      resource_type === "ARTICLE"
+        ? "COMMENT_ON_ARTICLE"
+        : resource_type === "COMMENT"
+          ? "REPLY_TO_COMMENT"
+          : "COMMENT_ON_GIST";
+    inngest
+      .send({
+        name: "app/notification.requested",
+        data: {
+          recipient_id: notificationRecipientId,
+          actor_id: sessionId,
+          type: notificationType,
+          payload: {
+            ...notificationPayload,
+            actor_name: actor?.name,
+            actor_username: actor?.username,
+          },
+        },
+      })
+      .catch((err) => {
+        console.error("[inngest] Failed to send notification event:", err);
+      });
+  }
 
   return created?.rows?.[0];
 };

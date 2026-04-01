@@ -123,5 +123,13 @@
   "Code copied": "কোড কপি করা হয়েছে",
   "Cookie Consent": "কুকি সম্মতি",
   "Accept": "আমি রাজি",
-  "Decline": "প্রত্যাখ্যান"
+  "Decline": "প্রত্যাখ্যান",
+  "Mark all as read": "সব পড়া হিসেবে চিহ্নিত করুন",
+  "Mark as read": "পড়া হিসেবে চিহ্নিত করুন",
+  "No notifications yet": "এখনো কোনো নোটিফিকেশন নেই",
+  "commented on your article": "আপনার লেখায় মন্তব্য করেছেন",
+  "replied to your comment": "আপনার মন্তব্যে উত্তর দিয়েছেন",
+  "commented on your gist": "আপনার গিস্টে মন্তব্য করেছেন",
+  "reacted to your article": "আপনার লেখায় প্রতিক্রিয়া জানিয়েছেন",
+  "reacted to your comment": "আপনার মন্তব্যে প্রতিক্রিয়া জানিয়েছেন"
 }

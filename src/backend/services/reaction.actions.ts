@@ -1,13 +1,14 @@
 "use server";
 
 import z from "zod/v4";
-import { BookmarkActionInput } from "./inputs/bookmark.input";
 import { authID } from "./session.actions";
 import { ActionException, handleActionException } from "./RepositoryException";
 import { persistenceRepository } from "../persistence/persistence-repositories";
+import { pgClient } from "../persistence/clients";
 import { and, eq } from "sqlkit";
 import { ReactionActionInput } from "./inputs/reaction.input";
 import { ReactionStatus } from "../models/domain-models";
+import { inngest } from "@/lib/inngest";
 
 const sql = String.raw;
 
@@ -78,6 +79,19 @@ export async function toogleReaction(
         created_at: new Date(),
       },
     ]);
+
+    // Send notification event for insert path only (log errors, don't fail mutation)
+    if (input.resource_type === "ARTICLE" || input.resource_type === "COMMENT") {
+      sendReactionNotification({
+        actorId: sessionUserId,
+        resourceId: input.resource_id,
+        resourceType: input.resource_type,
+        reactionType: input.reaction_type,
+      }).catch((err) => {
+        console.error("[inngest] Failed to send reaction notification:", err);
+      });
+    }
+
     return {
       reaction_type: input.reaction_type,
       resource_id: input.resource_id,
@@ -86,6 +100,70 @@ export async function toogleReaction(
   } catch (error) {
     return handleActionException(error);
   }
+}
+
+async function sendReactionNotification({
+  actorId,
+  resourceId,
+  resourceType,
+  reactionType,
+}: {
+  actorId: string;
+  resourceId: string;
+  resourceType: "ARTICLE" | "COMMENT";
+  reactionType: string;
+}) {
+  let recipientId: string | null = null;
+  const payload: Record<string, string> = { reaction_type: reactionType };
+
+  const [actor] = await persistenceRepository.user.find({
+    where: eq("id", actorId),
+    limit: 1,
+    columns: ["id", "name", "username"],
+  });
+
+  if (resourceType === "ARTICLE") {
+    const [article] = await persistenceRepository.article.find({
+      where: eq("id", resourceId),
+      limit: 1,
+      columns: ["id", "author_id", "title", "handle"],
+    });
+    if (article) {
+      recipientId = article.author_id;
+      payload.article_id = article.id;
+      payload.article_handle = article.handle;
+      payload.article_title = article.title;
+    }
+  } else if (resourceType === "COMMENT") {
+    const [comment] = await persistenceRepository.comment.find({
+      where: eq("id", resourceId),
+      limit: 1,
+      columns: ["id", "user_id"],
+    });
+    if (comment) {
+      recipientId = comment.user_id;
+      payload.comment_id = comment.id;
+    }
+  }
+
+  if (!recipientId) return;
+
+  await inngest.send({
+    name: "app/notification.requested",
+    data: {
+      recipient_id: recipientId,
+      actor_id: actorId,
+      type:
+        resourceType === "ARTICLE"
+          ? "REACTION_ON_ARTICLE"
+          : "REACTION_ON_COMMENT",
+      payload: {
+        ...payload,
+        actor_name: actor?.name,
+        actor_username: actor?.username,
+      },
+    },
+  });
 }
 
 export async function getResourceReactions(

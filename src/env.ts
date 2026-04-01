@@ -21,6 +21,10 @@ export const env = createEnv({
     S3_BUCKET: z.string().min(1),
 
     CRON_SECRET: z.string().optional(),
+
+    // Inngest
+    INNGEST_EVENT_KEY: z.string().optional(),
+    INNGEST_SIGNING_KEY: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
@@ -47,6 +51,9 @@ export const env = createEnv({
     S3_BUCKET: process.env.S3_BUCKET,
 
     CRON_SECRET: process.env.CRON_SECRET,
+
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
   },
   onValidationError(issues: readonly StandardSchemaV1.Issue[]) {
     console.error("❌ Invalid environment variables:", issues);

@@ -204,3 +204,17 @@ export const KVTable = pgTable("kv", {
   key: text("key").notNull().unique(),
   value: jsonb("value"),
 });
+
+export const notificationsTable = pgTable("notifications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  recipient_id: uuid("recipient_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  actor_id: uuid("actor_id").references(() => usersTable.id, {
+    onDelete: "set null",
+  }),
+  type: varchar("type", { length: 100 }).notNull(),
+  payload: jsonb("payload"),
+  read_at: timestamp("read_at"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
