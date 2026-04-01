@@ -6,6 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.5.0 — 2026-04-01
+
+### ✨ Features
+- feat: enhance NavbarActions with dropdown menu for creating new entries (eb652b2)
+- feat: add unpublished article notice and draft byline support (4528d1a)
+- feat: enhance profile page with additional user information and improved article loading states (2458ad7)
+- feat: improve user profile experience with enhanced data display and loading states (3dedc30)
+- feat: enhance user profile with additional fields and improved loading states (2db6598)
+- feat: improve user avatar handling and display in LatestUsers component (ea1fe57)
+
+### 🔧 Other Changes
+- refactor: update theme handling and improve layout structure (524ebc4)
+
+---
+
 ## v1.4.0 — 2026-03-30
 
 ### ✨ Features
