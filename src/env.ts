@@ -25,10 +25,26 @@ export const env = createEnv({
     // Inngest
     INNGEST_EVENT_KEY: z.string().optional(),
     INNGEST_SIGNING_KEY: z.string().optional(),
+
+    // Pusher / Soketi (server-side)
+    PUSHER_APP_ID: z.string().optional(),
+    PUSHER_APP_KEY: z.string().optional(),
+    PUSHER_APP_SECRET: z.string().optional(),
+    PUSHER_HOST: z.string().optional(),
+    PUSHER_PORT: z.string().optional(),
+    PUSHER_USE_TLS: z.string().optional(),
+    PUSHER_CLUSTER: z.string().optional(),
   },
   client: {
     NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
     NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY: z.string(),
+
+    // Pusher / Soketi (client-side)
+    NEXT_PUBLIC_PUSHER_APP_KEY: z.string().optional(),
+    NEXT_PUBLIC_PUSHER_HOST: z.string().optional(),
+    NEXT_PUBLIC_PUSHER_PORT: z.string().optional(),
+    NEXT_PUBLIC_PUSHER_FORCE_TLS: z.string().optional(),
+    NEXT_PUBLIC_PUSHER_CLUSTER: z.string().optional(),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -54,6 +70,20 @@ export const env = createEnv({
 
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+
+    PUSHER_APP_ID: process.env.PUSHER_APP_ID,
+    PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
+    PUSHER_APP_SECRET: process.env.PUSHER_APP_SECRET,
+    PUSHER_HOST: process.env.PUSHER_HOST,
+    PUSHER_PORT: process.env.PUSHER_PORT,
+    PUSHER_USE_TLS: process.env.PUSHER_USE_TLS,
+    PUSHER_CLUSTER: process.env.PUSHER_CLUSTER,
+
+    NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
+    NEXT_PUBLIC_PUSHER_HOST: process.env.NEXT_PUBLIC_PUSHER_HOST,
+    NEXT_PUBLIC_PUSHER_PORT: process.env.NEXT_PUBLIC_PUSHER_PORT,
+    NEXT_PUBLIC_PUSHER_FORCE_TLS: process.env.NEXT_PUBLIC_PUSHER_FORCE_TLS,
+    NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
   },
   onValidationError(issues: readonly StandardSchemaV1.Issue[]) {
     console.error("❌ Invalid environment variables:", issues);

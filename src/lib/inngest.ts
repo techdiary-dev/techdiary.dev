@@ -7,6 +7,7 @@ import {
 import { persistenceRepository } from "@/backend/persistence/persistence-repositories";
 import { ActionException } from "@/backend/services/RepositoryException";
 import { buildPersistableNotification } from "@/backend/services/notifications.payload";
+import { pusherServer } from "@/lib/pusher.server";
 
 const notificationPayloadSchema = z.object({
   article_id: z.string().optional(),
@@ -175,6 +176,18 @@ export const persistNotificationFn = inngest.createFunction(
         created_at: new Date(),
       },
     ]);
+
+    // Broadcast a lightweight signal so the recipient's browser can invalidate
+    // its TanStack Query caches without polling.
+    if (pusherServer) {
+      await pusherServer
+        .trigger(`private-user.${data.recipient_id}`, "notification.new", {
+          scope: "notifications",
+        })
+        .catch(() => {
+          // Publishing is best-effort; never let a Pusher failure break notification delivery.
+        });
+    }
 
     return { success: true };
   },

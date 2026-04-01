@@ -10,6 +10,7 @@ import { and, eq, inArray } from "sqlkit";
 import { CommentPresentation } from "../models/domain-models";
 import { inngest } from "@/lib/inngest";
 import { assertCommentResourceExists } from "./notifications.payload";
+import { pusherServer } from "@/lib/pusher.server";
 
 const sql = String.raw;
 
@@ -68,6 +69,14 @@ export const createMyComment = async (
       console.error("[inngest] Failed to send notification event:", err);
     });
 
+  pusherServer
+    ?.trigger(
+      `resource.${resource_type}.${resource_id}`,
+      "comment.created",
+      { scope: "comments" },
+    )
+    .catch(() => {});
+
   return created?.rows?.[0];
 };
 
@@ -96,6 +105,14 @@ export const updateMyComment = async (
       where: and(eq("id", input.id), eq("user_id", userId)),
       data: { body: input.body, updated_at: new Date() },
     });
+
+    pusherServer
+      ?.trigger(
+        `resource.${existing.resource_type}.${existing.resource_id}`,
+        "comment.updated",
+        { scope: "comments" },
+      )
+      .catch(() => {});
 
     return { success: true as const, data: { id: input.id } };
   } catch (error) {
@@ -148,6 +165,14 @@ export const deleteMyComment = async (
     await persistenceRepository.comment.delete({
       where: inArray("id", ids),
     });
+
+    pusherServer
+      ?.trigger(
+        `resource.${root.resource_type}.${root.resource_id}`,
+        "comment.deleted",
+        { scope: "comments" },
+      )
+      .catch(() => {});
 
     return { success: true as const, data: { id: input.id } };
   } catch (error) {
