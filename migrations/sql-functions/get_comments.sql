@@ -5,14 +5,12 @@
 -- Function: public.get_comments(p_resource_id uuid, p_resource_type character varying, p_parent_id uuid DEFAULT NULL::uuid, p_current_level integer DEFAULT 0)
 
 
-CREATE OR REPLACE FUNCTION public.get_comments(
-    p_resource_id uuid, 
-    p_resource_type character varying, 
-    p_parent_id uuid DEFAULT NULL::uuid, 
-    p_current_level integer DEFAULT 0
+CREATE OR REPLACE FUNCTION get_comments(
+    p_resource_id uuid, p_resource_type character varying, 
+    p_parent_id uuid DEFAULT NULL::uuid, p_current_level integer DEFAULT 0
 )
-RETURNS json
-LANGUAGE plpgsql
+ RETURNS json
+ LANGUAGE plpgsql
 AS $function$
 DECLARE
     result JSON;
@@ -31,7 +29,8 @@ BEGIN
                     'id', u.id,
                     'name', u.name,
                     'email', u.email,
-                    'username', u.username
+                    'username', u.username,
+                    'profile_photo', u.profile_photo
                 ),
                 'replies', get_comments(p_resource_id, p_resource_type, c.id, 1)
             ) ORDER BY c.created_at DESC  -- Changed to DESC
@@ -58,7 +57,8 @@ BEGIN
                     'id', u.id,
                     'name', u.name,
                     'email', u.email,
-                    'username', u.username
+                    'username', u.username,
+                    'profile_photo', u.profile_photo
                 ),
                 'replies', get_comments(p_resource_id, p_resource_type, c.id, p_current_level + 1)
             ) ORDER BY c.created_at DESC  -- Changed to DESC

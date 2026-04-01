@@ -173,6 +173,7 @@ export interface CommentPresentation {
     name: string;
     username: string;
     email: string;
+    profile_photo?: IServerFile | null;
   };
   replies?: CommentPresentation[];
 }

@@ -1,6 +1,9 @@
 "use client";
 
-import { CommentPresentation } from "@/backend/models/domain-models";
+import {
+  CommentPresentation,
+  IServerFile,
+} from "@/backend/models/domain-models";
 import * as commentActions from "@/backend/services/comment.action";
 import { useTranslation } from "@/i18n/use-translation";
 import { cn, formattedTime, getAvatarPlaceholder } from "@/lib/utils";
@@ -34,6 +37,7 @@ import {
 import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
+import getFileUrl from "@/utils/getFileUrl";
 
 const Context = React.createContext<
   { mutatingId?: string; setMutatingId: (id?: string) => void } | undefined
@@ -55,7 +59,7 @@ export const useCommentSection = () => {
   const context = React.useContext(Context);
   if (!context) {
     throw new Error(
-      "useCommentSectionContext must be used within a CommentSectionProvider"
+      "useCommentSectionContext must be used within a CommentSectionProvider",
     );
   }
   return context;
@@ -127,13 +131,14 @@ export const CommentSection = (props: {
                 name: session?.user?.name || "Temp User",
                 username: session?.user?.username || "tempuser",
                 email: session?.user?.email || "tempuser@example.com",
+                profile_photo: session?.user?.profile_photo ?? null,
               },
               replies: [],
               created_at: new Date(),
             } satisfies CommentPresentation,
             ...prev,
           ];
-        }
+        },
       );
       return { oldComments };
     },
@@ -163,7 +168,7 @@ export const CommentSection = (props: {
     <section
       className={cn(
         "max-w-2xl mx-auto w-full px-3 py-4 sm:px-4",
-        props.className
+        props.className,
       )}
       aria-label={_t("Comments")}
     >
@@ -207,7 +212,9 @@ export const CommentSection = (props: {
             strokeWidth={1.25}
             aria-hidden
           />
-          <p className="text-xs font-medium text-foreground">{_t("No comments yet")}</p>
+          <p className="text-xs font-medium text-foreground">
+            {_t("No comments yet")}
+          </p>
           <p className="mt-0.5 max-w-sm text-xs text-muted-foreground">
             {_t("Be the first to share your thoughts.")}
           </p>
@@ -265,7 +272,7 @@ const CommentEditor = (props: {
       <div
         className={cn(
           "rounded-md bg-muted/40 px-0 transition-colors focus-within:bg-muted/55 dark:bg-muted/30 dark:focus-within:bg-muted/45",
-          isCompact ? "py-1.5" : "py-2"
+          isCompact ? "py-1.5" : "py-2",
         )}
       >
         <Textarea
@@ -273,7 +280,7 @@ const CommentEditor = (props: {
           ref={inputRef}
           className={cn(
             "w-full resize-y border-0 bg-transparent px-3 py-2 text-sm leading-snug shadow-none placeholder:text-muted-foreground/80 focus-visible:ring-0",
-            isCompact ? "min-h-[56px]" : "min-h-[72px]"
+            isCompact ? "min-h-[56px]" : "min-h-[72px]",
           )}
           required
           disabled={props.isLoading}
@@ -319,13 +326,13 @@ const CommentItem = (props: {
   const [editDraft, setEditDraft] = useState(props.comment.body ?? "");
   const { mutatingId, setMutatingId } = useCommentSection();
   const [replies, setReplies] = useImmer<CommentPresentation[]>(
-    props.comment.replies ?? []
+    props.comment.replies ?? [],
   );
 
   const isOwner = Boolean(
     session?.user?.id &&
-      props.comment.author?.id &&
-      session.user.id === props.comment.author.id
+    props.comment.author?.id &&
+    session.user.id === props.comment.author.id,
   );
 
   const level = useMemo(() => props.comment.level ?? 0, [props.comment]);
@@ -336,12 +343,15 @@ const CommentItem = (props: {
       commentActions.updateMyComment({ id: props.comment.id, body }),
     onSuccess: (res) => {
       if (res && "success" in res && res.success) {
-        void queryClient.invalidateQueries({ queryKey: [...props.listQueryKey] });
+        void queryClient.invalidateQueries({
+          queryKey: [...props.listQueryKey],
+        });
         setIsEditing(false);
         toast.success(_t("Comment updated"));
         return;
       }
-      const err = res && "error" in res ? res.error : _t("Something went wrong");
+      const err =
+        res && "error" in res ? res.error : _t("Something went wrong");
       toast.error(err);
     },
   });
@@ -350,11 +360,14 @@ const CommentItem = (props: {
     mutationFn: () => commentActions.deleteMyComment({ id: props.comment.id }),
     onSuccess: (res) => {
       if (res && "success" in res && res.success) {
-        void queryClient.invalidateQueries({ queryKey: [...props.listQueryKey] });
+        void queryClient.invalidateQueries({
+          queryKey: [...props.listQueryKey],
+        });
         toast.success(_t("Comment deleted"));
         return;
       }
-      const err = res && "error" in res ? res.error : _t("Something went wrong");
+      const err =
+        res && "error" in res ? res.error : _t("Something went wrong");
       toast.error(err);
     },
   });
@@ -383,6 +396,7 @@ const CommentItem = (props: {
             name: session?.user?.name || "Temp User",
             username: session?.user?.username || "tempuser",
             email: session?.user?.email || "tempuser@example.com",
+            profile_photo: session?.user?.profile_photo ?? null,
           },
           replies: [],
           created_at: new Date(),
@@ -401,7 +415,7 @@ const CommentItem = (props: {
       data-comment-id={props.comment.id}
       className={cn(
         "group/comment",
-        level > 0 && "ml-0.5 border-l border-muted-foreground/20 pl-3"
+        level > 0 && "ml-0.5 border-l border-muted-foreground/20 pl-3",
       )}
     >
       <article className="py-1 pr-0">
@@ -412,11 +426,17 @@ const CommentItem = (props: {
               className="shrink-0 pt-0.5 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               aria-label={`@${username}`}
             >
-              <CommentAvatar label={authorLabel} />
+              <CommentAvatar
+                label={authorLabel}
+                author={props.comment.author}
+              />
             </Link>
           ) : (
             <div className="shrink-0 pt-0.5" aria-hidden>
-              <CommentAvatar label={authorLabel} />
+              <CommentAvatar
+                label={authorLabel}
+                author={props.comment.author}
+              />
             </div>
           )}
 
@@ -427,12 +447,14 @@ const CommentItem = (props: {
                 onClick={() => setIsCollapsed(!isCollapsed)}
                 className="inline-flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 aria-expanded={!isCollapsed}
-                aria-label={isCollapsed ? _t("Expand comment") : _t("Collapse comment")}
+                aria-label={
+                  isCollapsed ? _t("Expand comment") : _t("Collapse comment")
+                }
               >
                 <ChevronDown
                   className={cn(
                     "size-3.5 transition-transform duration-300 ease-out motion-reduce:transition-none",
-                    isCollapsed && "-rotate-90"
+                    isCollapsed && "-rotate-90",
                   )}
                   aria-hidden
                 />
@@ -446,7 +468,9 @@ const CommentItem = (props: {
                     @{username}
                   </Link>
                 ) : (
-                  <span className="text-xs font-medium text-muted-foreground">—</span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    —
+                  </span>
                 )}
                 <span className="text-muted-foreground" aria-hidden>
                   ·
@@ -469,14 +493,16 @@ const CommentItem = (props: {
             <div
               className={cn(
                 "grid transition-[grid-template-rows] duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-                isCollapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]"
+                isCollapsed ? "grid-rows-[0fr]" : "grid-rows-[1fr]",
               )}
             >
               <div className="min-h-0 overflow-hidden">
                 <div
                   className={cn(
                     "transition-opacity duration-300 ease-out motion-reduce:transition-none motion-reduce:duration-0",
-                    isCollapsed ? "pointer-events-none opacity-0" : "opacity-100"
+                    isCollapsed
+                      ? "pointer-events-none opacity-0"
+                      : "opacity-100",
                   )}
                   aria-hidden={isCollapsed}
                 >
@@ -502,7 +528,10 @@ const CommentItem = (props: {
                             disabled={updateMutation.isPending}
                           >
                             {updateMutation.isPending ? (
-                              <Loader2 className="size-3 animate-spin" aria-hidden />
+                              <Loader2
+                                className="size-3 animate-spin"
+                                aria-hidden
+                              />
                             ) : null}
                             {_t("Save")}
                           </Button>
@@ -571,13 +600,15 @@ const CommentItem = (props: {
                                 <AlertDialogDescription>
                                   {(replies?.length ?? 0) > 0
                                     ? _t(
-                                        "This will remove this comment and all nested replies under it."
+                                        "This will remove this comment and all nested replies under it.",
                                       )
                                     : _t("This cannot be undone.")}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>{_t("Cancel")}</AlertDialogCancel>
+                                <AlertDialogCancel>
+                                  {_t("Cancel")}
+                                </AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => deleteMutation.mutate()}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -597,7 +628,10 @@ const CommentItem = (props: {
                           className="h-7 px-1.5 text-xs text-muted-foreground hover:text-foreground"
                           onClick={() => setShowReplyBox(!showReplyBox)}
                         >
-                          <MessageSquare className="size-3 mr-0.5" aria-hidden />
+                          <MessageSquare
+                            className="size-3 mr-0.5"
+                            aria-hidden
+                          />
                           {_t("Reply")}
                         </Button>
                       )}
@@ -660,14 +694,22 @@ function commentAuthorLabel(c: CommentPresentation) {
   return "User";
 }
 
-function CommentAvatar({ label }: { label: string }) {
+function CommentAvatar({
+  label,
+  author,
+}: {
+  label: string;
+  author?: CommentPresentation["author"];
+}) {
+  const fromStructured = author?.profile_photo
+    ? getFileUrl(author.profile_photo)
+    : "";
+
+  const src = fromStructured || getAvatarPlaceholder(label);
+
   return (
     <Avatar className="size-7">
-      <AvatarImage
-        src={getAvatarPlaceholder(label)}
-        alt=""
-        className="object-cover"
-      />
+      <AvatarImage src={src} alt="" className="object-cover" />
       <AvatarFallback className="text-[10px] font-medium">
         {label.slice(0, 2).toUpperCase()}
       </AvatarFallback>
