@@ -263,3 +263,35 @@ export interface KV {
   key: string;
   value: any;
 }
+
+export type NotificationType =
+  | "COMMENT_ON_ARTICLE"
+  | "REPLY_TO_COMMENT"
+  | "COMMENT_ON_GIST"
+  | "REACTION_ON_ARTICLE"
+  | "REACTION_ON_COMMENT"
+  | "REACTION_ON_GIST";
+
+export interface NotificationPayload {
+  article_id?: string;
+  article_handle?: string;
+  article_title?: string;
+  article_author_username?: string;
+  comment_id?: string;
+  gist_id?: string;
+  gist_title?: string;
+  reaction_type?: string;
+  actor_name?: string;
+  actor_username?: string;
+}
+
+export interface Notification {
+  id: string;
+  recipient_id: string;
+  actor_id?: string | null;
+  type: NotificationType;
+  payload?: NotificationPayload | null;
+  read_at?: Date | null;
+  created_at: Date;
+  actor?: Pick<User, "id" | "name" | "username"> | null;
+}

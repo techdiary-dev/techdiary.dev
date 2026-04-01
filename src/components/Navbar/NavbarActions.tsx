@@ -18,6 +18,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import Link from "next/link";
 import { useAtom } from "jotai";
 import { searchBarAtom } from "@/store/search-bar.atom";
+import { NavbarNotificationButton } from "@/components/notifications/NavbarNotificationButton";
 
 const NavbarActions: React.FC = () => {
   const { _t } = useTranslation();
@@ -35,6 +36,7 @@ const NavbarActions: React.FC = () => {
       </Button>
       <LanguageSwitcher />
       <ThemeSwitcher />
+      <NavbarNotificationButton />
 
       {authSession?.session ? (
         <>

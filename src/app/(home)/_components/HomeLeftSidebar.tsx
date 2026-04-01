@@ -18,6 +18,7 @@ import {
   TagsIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { useUnreadNotificationCount } from "@/components/notifications/use-unread-notification-count";
 
 const HomeLeftSidebar = () => {
   const [open, setOpen] = useAtom(homeSidebarOpenAtom);
@@ -94,11 +95,7 @@ const Sidebar = () => {
             icon={<BookmarkIcon size={17} />}
             label={_t("Bookmarks")}
           />
-          <NavLink
-            href="/dashboard/notifications"
-            icon={<BellIcon size={17} />}
-            label={_t("Notifications")}
-          />
+          <NotificationsNavLink />
         </div>
       )}
 
@@ -139,16 +136,36 @@ const NavLink = ({
   href,
   icon,
   label,
+  badge,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  badge?: number;
 }) => (
   <Link
     href={href}
-    className="flex items-center gap-2.5 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors"
+    className="flex min-w-0 items-center gap-2.5 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-muted transition-colors"
   >
-    <span className="text-muted-foreground">{icon}</span>
-    {label}
+    <span className="text-muted-foreground shrink-0">{icon}</span>
+    <span className="min-w-0 flex-1 truncate">{label}</span>
+    {badge != null && badge > 0 ? (
+      <span className="ml-auto flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground tabular-nums">
+        {badge > 99 ? "99+" : badge}
+      </span>
+    ) : null}
   </Link>
 );
+
+const NotificationsNavLink = () => {
+  const { _t } = useTranslation();
+  const { data: unread = 0 } = useUnreadNotificationCount();
+  return (
+    <NavLink
+      href="/dashboard/notifications"
+      icon={<BellIcon size={17} />}
+      label={_t("Notifications")}
+      badge={unread}
+    />
+  );
+};

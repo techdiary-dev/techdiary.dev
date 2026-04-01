@@ -3,19 +3,18 @@
 import z from "zod/v4";
 import { CommentActionInput } from "./inputs/comment.input";
 import { authID } from "./session.actions";
-import {
-  ActionException,
-  handleActionException,
-} from "./RepositoryException";
+import { ActionException, handleActionException } from "./RepositoryException";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { pgClient } from "../persistence/clients";
 import { and, eq, inArray } from "sqlkit";
 import { CommentPresentation } from "../models/domain-models";
+import { inngest } from "@/lib/inngest";
+import { assertCommentResourceExists } from "./notifications.payload";
 
 const sql = String.raw;
 
 export const getComments = async (
-  _input: z.infer<typeof CommentActionInput.getComments>
+  _input: z.infer<typeof CommentActionInput.getComments>,
 ): Promise<CommentPresentation[]> => {
   const input = CommentActionInput.getComments.parse(_input);
 
@@ -27,12 +26,14 @@ export const getComments = async (
     input.resource_id,
     input.resource_type,
   ]);
-  const rows = execution_response as { rows?: { comments?: CommentPresentation[] }[] };
+  const rows = execution_response as {
+    rows?: { comments?: CommentPresentation[] }[];
+  };
   return rows?.rows?.[0]?.comments || [];
 };
 
 export const createMyComment = async (
-  input: z.infer<typeof CommentActionInput.create>
+  input: z.infer<typeof CommentActionInput.create>,
 ) => {
   const sessionId = await authID();
   if (!sessionId) {
@@ -40,43 +41,7 @@ export const createMyComment = async (
   }
   const { resource_id, resource_type, body } = input;
 
-  switch (resource_type) {
-    case "ARTICLE":
-      // Validate that the resource exists
-      const [exists] = await persistenceRepository.article.find({
-        where: eq("id", resource_id),
-        limit: 1,
-        columns: ["id"],
-      });
-      if (!exists) {
-        throw new ActionException("Resource not found");
-      }
-      break;
-    case "COMMENT":
-      // Validate that the parent comment exists
-      const [parentExists] = await persistenceRepository.comment.find({
-        where: eq("id", resource_id),
-        limit: 1,
-        columns: ["id"],
-      });
-      if (!parentExists) {
-        throw new ActionException("Parent comment not found");
-      }
-      break;
-    case "GIST": {
-      const [gistExists] = await persistenceRepository.gist.find({
-        where: eq("id", resource_id),
-        limit: 1,
-        columns: ["id"],
-      });
-      if (!gistExists) {
-        throw new ActionException("Resource not found");
-      }
-      break;
-    }
-    default:
-      throw new ActionException("Invalid resource type");
-  }
+  await assertCommentResourceExists(resource_id, resource_type);
 
   const created = await persistenceRepository.comment.insert([
     {
@@ -88,11 +53,26 @@ export const createMyComment = async (
     },
   ]);
 
+  inngest
+    .send({
+      name: "app/notification.requested",
+      data: {
+        actor_id: sessionId,
+        comment_request: {
+          resource_id,
+          resource_type,
+        },
+      },
+    })
+    .catch((err) => {
+      console.error("[inngest] Failed to send notification event:", err);
+    });
+
   return created?.rows?.[0];
 };
 
 export const updateMyComment = async (
-  _input: z.infer<typeof CommentActionInput.update>
+  _input: z.infer<typeof CommentActionInput.update>,
 ) => {
   try {
     const input = await CommentActionInput.update.parseAsync(_input);
@@ -125,7 +105,7 @@ export const updateMyComment = async (
 
 /** Deletes the comment and all nested replies; reactions on those comments are removed first. */
 export const deleteMyComment = async (
-  _input: z.infer<typeof CommentActionInput.delete>
+  _input: z.infer<typeof CommentActionInput.delete>,
 ) => {
   try {
     const input = await CommentActionInput.delete.parseAsync(_input);
@@ -162,10 +142,7 @@ export const deleteMyComment = async (
     }
 
     await persistenceRepository.reaction.delete({
-      where: and(
-        eq("resource_type", "COMMENT"),
-        inArray("resource_id", ids)
-      ),
+      where: and(eq("resource_type", "COMMENT"), inArray("resource_id", ids)),
     });
 
     await persistenceRepository.comment.delete({

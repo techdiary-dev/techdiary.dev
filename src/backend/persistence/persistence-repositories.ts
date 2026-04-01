@@ -14,6 +14,7 @@ import {
   Gist,
   GistFile,
   KV,
+  Notification,
 } from "../models/domain-models";
 import { pgClient } from "./clients";
 import { DatabaseTableName } from "./persistence-contracts";
@@ -97,6 +98,12 @@ const kvRepository = new Repository<KV>(DatabaseTableName.kv, pgClient, {
   logging: true,
 });
 
+const notificationRepository = new Repository<Notification>(
+  DatabaseTableName.notifications,
+  pgClient,
+  repositoryConfig
+);
+
 export const persistenceRepository = {
   user: userRepository,
   userSocial: userSocialRepository,
@@ -112,4 +119,5 @@ export const persistenceRepository = {
   gist: gistRepository,
   gistFile: gistFileRepository,
   kv: kvRepository,
+  notification: notificationRepository,
 };
