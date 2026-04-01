@@ -18,6 +18,7 @@ export const notificationEventSchema = z.object({
       article_id: z.string().optional(),
       article_handle: z.string().optional(),
       article_title: z.string().optional(),
+      article_author_username: z.string().optional(),
       comment_id: z.string().optional(),
       gist_id: z.string().optional(),
       reaction_type: z.string().optional(),

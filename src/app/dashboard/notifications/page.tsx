@@ -70,7 +70,10 @@ function notificationLink(
     (type === "COMMENT_ON_ARTICLE" || type === "REACTION_ON_ARTICLE") &&
     payload.article_handle
   ) {
-    return `/article/${payload.article_handle}`;
+    const base = payload.article_author_username
+      ? `/@${payload.article_author_username}/${payload.article_handle}`
+      : `/@${payload.article_handle}`;
+    return base;
   }
   if (type === "COMMENT_ON_GIST" && payload.gist_id) {
     return `/gists/${payload.gist_id}`;
@@ -79,7 +82,10 @@ function notificationLink(
     (type === "REPLY_TO_COMMENT" || type === "REACTION_ON_COMMENT") &&
     payload.article_handle
   ) {
-    return `/article/${payload.article_handle}`;
+    const base = payload.article_author_username
+      ? `/@${payload.article_author_username}/${payload.article_handle}`
+      : `/@${payload.article_handle}`;
+    return base;
   }
   return "#";
 }

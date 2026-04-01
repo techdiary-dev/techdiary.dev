@@ -275,6 +275,7 @@ export interface NotificationPayload {
   article_id?: string;
   article_handle?: string;
   article_title?: string;
+  article_author_username?: string;
   comment_id?: string;
   gist_id?: string;
   reaction_type?: string;

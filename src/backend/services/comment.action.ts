@@ -53,10 +53,18 @@ export const createMyComment = async (
       });
       if (!article) throw new ActionException("Resource not found");
       notificationRecipientId = article.author_id;
+      const [articleAuthor] = await persistenceRepository.user.find({
+        where: eq("id", article.author_id),
+        limit: 1,
+        columns: ["id", "username"],
+      });
       notificationPayload = {
         article_id: article.id,
         article_handle: article.handle,
         article_title: article.title,
+        ...(articleAuthor?.username
+          ? { article_author_username: articleAuthor.username }
+          : {}),
       };
       break;
     }

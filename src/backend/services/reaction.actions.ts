@@ -122,6 +122,8 @@ async function sendReactionNotification({
     columns: ["id", "name", "username"],
   });
 
+  if (!actor) return;
+
   if (resourceType === "ARTICLE") {
     const [article] = await persistenceRepository.article.find({
       where: eq("id", resourceId),
@@ -133,6 +135,14 @@ async function sendReactionNotification({
       payload.article_id = article.id;
       payload.article_handle = article.handle;
       payload.article_title = article.title;
+      const [articleAuthor] = await persistenceRepository.user.find({
+        where: eq("id", article.author_id),
+        limit: 1,
+        columns: ["id", "username"],
+      });
+      if (articleAuthor?.username) {
+        payload.article_author_username = articleAuthor.username;
+      }
     }
   } else if (resourceType === "COMMENT") {
     const [comment] = await persistenceRepository.comment.find({
@@ -159,8 +169,8 @@ async function sendReactionNotification({
           : "REACTION_ON_COMMENT",
       payload: {
         ...payload,
-        actor_name: actor?.name,
-        actor_username: actor?.username,
+        actor_name: actor.name,
+        actor_username: actor.username,
       },
     },
   });
