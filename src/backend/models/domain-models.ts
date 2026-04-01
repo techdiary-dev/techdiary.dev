@@ -173,6 +173,7 @@ export interface CommentPresentation {
     name: string;
     username: string;
     email: string;
+    profile_photo?: IServerFile | null;
   };
   replies?: CommentPresentation[];
 }
@@ -293,5 +294,5 @@ export interface Notification {
   payload?: NotificationPayload | null;
   read_at?: Date | null;
   created_at: Date;
-  actor?: Pick<User, "id" | "name" | "username"> | null;
+  actor?: Pick<User, "id" | "name" | "username" | "profile_photo"> | null;
 }

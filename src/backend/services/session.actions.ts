@@ -21,7 +21,7 @@ import * as kv from "./kv.action";
  * @throws {RepositoryException} If session creation fails or validation fails
  */
 export async function createLoginSession(
-  _input: z.infer<typeof UserSessionInput.createLoginSessionInput>
+  _input: z.infer<typeof UserSessionInput.createLoginSessionInput>,
 ) {
   const _cookies = await cookies();
   const token = generateRandomString(120);
@@ -62,7 +62,7 @@ export async function createLoginSession(
 }
 
 export async function createLoginSessionForBackdoor(
-  _input: z.infer<typeof UserSessionInput.createBackdoorLoginSessionInput>
+  _input: z.infer<typeof UserSessionInput.createBackdoorLoginSessionInput>,
 ) {
   const _cookies = await cookies();
   const token = generateRandomString(120);
@@ -109,7 +109,7 @@ export async function createLoginSessionForBackdoor(
 }
 
 export const validateSessionToken = async (
-  token: string
+  token: string,
 ): Promise<SessionResult> => {
   const [session] = await persistenceRepository.userSession.find({
     operationName: "validateSessionToken/userSession.find",
@@ -147,6 +147,7 @@ export const validateSessionToken = async (
       name: user?.name,
       username: user?.username,
       email: user?.email,
+      profile_photo: user?.profile_photo ?? null,
       profile_photo_url: getFileUrl(user?.profile_photo),
     },
   };
