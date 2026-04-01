@@ -1,5 +1,7 @@
 "use server";
 
+/** User-facing server actions. Worker-side payload assembly lives in `notifications.payload.ts`. */
+
 import z from "zod/v4";
 import { and, eq } from "sqlkit";
 import { NotificationActionInput } from "./inputs/notification.input";
@@ -13,7 +15,7 @@ import { Notification } from "../models/domain-models";
 const sql = String.raw;
 
 export async function listMyNotifications(
-  _input: z.infer<typeof NotificationActionInput.list>
+  _input: z.infer<typeof NotificationActionInput.list>,
 ) {
   try {
     const userId = await authID();
@@ -27,7 +29,10 @@ export async function listMyNotifications(
       FROM notifications
       WHERE recipient_id = $1
     `;
-    const countResult = await pgClient.executeSQL<{ total: string }>(countQuery, [userId]);
+    const countResult = await pgClient.executeSQL<{ total: string }>(
+      countQuery,
+      [userId],
+    );
     const totalCount = Number(countResult?.rows?.[0]?.total ?? 0);
     const totalPages = Math.ceil(totalCount / input.limit);
 
@@ -75,7 +80,7 @@ export async function listMyNotifications(
 }
 
 export async function markNotificationRead(
-  _input: z.infer<typeof NotificationActionInput.markRead>
+  _input: z.infer<typeof NotificationActionInput.markRead>,
 ): Promise<ActionResponse<{ id: string }>> {
   try {
     const userId = await authID();
@@ -127,7 +132,9 @@ export async function unreadNotificationCount(): Promise<
       FROM notifications
       WHERE recipient_id = $1 AND read_at IS NULL
     `;
-    const result = await pgClient.executeSQL<{ count: string }>(query, [userId]);
+    const result = await pgClient.executeSQL<{ count: string }>(query, [
+      userId,
+    ]);
     const count = Number(result?.rows?.[0]?.count ?? 0);
 
     return { success: true, data: { count } };

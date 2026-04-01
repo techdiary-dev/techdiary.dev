@@ -31,7 +31,7 @@ function emptyReactionStatuses(): ReactionStatus[] {
 }
 
 export async function toogleReaction(
-  _input: z.infer<typeof ReactionActionInput.toggleReactionInput>
+  _input: z.infer<typeof ReactionActionInput.toggleReactionInput>,
 ) {
   try {
     const sessionUserId = await authID();
@@ -48,7 +48,7 @@ export async function toogleReaction(
         eq("resource_id", input.resource_id),
         eq("resource_type", input.resource_type),
         eq("reaction_type", input.reaction_type),
-        eq("user_id", sessionUserId)
+        eq("user_id", sessionUserId),
       ),
     });
 
@@ -59,7 +59,7 @@ export async function toogleReaction(
           eq("resource_id", input.resource_id),
           eq("resource_type", input.resource_type),
           eq("reaction_type", input.reaction_type),
-          eq("user_id", sessionUserId)
+          eq("user_id", sessionUserId),
         ),
       });
       return {
@@ -81,17 +81,21 @@ export async function toogleReaction(
     ]);
 
     // Send notification event for insert path only (log errors, don't fail mutation)
-    if (input.resource_type === "ARTICLE" || input.resource_type === "COMMENT") {
-      sendReactionNotification({
-        actorId: sessionUserId,
-        resourceId: input.resource_id,
-        resourceType: input.resource_type,
-        reactionType: input.reaction_type,
-      }).catch((err) => {
+    inngest
+      .send({
+        name: "app/notification.requested",
+        data: {
+          actor_id: sessionUserId,
+          reaction_request: {
+            resource_id: input.resource_id,
+            resource_type: input.resource_type,
+            reaction_type: input.reaction_type,
+          },
+        },
+      })
+      .catch((err) => {
         console.error("[inngest] Failed to send reaction notification:", err);
       });
-    }
-
     return {
       reaction_type: input.reaction_type,
       resource_id: input.resource_id,
@@ -102,82 +106,8 @@ export async function toogleReaction(
   }
 }
 
-async function sendReactionNotification({
-  actorId,
-  resourceId,
-  resourceType,
-  reactionType,
-}: {
-  actorId: string;
-  resourceId: string;
-  resourceType: "ARTICLE" | "COMMENT";
-  reactionType: string;
-}) {
-  let recipientId: string | null = null;
-  const payload: Record<string, string> = { reaction_type: reactionType };
-
-  const [actor] = await persistenceRepository.user.find({
-    where: eq("id", actorId),
-    limit: 1,
-    columns: ["id", "name", "username"],
-  });
-
-  if (!actor) return;
-
-  if (resourceType === "ARTICLE") {
-    const [article] = await persistenceRepository.article.find({
-      where: eq("id", resourceId),
-      limit: 1,
-      columns: ["id", "author_id", "title", "handle"],
-    });
-    if (article) {
-      recipientId = article.author_id;
-      payload.article_id = article.id;
-      payload.article_handle = article.handle;
-      payload.article_title = article.title;
-      const [articleAuthor] = await persistenceRepository.user.find({
-        where: eq("id", article.author_id),
-        limit: 1,
-        columns: ["id", "username"],
-      });
-      if (articleAuthor?.username) {
-        payload.article_author_username = articleAuthor.username;
-      }
-    }
-  } else if (resourceType === "COMMENT") {
-    const [comment] = await persistenceRepository.comment.find({
-      where: eq("id", resourceId),
-      limit: 1,
-      columns: ["id", "user_id"],
-    });
-    if (comment) {
-      recipientId = comment.user_id;
-      payload.comment_id = comment.id;
-    }
-  }
-
-  if (!recipientId) return;
-
-  await inngest.send({
-    name: "app/notification.requested",
-    data: {
-      recipient_id: recipientId,
-      actor_id: actorId,
-      type:
-        resourceType === "ARTICLE"
-          ? "REACTION_ON_ARTICLE"
-          : "REACTION_ON_COMMENT",
-      payload: {
-        ...payload,
-        actor_name: actor.name,
-        actor_username: actor.username,
-      },
-    },
-  });
-}
-
 export async function getResourceReactions(
-  _input: z.infer<typeof ReactionActionInput.getReactionsInput>
+  _input: z.infer<typeof ReactionActionInput.getReactionsInput>,
 ) {
   try {
     const input =

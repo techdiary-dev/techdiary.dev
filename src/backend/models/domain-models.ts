@@ -269,7 +269,8 @@ export type NotificationType =
   | "REPLY_TO_COMMENT"
   | "COMMENT_ON_GIST"
   | "REACTION_ON_ARTICLE"
-  | "REACTION_ON_COMMENT";
+  | "REACTION_ON_COMMENT"
+  | "REACTION_ON_GIST";
 
 export interface NotificationPayload {
   article_id?: string;
@@ -278,6 +279,7 @@ export interface NotificationPayload {
   article_author_username?: string;
   comment_id?: string;
   gist_id?: string;
+  gist_title?: string;
   reaction_type?: string;
   actor_name?: string;
   actor_username?: string;
