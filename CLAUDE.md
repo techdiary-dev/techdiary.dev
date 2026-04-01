@@ -87,9 +87,26 @@ Key entities and their relationships:
 ### Content Management
 
 - **Rich Text**: Markdoc for markdown parsing and rendering
-- **File Uploads**: Cloudinary integration for images/media
+- **File Uploads**: Cloudflare R2 (primary) + Cloudinary (legacy/image optimization)
 - **Search**: MeilSearch for full-text search capabilities
 - **Internationalization**: Custom i18n implementation (Bengali/English)
+
+### File Storage Strategy
+
+Two storage providers coexist. `getFileUrl(fileSource)` (`src/utils/getFileUrl.ts`) routes by `fileSource.provider`:
+
+- **`r2`** → returns `https://cdn.techdiary.dev/${key}` directly (no transforms)
+- **`cloudinary`** → builds URL with auto quality/format via Cloudinary SDK (supports blur placeholders)
+
+**Upload flow for R2**: Client calls `POST /api/storage/sign` with `{ keys: string[] }` → server generates presigned S3-compatible URLs → client uploads directly to R2.
+
+### i18n Usage
+
+Only Bengali (`bn`) has a dictionary (`src/i18n/bn.json`); English falls back to the raw key.
+
+- **Server components / actions**: `import _t from "@/i18n/_t"` → `await _t("key")` (reads `language` cookie)
+- **Client components**: `const { _t, lang, toggle } = useTranslation()` from `@/i18n/use-translation` (reads Jotai `i18nLangAtom`)
+- `toggle()` switches lang in both the atom and the `language` cookie via `setLanguage` server action
 
 ### State Management Patterns
 
@@ -117,6 +134,14 @@ Client-side:
 - `NEXT_PUBLIC_WORKOS_REDIRECT_URI` - WorkOS callback URL
 - `NEXT_PUBLIC_MEILISEARCH_API_HOST` - MeilSearch API host URL
 - `NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY` - MeilSearch search API key
+
+Cloudflare R2 (S3-compatible):
+
+- `S3_ENDPOINT` - R2 endpoint URL
+- `S3_BUCKET` - R2 bucket name
+- `S3_ACCESS_KEY_ID` - R2 access key
+- `S3_SECRET_ACCESS_KEY` - R2 secret key
+- `CRON_SECRET` - Shared secret for `x-cron-secret` header on cron API endpoint
 
 ## Key Features Implementation
 
@@ -336,7 +361,8 @@ const feedQuery = useInfiniteQuery({
 - **Bengali Language Support**: Custom font loading (Kohinoor Bangla) and i18n in `src/i18n/`
 - **SEO Optimization**: Dynamic sitemaps in `src/app/sitemaps/`, Open Graph tags, and schema markup
 - **No test framework**: There are no automated tests — use `bun run play` for backend experimentation
-- **Cloudflare Workers**: `wrangler.toml` is present; `bun run wrangler:dev` starts the worker locally
+- **Cloudflare Workers**: `wrangler.toml` configures a separate cron worker (`src/workers/cron-worker.ts`). `bun run wrangler:dev` starts it locally. The worker fires on `0 2 * * *` and calls `POST /api/cron/cleanup-articles` with `x-cron-secret` header.
+- **Article soft-delete**: Articles have a `delete_scheduled_at` field. Setting it schedules permanent deletion; `article-cleanup-service.ts` processes them when the cron fires. Use `restoreScheduleDeletedArticle` to cancel.
 
 ## Caching & ISR (Incremental Static Regeneration)
 
@@ -358,14 +384,14 @@ export async function articleDetailByHandle(handle: string) {
 
 **2. Set cache lifetime with `cacheLife()` (call inside the `'use cache'` function):**
 
-| Profile | Stale | Revalidate | Use for |
-|---|---|---|---|
-| `"seconds"` | 0s | 1s | near-realtime |
-| `"minutes"` | 1min | 1min | frequently updated |
-| `"hours"` | 5min | 1hr | articles, profiles |
-| `"days"` | 1hr | 1day | tags, static content |
-| `"weeks"` | 1day | 1wk | rarely updated |
-| `"max"` | 30d | 30d | immutable content |
+| Profile     | Stale | Revalidate | Use for              |
+| ----------- | ----- | ---------- | -------------------- |
+| `"seconds"` | 0s    | 1s         | near-realtime        |
+| `"minutes"` | 1min  | 1min       | frequently updated   |
+| `"hours"`   | 5min  | 1hr        | articles, profiles   |
+| `"days"`    | 1hr   | 1day       | tags, static content |
+| `"weeks"`   | 1day  | 1wk        | rarely updated       |
+| `"max"`     | 30d   | 30d        | immutable content    |
 
 **3. Tag cache entries with `cacheTag()` and bust on mutation with `revalidateTag()`:**
 
@@ -394,6 +420,10 @@ export async function updateMyArticle(input) {
 - Do NOT add `'use cache'` to functions that call `cookies()` or `headers()` — it will throw a build error
 - Do NOT add `'use cache'` to mutation actions (`createX`, `updateX`, `deleteX`)
 
+<!-- BEGIN:nextjs-agent-rules -->
+
 # Next.js: ALWAYS read docs before coding
 
 Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth.
+
+<!-- END:nextjs-agent-rules -->
