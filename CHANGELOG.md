@@ -6,6 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.6.0 — 2026-04-01
+
+### ✨ Features
+- feat: add in-app notifications with Inngest queue integration (d70acd2)
+- feat: enhance notification system with improved display and payload handling (1f2b650)
+- feat: integrate unread notification count in sidebars and navbar (b21f7c0)
+
+### 🐛 Bug Fixes
+- fix: address code review — actor guard, article author username in payload, correct deep links (1f5fe25)
+
+### 🔧 Other Changes
+- refactor: clean up and standardize WorkOS skill documentation (b49acae)
+
+---
+
 ## v1.5.0 — 2026-04-01
 
 ### ✨ Features
