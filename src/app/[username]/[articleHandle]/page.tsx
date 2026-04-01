@@ -24,6 +24,10 @@ import type { Article, WithContext } from "schema-dts";
 import { eq } from "sqlkit";
 import ArticleSidebar from "./_components/ArticleSidebar";
 import EditArticleButton from "./_components/EditArticleButton";
+import {
+  ArticleDraftBylineLabel,
+  UnpublishedArticleNotice,
+} from "./_components/UnpublishedArticleNotice";
 
 interface ArticlePageProps {
   params: Promise<{
@@ -136,6 +140,10 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
       >
         {/* {!article && <div>Article not found</div>} */}
         <div className="px-4 my-2 md:m-0">
+          <UnpublishedArticleNotice
+            publishedAt={article.published_at}
+            authorId={article.author_id}
+          />
           {article?.cover_image && (
             <div className="rounded-sm w-full overflow-hidden">
               <AppImage
@@ -173,16 +181,20 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
                 {article?.user?.name}
               </Link>
               <div className="flex items-center text-xs text-muted-foreground">
-                <time dateTime={article?.published_at?.toString()}>
-                  {new Date(article?.published_at!).toLocaleDateString(
-                    "bn-BD",
-                    {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    },
-                  )}
-                </time>
+                {article?.published_at ? (
+                  <time dateTime={article.published_at.toISOString()}>
+                    {new Date(article.published_at).toLocaleDateString(
+                      "bn-BD",
+                      {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      },
+                    )}
+                  </time>
+                ) : (
+                  <ArticleDraftBylineLabel />
+                )}
                 <span className="mx-1.5">·</span>
                 <span>{readingTime(article?.body ?? "")} min read</span>
               </div>

@@ -47,15 +47,21 @@ const layout: React.FC<ProfilePageLayoutProps> = async ({
   const _params = await params;
   const username = sanitizedUsername(_params?.username);
   const profile = await getUserByUsername(username, [
-    // all fields
     "id",
     "name",
     "username",
     "email",
     "profile_photo",
+    "bio",
+    "designation",
+    "website_url",
+    "education",
+    "location",
+    "social_links",
+    "skills",
+    "is_verified",
     "created_at",
     "updated_at",
-    "social_links",
   ]);
 
   if (!profile) {

@@ -43,6 +43,13 @@ const ProfilePageAside: React.FC<ProfilePageAsideProps> = ({ profile }) => {
         <p className="my-2 text-sm text-muted-foreground">{profile?.bio}</p>
       )}
 
+      {profile?.skills && (
+        <p className="my-2 text-sm">
+          <span className="font-medium text-foreground">Skills: </span>
+          <span className="text-muted-foreground">{profile.skills}</span>
+        </p>
+      )}
+
       {/* User infos start */}
       <div className="flex flex-col mt-4 gap-2 md:gap-4">
         {profile?.website_url && (

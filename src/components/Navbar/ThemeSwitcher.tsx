@@ -2,7 +2,7 @@
 
 import { useTranslation } from "@/i18n/use-translation";
 import { LightbulbIcon, MonitorIcon, MoonIcon } from "lucide-react";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/providers/theme-provider";
 import React from "react";
 import {
   DropdownMenu,

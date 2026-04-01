@@ -2,6 +2,7 @@ import _t from "@/i18n/_t";
 import Link from "next/link";
 import * as userActions from "@/backend/services/user.action";
 import { User } from "@/backend/models/domain-models";
+import { getAvatarPlaceholder } from "@/lib/utils";
 import Image from "next/image";
 import getFileUrl from "@/utils/getFileUrl";
 
@@ -18,9 +19,9 @@ const LatestUsers = async () => {
           Array.from({ length: 10 }).map((_, i) => <UserSkeleton key={i} />)} */}
 
         {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
-        {usersResponse?.nodes.map((user) => (
-          <UserItem key={user.id} user={user!} />
-        ))}
+        {usersResponse?.nodes.map((user) =>
+          user ? <UserItem key={user.id} user={user} /> : null,
+        )}
       </div>
     </div>
   );
@@ -28,36 +29,41 @@ const LatestUsers = async () => {
 
 export default LatestUsers;
 
-const UserItem = ({ user }: { user: User }) => (
-  <div className="flex items-center">
-    {user?.profile_photo && (
+const UserItem = ({ user }: { user: User }) => {
+  const avatarSrc =
+    getFileUrl(user.profile_photo) ||
+    getAvatarPlaceholder(user.name ?? user.username ?? "");
+
+  return (
+    <div className="flex items-center">
       <Link href={`/@${user.username}`}>
         <div className="size-10 overflow-hidden rounded-full">
           <Image
-            src={getFileUrl(user?.profile_photo)!}
-            alt={user?.name!}
+            src={avatarSrc}
+            alt={user.name ?? user.username}
             loading="lazy"
+            unoptimized={!user.profile_photo}
             className="h-auto w-full"
             width={40}
             height={40}
           />
         </div>
       </Link>
-    )}
 
-    <div className="ml-2">
-      <h3 className="text-dark text-base">
-        <Link href={`/@${user?.username}`} className="text-foreground">
-          {user.name}
-        </Link>
-      </h3>
-      <p className="text-muted-foreground text-xs">
-        {new Date(user.created_at).toLocaleDateString("bn-BD", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })}
-      </p>
+      <div className="ml-2">
+        <h3 className="text-dark text-base">
+          <Link href={`/@${user.username}`} className="text-foreground">
+            {user.name}
+          </Link>
+        </h3>
+        <p className="text-muted-foreground text-xs">
+          {new Date(user.created_at).toLocaleDateString("bn-BD", {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          })}
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};

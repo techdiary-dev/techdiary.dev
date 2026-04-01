@@ -1,0 +1,5 @@
+/**
+ * Runs before paint. Reads `theme` cookie, migrates legacy `localStorage.theme` once,
+ * resolves `system` via `prefers-color-scheme`. Keep in sync with `theme-cookie.ts`.
+ */
+export const THEME_INIT_SCRIPT = `(function(){try{var n='theme';var y=31536000;function gc(){var m=document.cookie.match(new RegExp('(?:^|; )'+n+'=([^;]*)'));return m?decodeURIComponent(m[1].replace(/\\+/g,' ')):'';}function hc(){return new RegExp('(?:^|; )'+n+'=').test(document.cookie);}if(!hc()){try{var ls=localStorage.getItem(n);if(ls==='dark'||ls==='light'||ls==='system'){document.cookie=n+'='+encodeURIComponent(ls)+';path=/;max-age='+y+';SameSite=Lax'+(location.protocol==='https:'?';Secure':'');}}catch(e){}}var t=gc();var pref=(t==='dark'||t==='light'||t==='system')?t:'system';var r=pref==='dark'?'dark':pref==='light'?'light':(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',r);document.documentElement.style.colorScheme=r;}catch(e){}})();`;

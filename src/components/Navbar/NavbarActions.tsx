@@ -3,10 +3,16 @@
 import { useTranslation } from "@/i18n/use-translation";
 
 import { Button } from "../ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 import { useSession } from "@/store/session.atom";
-import { SearchIcon } from "lucide-react";
+import { ChevronDown, SearchIcon } from "lucide-react";
 import AuthenticatedUserMenu from "./AuthenticatedUserMenu";
 import LanguageSwitcher from "./LanguageSwitcher";
 import Link from "next/link";
@@ -32,9 +38,35 @@ const NavbarActions: React.FC = () => {
 
       {authSession?.session ? (
         <>
-          <Button className="hidden md:block" asChild>
-            <Link href={"/dashboard/articles/new"}>{_t("New diary")}</Link>
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="hidden md:inline-flex gap-1.5 pr-2"
+                aria-haspopup="menu"
+              >
+                {_t("Create")}
+                <ChevronDown className="size-4 opacity-70" aria-hidden />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44">
+              <DropdownMenuItem asChild>
+                <Link
+                  className="text-foreground cursor-pointer block"
+                  href="/dashboard/articles/new"
+                >
+                  {_t("New diary")}
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  className="text-foreground cursor-pointer block"
+                  href="/gists/new"
+                >
+                  {_t("New gist")}
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <AuthenticatedUserMenu />
         </>
       ) : (
