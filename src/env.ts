@@ -20,8 +20,6 @@ export const env = createEnv({
     S3_ACCESS_SECRET: z.string().min(1),
     S3_BUCKET: z.string().min(1),
 
-    CRON_SECRET: z.string().optional(),
-
     // Inngest
     INNGEST_EVENT_KEY: z.string().optional(),
     INNGEST_SIGNING_KEY: z.string().optional(),
@@ -65,8 +63,6 @@ export const env = createEnv({
     S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
     S3_ACCESS_SECRET: process.env.S3_ACCESS_SECRET,
     S3_BUCKET: process.env.S3_BUCKET,
-
-    CRON_SECRET: process.env.CRON_SECRET,
 
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,

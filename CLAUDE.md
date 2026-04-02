@@ -141,7 +141,11 @@ Cloudflare R2 (S3-compatible):
 - `S3_BUCKET` - R2 bucket name
 - `S3_ACCESS_KEY_ID` - R2 access key
 - `S3_SECRET_ACCESS_KEY` - R2 secret key
-- `CRON_SECRET` - Shared secret for `x-cron-secret` header on cron API endpoint
+
+Inngest:
+
+- `INNGEST_EVENT_KEY` - Inngest event key (optional for local dev)
+- `INNGEST_SIGNING_KEY` - Inngest signing key (optional for local dev)
 
 ## Key Features Implementation
 
@@ -361,8 +365,8 @@ const feedQuery = useInfiniteQuery({
 - **Bengali Language Support**: Custom font loading (Kohinoor Bangla) and i18n in `src/i18n/`
 - **SEO Optimization**: Dynamic sitemaps in `src/app/sitemaps/`, Open Graph tags, and schema markup
 - **No test framework**: There are no automated tests — use `bun run play` for backend experimentation
-- **Cloudflare Workers**: `wrangler.toml` configures a separate cron worker (`src/workers/cron-worker.ts`). `bun run wrangler:dev` starts it locally. The worker fires on `0 2 * * *` and calls `POST /api/cron/cleanup-articles` with `x-cron-secret` header.
-- **Article soft-delete**: Articles have a `delete_scheduled_at` field. Setting it schedules permanent deletion; `article-cleanup-service.ts` processes them when the cron fires. Use `restoreScheduleDeletedArticle` to cancel.
+- **Cloudflare Workers**: `wrangler.toml` still references `src/workers/cron-worker.ts` but the cron trigger has been removed. Article cleanup is now handled by Inngest (see below).
+- **Article soft-delete**: Articles have a `delete_scheduled_at` field. Setting it schedules permanent deletion; `article-cleanup-service.ts` processes them when the **Inngest cron** (`cleanup-expired-articles`, `0 2 * * *` UTC) fires. Use `restoreScheduleDeletedArticle` to cancel.
 
 ## Caching & ISR (Incremental Static Regeneration)
 

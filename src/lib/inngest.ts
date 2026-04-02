@@ -8,6 +8,7 @@ import { persistenceRepository } from "@/backend/persistence/persistence-reposit
 import { ActionException } from "@/backend/services/RepositoryException";
 import { buildPersistableNotification } from "@/backend/services/notifications.payload";
 import { pusherServer } from "@/lib/pusher.server";
+import { deleteExpiredArticles } from "@/backend/services/article-cleanup-service";
 
 const notificationPayloadSchema = z.object({
   article_id: z.string().optional(),
@@ -101,6 +102,17 @@ export const inngest = new Inngest({
   id: "techdiary",
   eventKey: process.env.INNGEST_EVENT_KEY ?? "local",
 });
+
+export const cleanupExpiredArticlesFn = inngest.createFunction(
+  {
+    id: "cleanup-expired-articles",
+    triggers: [{ cron: "0 2 * * *" }],
+  },
+  async () => {
+    const result = await deleteExpiredArticles();
+    return { deletedCount: result.deletedCount };
+  },
+);
 
 export const persistNotificationFn = inngest.createFunction(
   {

@@ -1,5 +1,5 @@
 "use server";
-import { and, lt, neq } from "sqlkit";
+import { and, lt, lte, neq } from "sqlkit";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { handleActionException } from "./RepositoryException";
 import { deleteArticleById } from "./search.service";
@@ -14,7 +14,7 @@ export async function deleteExpiredArticles() {
     const articlesToDelete = await persistenceRepository.article.find({
       where: and(
         neq("delete_scheduled_at", null),
-        lt("delete_scheduled_at", currentTime)
+        lte("delete_scheduled_at", currentTime),
       ),
     });
 
@@ -25,12 +25,12 @@ export async function deleteExpiredArticles() {
     const deleteResult = await persistenceRepository.article.delete({
       where: and(
         neq("delete_scheduled_at", null),
-        lt("delete_scheduled_at", currentTime)
+        lte("delete_scheduled_at", currentTime),
       ),
     });
 
     console.log(
-      `Successfully deleted ${deleteResult?.rowCount} expired articles`
+      `Successfully deleted ${deleteResult?.rowCount} expired articles`,
     );
 
     return {
