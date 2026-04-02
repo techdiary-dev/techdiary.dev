@@ -28,6 +28,7 @@ export function RealtimeProvider({ children }: PropsWithChildren) {
     if (!userId) return;
 
     const pusher = getPusherClient();
+    console.log("pusher", pusher);
     if (!pusher) return;
 
     const channelName = `private-user.${userId}`;
@@ -35,7 +36,9 @@ export function RealtimeProvider({ children }: PropsWithChildren) {
 
     channel.bind("notification.new", () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
-      queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
+      queryClient.invalidateQueries({
+        queryKey: ["unread-notification-count"],
+      });
     });
 
     return () => {
