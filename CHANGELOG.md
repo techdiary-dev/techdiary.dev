@@ -6,6 +6,29 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.8.0 — 2026-04-03
+
+### ✨ Features
+- Realtime UI updates via Pusher/Soketi + TanStack Query invalidation (Phase 1 & 2) (`3338a22`)
+- Migrate article cleanup cron from Cloudflare Worker to Inngest (`1795485`)
+- Enhance reaction and comment handling with unique IDs (notification / event idempotency) (`c306fea`)
+
+### 🐛 Bug Fixes
+- Add missing comma in `ArticleFeed` for array splicing (`329bc8a`)
+- Make article drafted when scheduled for deletion (`8a83b92`)
+
+### 🔧 Other Changes
+- Improve error handling in notification persistence and publishing (`9f59d15`)
+- Update `publishMessage` usage for consistency and error handling (`802dbb3`)
+- Standardize Pusher event handling with `REALTIME_PUSHER_EVENTS` (`46fb559`)
+- Refine `listenChannel` and notification handling (`50fa1d0`)
+- Update Pusher integration and environment variable validation (`ce13cb8`)
+- Remove Pusher auth endpoint and adjust client configuration (`311c7f2`)
+- Remove unused import from article cleanup service (`603fa3c`)
+- Update article deletion logic to use `lte` for date comparison (`972dcce`)
+
+---
+
 ## v1.7.0 — 2026-04-02
 
 ### ✨ Features
