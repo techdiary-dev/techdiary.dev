@@ -190,17 +190,37 @@ export const persistNotificationFn = inngest.createFunction(
       created_at: new Date(),
     };
 
-    // Durable step: retries must not insert duplicate rows when a later line fails.
     await step.run("insert-notification-row", async () => {
-      await persistenceRepository.notification.insert([row]);
+      try {
+        const result = await persistenceRepository.notification.insert([row]);
+        return {
+          insertedRow: result?.rows?.[0],
+        };
+      } catch (err) {
+        return {
+          insertedRow: null,
+          message: "Failed to insert notification row",
+        };
+      }
     });
 
     await step.run("publish-notification-realtime", async () => {
-      return await publishMessage(
-        `private-user.${data.recipient_id}`,
-        REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW,
-        { scope: "notifications" },
-      );
+      try {
+        await publishMessage(
+          `private-user.${data.recipient_id}`,
+          REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW,
+          { scope: "notifications" },
+        );
+        return {
+          published: true,
+          message: "Notification published successfully",
+        };
+      } catch (err) {
+        return {
+          published: false,
+          message: "Failed to publish notification",
+        };
+      }
     });
 
     return { success: true };
