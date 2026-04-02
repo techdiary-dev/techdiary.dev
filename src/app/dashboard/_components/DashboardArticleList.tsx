@@ -65,7 +65,11 @@ const DashboardArticleList = () => {
             ...page,
             nodes: page.nodes.map((article: any) =>
               article.id === article_id
-                ? { ...article, delete_scheduled_at: addDays(new Date(), 7) }
+                ? {
+                    ...article,
+                    delete_scheduled_at: addDays(new Date(), 7),
+                    published_at: null,
+                  }
                 : article
             ),
           })),
