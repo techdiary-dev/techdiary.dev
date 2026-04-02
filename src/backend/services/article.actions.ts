@@ -249,8 +249,11 @@ export async function scheduleArticleDelete(article_id: string) {
       where: and(eq("id", article_id), eq("author_id", session_userID)),
       data: {
         delete_scheduled_at: addDays(new Date(), 7),
+        published_at: null,
       },
     });
+
+    deleteArticleById(article_id);
 
     return {
       success: true as const,
