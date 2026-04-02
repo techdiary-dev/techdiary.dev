@@ -10,7 +10,10 @@ import { and, eq, inArray } from "sqlkit";
 import { CommentPresentation } from "../models/domain-models";
 import { inngest } from "@/lib/inngest";
 import { assertCommentResourceExists } from "./notifications.payload";
-import { publishMessage } from "@/lib/pusher/pusher.server";
+import {
+  publishMessage,
+  REALTIME_PUSHER_EVENTS,
+} from "@/lib/pusher/pusher.server";
 
 const sql = String.raw;
 
@@ -71,7 +74,7 @@ export const createMyComment = async (
 
   void publishMessage(
     `resource.${resource_type}.${resource_id}`,
-    "comment.created",
+    REALTIME_PUSHER_EVENTS.COMMENT_CREATED,
     { scope: "comments" },
   );
 
@@ -106,7 +109,7 @@ export const updateMyComment = async (
 
     void publishMessage(
       `resource.${existing.resource_type}.${existing.resource_id}`,
-      "comment.updated",
+      REALTIME_PUSHER_EVENTS.COMMENT_UPDATED,
       { scope: "comments" },
     );
 
@@ -164,7 +167,7 @@ export const deleteMyComment = async (
 
     void publishMessage(
       `resource.${root.resource_type}.${root.resource_id}`,
-      "comment.deleted",
+      REALTIME_PUSHER_EVENTS.COMMENT_DELETED,
       { scope: "comments" },
     );
 

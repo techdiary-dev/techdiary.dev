@@ -38,7 +38,10 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 import getFileUrl from "@/utils/getFileUrl";
-import { listenChannel } from "@/lib/pusher/pusher.client";
+import {
+  listenChannel,
+  REALTIME_PUSHER_EVENTS,
+} from "@/lib/pusher/pusher.client";
 
 const Context = React.createContext<
   { mutatingId?: string; setMutatingId: (id?: string) => void } | undefined
@@ -166,9 +169,9 @@ export const CommentSection = (props: {
       });
     };
     return listenChannel(channelName, {
-      "comment.created": invalidate,
-      "comment.updated": invalidate,
-      "comment.deleted": invalidate,
+      [REALTIME_PUSHER_EVENTS.COMMENT_CREATED]: invalidate,
+      [REALTIME_PUSHER_EVENTS.COMMENT_UPDATED]: invalidate,
+      [REALTIME_PUSHER_EVENTS.COMMENT_DELETED]: invalidate,
     });
   }, [props.resource_id, props.resource_type, queryClient]);
 

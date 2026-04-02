@@ -1,5 +1,11 @@
 import Pusher from "pusher";
 import { env } from "@/env";
+import type { RealtimePusherEvent } from "./realtime-events";
+
+export {
+  REALTIME_PUSHER_EVENTS,
+  type RealtimePusherEvent,
+} from "./realtime-events";
 
 /**
  * Lazy singleton for the server-side Pusher/Soketi client.
@@ -28,7 +34,7 @@ export const pusherServer = createPusherServer();
  */
 export async function publishMessage(
   channel: string,
-  event: "comment.created" | "comment.updated" | "comment.deleted",
+  event: RealtimePusherEvent,
   data: Record<string, unknown> = {},
 ): Promise<void> {
   console.log(`

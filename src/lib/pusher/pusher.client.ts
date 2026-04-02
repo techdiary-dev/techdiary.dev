@@ -1,5 +1,15 @@
 import Pusher from "pusher-js";
 import { env } from "@/env";
+import type {
+  RealtimeListenHandlers,
+  RealtimePusherEvent,
+} from "./realtime-events";
+
+export {
+  REALTIME_PUSHER_EVENTS,
+  type RealtimeListenHandlers,
+  type RealtimePusherEvent,
+} from "./realtime-events";
 
 let _pusherClient: Pusher | null = null;
 
@@ -23,11 +33,9 @@ function getPusherClient(): Pusher | null {
   return _pusherClient;
 }
 
-type EventHandlers = Record<string, () => void>;
-
 export function listenChannel(
   channel: string,
-  handlers: EventHandlers,
+  handlers: RealtimeListenHandlers,
 ): () => void {
   const pusher = getPusherClient();
   if (!pusher) {
@@ -35,13 +43,15 @@ export function listenChannel(
   }
 
   const ch = pusher.subscribe(channel);
-  for (const [event, fn] of Object.entries(handlers)) {
-    ch.bind(event, fn);
+  for (const event of Object.keys(handlers) as RealtimePusherEvent[]) {
+    const fn = handlers[event];
+    if (fn) ch.bind(event, fn);
   }
 
   return () => {
-    for (const [event, fn] of Object.entries(handlers)) {
-      ch.unbind(event, fn);
+    for (const event of Object.keys(handlers) as RealtimePusherEvent[]) {
+      const fn = handlers[event];
+      if (fn) ch.unbind(event, fn);
     }
     pusher.unsubscribe(channel);
   };
