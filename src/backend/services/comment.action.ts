@@ -47,9 +47,11 @@ export const createMyComment = async (
 
   await assertCommentResourceExists(resource_id, resource_type);
 
+  const commentId = input.comment_id ?? crypto.randomUUID();
+
   const created = await persistenceRepository.comment.insert([
     {
-      id: input.comment_id ?? crypto.randomUUID(),
+      id: commentId,
       body,
       resource_id,
       resource_type,
@@ -59,6 +61,7 @@ export const createMyComment = async (
 
   inngest
     .send({
+      id: `notif:comment:${commentId}`,
       name: "app/notification.requested",
       data: {
         actor_id: sessionId,

@@ -69,9 +69,12 @@ export async function toogleReaction(
       };
     }
 
+    const reactionId = crypto.randomUUID();
+
     // If reaction does not exist, create it
     await persistenceRepository.reaction.insert([
       {
+        id: reactionId,
         resource_id: input.resource_id,
         resource_type: input.resource_type,
         reaction_type: input.reaction_type,
@@ -83,6 +86,7 @@ export async function toogleReaction(
     // Send notification event for insert path only (log errors, don't fail mutation)
     inngest
       .send({
+        id: `notif:reaction:${reactionId}`,
         name: "app/notification.requested",
         data: {
           actor_id: sessionUserId,
