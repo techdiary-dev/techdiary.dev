@@ -28,11 +28,14 @@ export function RealtimeProvider({ children }: PropsWithChildren) {
     if (!userId) return;
 
     const channelName = `private-user.${userId}`;
-    return listenChannel(channelName, "notification.new", () => {
+    const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
       queryClient.invalidateQueries({
         queryKey: ["unread-notification-count"],
       });
+    };
+    return listenChannel(channelName, {
+      "notification.new": invalidate,
     });
   }, [userId, queryClient]);
 

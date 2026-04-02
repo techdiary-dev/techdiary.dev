@@ -28,22 +28,7 @@ type EventHandlers = Record<string, () => void>;
 export function listenChannel(
   channel: string,
   handlers: EventHandlers,
-): () => void;
-export function listenChannel(
-  channel: string,
-  event: string,
-  handler: () => void,
-): () => void;
-export function listenChannel(
-  channel: string,
-  eventOrHandlers: string | EventHandlers,
-  handler?: () => void,
 ): () => void {
-  const handlers: EventHandlers =
-    typeof eventOrHandlers === "string" && handler !== undefined
-      ? { [eventOrHandlers]: handler }
-      : (eventOrHandlers as EventHandlers);
-
   const pusher = getPusherClient();
   if (!pusher) {
     return () => {};
