@@ -1,6 +1,9 @@
 "use client";
 
-import { listenChannel } from "@/lib/pusher/pusher.client";
+import {
+  listenChannel,
+  REALTIME_PUSHER_EVENTS,
+} from "@/lib/pusher/pusher.client";
 import { useSession } from "@/store/session.atom";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { PropsWithChildren, useEffect } from "react";
@@ -28,11 +31,14 @@ export function RealtimeProvider({ children }: PropsWithChildren) {
     if (!userId) return;
 
     const channelName = `private-user.${userId}`;
-    return listenChannel(channelName, "notification.new", () => {
+    const invalidate = () => {
       queryClient.invalidateQueries({ queryKey: ["my-notifications"] });
       queryClient.invalidateQueries({
         queryKey: ["unread-notification-count"],
       });
+    };
+    return listenChannel(channelName, {
+      [REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW]: invalidate,
     });
   }, [userId, queryClient]);
 

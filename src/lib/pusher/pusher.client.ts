@@ -1,5 +1,15 @@
 import Pusher from "pusher-js";
 import { env } from "@/env";
+import type {
+  RealtimeListenHandlers,
+  RealtimePusherEvent,
+} from "./realtime-events";
+
+export {
+  REALTIME_PUSHER_EVENTS,
+  type RealtimeListenHandlers,
+  type RealtimePusherEvent,
+} from "./realtime-events";
 
 let _pusherClient: Pusher | null = null;
 
@@ -23,40 +33,25 @@ function getPusherClient(): Pusher | null {
   return _pusherClient;
 }
 
-type EventHandlers = Record<string, () => void>;
-
 export function listenChannel(
   channel: string,
-  handlers: EventHandlers,
-): () => void;
-export function listenChannel(
-  channel: string,
-  event: string,
-  handler: () => void,
-): () => void;
-export function listenChannel(
-  channel: string,
-  eventOrHandlers: string | EventHandlers,
-  handler?: () => void,
+  handlers: RealtimeListenHandlers,
 ): () => void {
-  const handlers: EventHandlers =
-    typeof eventOrHandlers === "string" && handler !== undefined
-      ? { [eventOrHandlers]: handler }
-      : (eventOrHandlers as EventHandlers);
-
   const pusher = getPusherClient();
   if (!pusher) {
     return () => {};
   }
 
   const ch = pusher.subscribe(channel);
-  for (const [event, fn] of Object.entries(handlers)) {
-    ch.bind(event, fn);
+  for (const event of Object.keys(handlers) as RealtimePusherEvent[]) {
+    const fn = handlers[event];
+    if (fn) ch.bind(event, fn);
   }
 
   return () => {
-    for (const [event, fn] of Object.entries(handlers)) {
-      ch.unbind(event, fn);
+    for (const event of Object.keys(handlers) as RealtimePusherEvent[]) {
+      const fn = handlers[event];
+      if (fn) ch.unbind(event, fn);
     }
     pusher.unsubscribe(channel);
   };
