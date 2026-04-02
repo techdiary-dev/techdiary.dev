@@ -4,110 +4,141 @@ A modern blogging platform designed specifically for the tech community. Built f
 
 ![TechDiary](public/og.png)
 
-## 🌟 Overview
+## Overview
 
 TechDiary is a feature-rich blogging platform that empowers developers and tech enthusiasts to share knowledge, document their journey, and build meaningful connections within the tech community. With support for multiple languages, intuitive writing tools, and powerful engagement features, TechDiary creates the perfect environment for technical content creation and discovery.
 
-## ✨ Key Features
+## Key features
 
-### 📝 Content Creation
-- **Rich Markdown Editor** with live preview and auto-save
-- **Drag-and-drop Image Upload** with cropping capabilities  
-- **Series Support** for organizing related articles
-- **Draft Management** with autosave every 30 seconds
-- **SEO Optimization** with meta tags and structured data
+### Content creation
+- **Rich Markdown editor** with Markdoc parsing, live preview, and auto-save
+- **Drag-and-drop image upload** with cropping (Cloudinary and Cloudflare R2)
+- **Series support** for organizing related articles
+- **Draft management** with periodic autosave
+- **SEO** with meta tags and structured data
 
-### 🌍 Multi-language Support
-- **Bengali and English** interface support
-- **Localized Content** with proper date and number formatting
-- **Easy Language Switching** with persistent preferences
+### Gists
+- **Code snippets** with multiple files, browsing, and sharing (`/gists`)
 
-### 🔍 Powerful Search
-- **Full-text Search** powered by MeilSearch
-- **Advanced Filtering** by tags, authors, and dates
-- **Real-time Search Suggestions** and auto-complete
-- **Fast Response Times** (<500ms average)
+### Multi-language support
+- **Bengali and English** UI (dictionary for Bengali; English uses keys as fallback)
+- **Localized formatting** for dates and numbers where applicable
+- **Language preference** persisted via cookie and client state
 
-### 💬 Rich Engagement
-- **Emoji Reactions** (Love, Fire, Wow, Haha, Cry, Unicorn)
-- **Threaded Comments** with nested discussions
-- **Bookmarking System** for saving articles
-- **Following System** to track favorite authors
+### Search
+- **Full-text search** powered by Meilisearch
+- **Filtering** by tags, authors, and dates
+- **Fast, typo-tolerant** queries
 
-### 🔐 Secure Authentication
-- **GitHub OAuth** integration for developers
-- **Secure Session Management** with automatic renewal
-- **Profile Customization** with bio, location, education, and social links
+### Engagement
+- **Emoji reactions** (Love, Fire, Wow, Haha, Cry, Unicorn)
+- **Threaded comments**
+- **Bookmarks** and **following** authors
+- **In-app notifications** with background processing (Inngest)
+- **Realtime updates** over the Pusher protocol; use [Pusher](https://pusher.com/) or self-host **[Soketi](https://soketi.app/)** (open-source, drop-in compatible) for selective UI refresh
 
-### 🎨 Modern UI/UX
-- **Dark/Light Theme** support
-- **Responsive Design** for all devices
-- **Accessibility Compliant** (WCAG 2.1 AA)
-- **Progressive Web App** capabilities
+### Authentication
+- **WorkOS AuthKit** as the primary sign-in path
+- **GitHub OAuth** available as a legacy alternative
+- **Secure sessions** stored in PostgreSQL with HTTP-only cookies
 
-## 🛠 Tech Stack
+### UI
+- **Dark/light theme**
+- **Responsive layout**
+- **Web app manifest** and service worker registration for installable / app-like behavior
+
+## Tech stack
 
 ### Frontend
-- **[Next.js 15](https://nextjs.org/)** - React framework with App Router
-- **[React 19](https://react.dev/)** - UI library
-- **[TypeScript](https://www.typescriptlang.org/)** - Type safety
-- **[Tailwind CSS](https://tailwindcss.com/)** - Utility-first CSS
-- **[shadcn/ui](https://ui.shadcn.com/)** - Component library
+- **[Next.js 16](https://nextjs.org/)** — App Router, React Server Components, Turbopack in dev (`next dev --turbo`)
+- **[React 19](https://react.dev/)**
+- **[TypeScript](https://www.typescriptlang.org/)**
+- **[Tailwind CSS 4](https://tailwindcss.com/)**
+- **[shadcn/ui](https://ui.shadcn.com/)** — Radix-based components
 
-### Backend & Database
-- **[SQLKit](https://github.com/sqlkit-dev/sqlkit)** - Very light sql query builder, we are using most of the sql query using this.
-- **[Drizzle ORM](https://orm.drizzle.team/)** - Awesome sql tool but we are only using for migration
-- **[PostgreSQL](https://www.postgresql.org/)** - Primary database
-- **[Next.js API Routes](https://nextjs.org/docs/api-routes/introduction)** - Backend API
+### Backend and data
+- **[Next.js Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)** — primary server API surface
+- **[SQLKit](https://github.com/sqlkit-dev/sqlkit)** — lightweight query builder for most database access
+- **[Drizzle ORM](https://orm.drizzle.team/)** — schema and migrations only (`db:generate` / `db:push`)
+- **[PostgreSQL](https://www.postgresql.org/)** — primary database
 
-### Search & Storage
-- **[MeilSearch](https://www.meilisearch.com/)** - Fast, typo-tolerant search
-- **[Cloudinary](https://cloudinary.com/)** - Image optimization and storage
-- **[Cloudflare R2](https://www.cloudflare.com/en-gb/developer-platform/products/r2/)** - Alternative file storage
+### Search, storage, and jobs
+- **[Meilisearch](https://www.meilisearch.com/)** — search index and queries
+- **[Cloudflare R2](https://developers.cloudflare.com/r2/)** — S3-compatible uploads (presigned URLs)
+- **[Cloudinary](https://cloudinary.com/)** — image URLs and transforms (legacy paths)
+- **[Inngest](https://www.inngest.com/)** — scheduled jobs (e.g. article cleanup) and notification queueing
+- **Pusher-compatible WebSockets** — managed Pusher or self-hosted **[Soketi](https://soketi.app/)** (same wire protocol and client libraries; point `PUSHER_*` / `NEXT_PUBLIC_PUSHER_*` at your Soketi host)
 
-### State Management
-- **[Jotai](https://jotai.org/)** - Atomic state management
-- **[TanStack Query](https://tanstack.com/query)** - Server state management
-- **[React Hook Form](https://react-hook-form.com/)** - Form handling
-- **[Zod](https://zod.dev/)** - Schema validation
+### Client state and forms
+- **[Jotai](https://jotai.org/)** — client UI state
+- **[TanStack Query](https://tanstack.com/query)** — server state and cache invalidation
+- **[React Hook Form](https://react-hook-form.com/)** + **[Zod](https://zod.dev/)** — forms and validation
 
-### Development Tools
-- **[Bun](https://bun.sh/)** - Fast JavaScript runtime and package manager
-- **[ESLint](https://eslint.org/)** - Code linting
-- **[Prettier](https://prettier.io/)** - Code formatting
+### Tooling
+- **[Bun](https://bun.sh/)** — scripts and package management (Node-compatible)
+- **[ESLint](https://eslint.org/)** — `eslint-config-next`
+- **[Prettier](https://prettier.io/)** — formatting
 
-## 🚀 Quick Start
+## Quick start
 
 ### Prerequisites
-- **Node.js 18+** or **Bun 1.0+**
+- **Bun** (recommended) or **Node.js 22+** (aligned with dev dependencies)
 - **PostgreSQL 14+**
-- **MeilSearch instance**
-- **Cloudinary account**
-- **GitHub OAuth App**
+- **Meilisearch** instance
+- **WorkOS** account (AuthKit) for primary login, and/or **GitHub OAuth** app for legacy flow
+- **Cloudinary** and/or **Cloudflare R2** for uploads (see env below)
 
-### Environment Variables
+### Environment variables
 
-Create a `.env.local` file in the root directory:
+Create a `.env.local` in the project root. Required variables are validated in [`src/env.ts`](src/env.ts) at runtime; WorkOS is used by AuthKit alongside those (see [`CLAUDE.md`](CLAUDE.md)).
 
 ```env
 # Database
 DATABASE_URL="postgresql://username:password@localhost:5432/techdiary"
 
-# Authentication
-GITHUB_CLIENT_ID="your_github_client_id"
-GITHUB_CLIENT_SECRET="your_github_client_secret"
+# WorkOS (primary auth — AuthKit)
+WORKOS_API_KEY=""
+WORKOS_CLIENT_ID=""
+WORKOS_COOKIE_PASSWORD=""
+NEXT_PUBLIC_WORKOS_REDIRECT_URI="http://localhost:3000/api/auth/wos/callback"
+
+# GitHub OAuth (legacy)
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
 GITHUB_CALLBACK_URL="http://localhost:3000/api/auth/github/callback"
 
-# File Storage
+# Unsplash (required by env schema — used for integrations)
+UNSPLASH_API_KEY=""
+
+# Cloudinary
 CLOUDINARY_URL="cloudinary://api_key:api_secret@cloud_name"
 
-# Search
-MEILISEARCH_ADMIN_API_KEY="your_meilisearch_admin_key"
+# Cloudflare R2 (S3-compatible — names match src/env.ts)
+S3_ENDPOINT=""
+S3_REGION="auto"
+S3_BUCKET=""
+S3_ACCESS_KEY_ID=""
+S3_ACCESS_SECRET=""
+
+# Meilisearch
+MEILISEARCH_ADMIN_API_KEY=""
 NEXT_PUBLIC_MEILISEARCH_API_HOST="http://localhost:7700"
-NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY="your_meilisearch_search_key"
+NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY=""
+
+# Inngest (optional in schema — omit or leave empty for local-only)
+INNGEST_EVENT_KEY=""
+INNGEST_SIGNING_KEY=""
+
+# Realtime: Pusher SaaS or self-hosted Soketi (drop-in Pusher replacement — same env names)
+PUSHER_WS_HOST=""
+PUSHER_APP_ID=""
+PUSHER_APP_KEY=""
+PUSHER_APP_SECRET=""
+NEXT_PUBLIC_PUSHER_APP_KEY=""
+NEXT_PUBLIC_PUSHER_WS_HOST=""
 ```
 
-### Installation & Setup
+### Installation and setup
 
 1. **Clone the repository**
    ```bash
@@ -118,202 +149,112 @@ NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY="your_meilisearch_search_key"
 2. **Install dependencies**
    ```bash
    bun install
-   # or
-   npm install
    ```
 
-3. **Set up the database**
+3. **Database**
    ```bash
-   # Generate database schema
-   bun run db:generate
-   
-   # Apply migrations
-   bun run db:push
+   bun run db:generate   # generate migrations from schema when you change Drizzle tables
+   bun run db:push       # apply schema to your database
    ```
 
-4. **Start the development server**
+4. **Development server**
    ```bash
    bun run dev
    ```
 
-5. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
+5. Open [http://localhost:3000](http://localhost:3000)
 
-## 📋 Available Scripts
+## Scripts
 
-```bash
-# Development
-bun run dev              # Start development server
-bun run build            # Build for production
-bun run start            # Start production server
-bun run lint             # Run ESLint
+| Command | Description |
+|--------|-------------|
+| `bun run dev` | Dev server with Turbopack |
+| `bun run build` | Production build |
+| `bun run start` | Production server |
+| `bun run lint` | ESLint |
+| `bun run db:generate` | Drizzle migrations from `schemas.ts` |
+| `bun run db:push` | Push schema to DB |
+| `bun run db:studio` | Drizzle Studio |
+| `bun run play` | Backend playground (`src/backend/play.ts`) |
 
-# Database
-bun run db:generate      # Generate migrations from schema changes
-bun run db:push          # Push schema changes to database
-bun run db:studio        # Open Drizzle Studio (database GUI)
-
-# Backend
-bun run play             # Run backend playground script
-```
-
-## 🏗 Project Structure
+## Project structure
 
 ```
 ├── src/
-│   ├── app/                    # Next.js App Router pages
-│   │   ├── (home)/            # Homepage routes
-│   │   ├── (dashboard-editor)/ # Protected dashboard routes
-│   │   ├── [username]/        # User profile pages
-│   │   └── api/               # API routes
-│   ├── backend/               # Backend logic and services
-│   │   ├── models/            # Domain models and types
-│   │   ├── persistence/       # Database schemas and repositories
-│   │   └── services/          # Business logic and actions
-│   ├── components/            # Reusable UI components
-│   │   ├── ui/               # shadcn/ui components
-│   │   ├── Editor/           # Article editor components
-│   │   ├── Navbar/           # Navigation components
-│   │   └── render-props/     # Render prop components
-│   ├── hooks/                # Custom React hooks
-│   ├── i18n/                 # Internationalization
-│   ├── lib/                  # Utility libraries
-│   ├── store/                # Global state management
-│   └── styles/               # Global styles and CSS
-├── docs/                     # Documentation
-│   ├── components/           # Component documentation
-│   ├── hooks/               # Hooks documentation
-│   └── PRD.md              # Product Requirements Document
-├── public/                   # Static assets
-└── migrations/              # Database migrations
+│   ├── app/                      # Next.js App Router
+│   │   ├── (home)/               # Homepage and feed
+│   │   ├── (dashboard-editor)/   # Editor-related dashboard routes
+│   │   ├── dashboard/            # Dashboard layout
+│   │   ├── gists/                # Gists (list, create, view)
+│   │   ├── [username]/           # Profiles and article pages
+│   │   ├── api/                  # API routes (auth, storage, etc.)
+│   │   └── sitemaps/             # Dynamic sitemaps
+│   ├── backend/
+│   │   ├── models/               # Domain types and action contracts
+│   │   ├── persistence/          # Drizzle schemas, SQLKit repositories, PG client
+│   │   └── services/             # Server actions, inputs (Zod), integrations
+│   ├── components/               # UI and feature components
+│   ├── hooks/
+│   ├── i18n/
+│   ├── lib/
+│   ├── store/                    # Jotai atoms
+│   └── styles/
+├── docs/                         # Internal docs (components, hooks, PRD)
+├── public/
+└── migrations/                   # Generated SQL migrations
 ```
 
-## 🎯 Core Features Deep Dive
+## Architecture notes
 
-### Article Editor
-- **Markdown Support**: Full markdown syntax with extensions
-- **Live Preview**: Real-time preview with markdoc parser
-- **Auto-save**: Saves drafts automatically every 30 seconds
-- **Media Upload**: Drag-and-drop with image cropping
-- **Publishing Controls**: Draft/publish with scheduling
+- **Server actions** return a consistent `ActionResponse<T>` union; TanStack Query calls actions directly from the client where appropriate.
+- **Caching** uses Next.js Cache Components / Partial Prerendering; user-specific data stays dynamic (cookies, session).
+- **Article soft-delete** uses `delete_scheduled_at`; cleanup runs on an Inngest schedule.
 
-### Search System
-- **MeilSearch Integration**: Lightning-fast full-text search
-- **Typo Tolerance**: Finds results even with spelling mistakes
-- **Faceted Search**: Filter by tags, authors, dates
-- **Search Analytics**: Track popular searches and content gaps
+## Documentation
 
-### User Experience
-- **Responsive Design**: Mobile-first approach with desktop enhancements
-- **Accessibility**: WCAG 2.1 AA compliant with screen reader support
-- **Performance**: <3 second page loads, optimized images
-- **PWA Ready**: App-like experience on mobile devices
+- **[Component docs](docs/components/README.md)**
+- **[Hooks docs](docs/hooks/README.md)**
+- **[PRD](docs/PRD.md)**
+- **Agent / contributor reference:** [CLAUDE.md](CLAUDE.md) (commands, env vars, auth flow, caching rules)
 
-### Community Features
-- **User Profiles**: Rich profiles with bio, skills, social links
-- **Following System**: Follow favorite authors and topics
-- **Engagement Tools**: Reactions, comments, bookmarks
-- **Content Discovery**: Personalized recommendations
+## Deployment
 
-## 🌐 Internationalization
+- **Runtime:** Node-compatible host for Next.js (e.g. Vercel) or your platform of choice.
+- **Data:** Managed PostgreSQL; Meilisearch (cloud or self-hosted).
+- **Auth:** Set WorkOS production redirect URI and cookie secret; align `NEXT_PUBLIC_WORKOS_REDIRECT_URI` with your domain.
+- **Storage:** R2 credentials and/or Cloudinary for production URLs.
+- **Inngest:** Configure event and signing keys for production workers.
 
-TechDiary supports multiple languages with full localization:
+## Contributing
 
-- **Interface Translation**: All UI elements translated
-- **Content Localization**: Date, number, and currency formatting
-- **RTL Support**: Right-to-left text support
-- **Language Detection**: Automatic language detection and switching
+1. Fork the repository and create a branch for your change.
+2. Follow existing TypeScript, ESLint, and formatting conventions.
+3. There is **no automated test suite** in this repo; use `bun run play` to exercise backend code when needed.
+4. Open a pull request with a clear description.
 
-Currently supported languages:
-- 🇺🇸 English
-- 🇧🇩 Bengali (বাংলা)
+For deeper conventions (actions, repositories, i18n), see [CLAUDE.md](CLAUDE.md).
 
-## 🔧 Development Guidelines
+## License
 
-### Code Style
-- **TypeScript**: Strict mode enabled for type safety
-- **ESLint**: Enforced code quality rules
-- **Prettier**: Consistent code formatting
-- **Conventional Commits**: Structured commit messages
+[MIT](LICENSE)
 
-### Component Architecture
-- **Atomic Design**: Reusable component architecture
-- **Render Props**: Logic separation with render props pattern
-- **Custom Hooks**: Reusable stateful logic
-- **Type Safety**: Comprehensive TypeScript coverage
+## Acknowledgments
 
+Next.js, shadcn/ui, Meilisearch, WorkOS, and the open-source ecosystem this project builds on.
 
-## 📖 Documentation
+## Links
 
-Comprehensive documentation is available in the `/docs` directory:
-
-- **[Component Documentation](docs/components/README.md)** - Custom components guide
-- **[Hooks Documentation](docs/hooks/README.md)** - Custom hooks reference
-- **[PRD](docs/PRD.md)** - Product Requirements Document
-- **[API Documentation](docs/api/README.md)** - Backend API reference
-
-## 🚢 Deployment
-
-### Production Requirements
-- **Node.js 18+** runtime environment
-- **PostgreSQL 14+** database
-- **MeilSearch** search service
-- **Cloudinary** for image storage
-- **GitHub OAuth** application
-
-### Recommended Hosting
-- **Vercel** - Frontend and API hosting
-- **Railway/Supabase** - PostgreSQL database
-- **Meilisearch Cloud** - Search service
-- **Cloudinary** - Image CDN
-
-### Environment Setup
-1. Set up production environment variables
-2. Configure database with SSL
-3. Set up MeilSearch with proper indexes
-4. Configure Cloudinary transformations
-5. Set up GitHub OAuth for production domain
-
-## 🤝 Contributing
-
-We welcome contributions from the community! Please read our contributing guidelines:
-
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes**: Follow our code style and conventions
-4. **Write tests**: Ensure your changes are tested
-5. **Submit a pull request**: With a clear description of changes
-
-### Development Setup
-1. Follow the Quick Start guide
-2. Read the component and hooks documentation
-3. Check existing issues or create new ones
-4. Join our Discord community for discussions
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Next.js Team** - For the amazing React framework
-- **shadcn** - For the beautiful UI component library
-- **MeilSearch** - For the powerful search engine
-- **Open Source Community** - For the incredible tools and libraries
-
-## 📞 Support & Community
-
-- **Website**: [techdiary.dev](https://techdiary.dev)
-- **Discord**: [Join our community](https://go.techdiary.dev/discord)
-- **GitHub Issues**: [Report bugs or request features](https://github.com/techdiary-dev/techdiary.dev/issues)
-- **Email**: hello@techdiary.dev
+- **Site:** [techdiary.dev](https://techdiary.dev)
+- **Community:** [Discord](https://go.techdiary.dev/discord)
+- **Issues:** [GitHub](https://github.com/techdiary-dev/techdiary.dev/issues)
+- **Email:** hello@techdiary.dev
 
 ---
 
 <div align="center">
 
-**Built with ❤️ by the TechDiary Team**
+**Built with care by the TechDiary team**
 
-[⭐ Star this repo](https://github.com/techdiary-dev/techdiary.dev) • [🐛 Report Bug](https://github.com/techdiary-dev/techdiary.dev/issues) • [✨ Request Feature](https://github.com/techdiary-dev/techdiary.dev/issues)
+[Star this repo](https://github.com/techdiary-dev/techdiary.dev) · [Report a bug](https://github.com/techdiary-dev/techdiary.dev/issues) · [Request a feature](https://github.com/techdiary-dev/techdiary.dev/issues)
 
 </div>
