@@ -1,4 +1,4 @@
-import { pusherServer } from "@/lib/pusher.server";
+import { pusherServer } from "@/lib/pusher/pusher.server";
 import { authID } from "@/backend/services/session.actions";
 import { NextRequest, NextResponse } from "next/server";
 

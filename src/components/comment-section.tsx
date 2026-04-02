@@ -38,7 +38,7 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 import getFileUrl from "@/utils/getFileUrl";
-import { getPusherClient } from "@/lib/pusher.client";
+import { listenChannel } from "@/lib/pusher/pusher.client";
 
 const Context = React.createContext<
   { mutatingId?: string; setMutatingId: (id?: string) => void } | undefined
@@ -159,23 +159,17 @@ export const CommentSection = (props: {
   // Phase 2: subscribe to the resource's public Pusher channel and
   // invalidate the comments query when any mutation arrives from another client.
   useEffect(() => {
-    const pusher = getPusherClient();
-    if (!pusher) return;
-
     const channelName = `resource.${props.resource_type}.${props.resource_id}`;
-    const channel = pusher.subscribe(channelName);
     const invalidate = () => {
       queryClient.invalidateQueries({
         queryKey: ["comments", props.resource_id, props.resource_type],
       });
     };
-    const events = ["comment.created", "comment.updated", "comment.deleted"];
-    events.forEach((event) => channel.bind(event, invalidate));
-
-    return () => {
-      events.forEach((event) => channel.unbind(event, invalidate));
-      pusher.unsubscribe(channelName);
-    };
+    return listenChannel(channelName, {
+      "comment.created": invalidate,
+      "comment.updated": invalidate,
+      "comment.deleted": invalidate,
+    });
   }, [props.resource_id, props.resource_type, queryClient]);
 
   const generated_comment_id = () => crypto.randomUUID();
