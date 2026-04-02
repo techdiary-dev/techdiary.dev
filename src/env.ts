@@ -23,10 +23,20 @@ export const env = createEnv({
     // Inngest
     INNGEST_EVENT_KEY: z.string().optional(),
     INNGEST_SIGNING_KEY: z.string().optional(),
+
+    // Pusher / Soketi (server-side)
+    PUSHER_WS_HOST: z.string().min(1),
+    PUSHER_APP_ID: z.string().min(1),
+    PUSHER_APP_KEY: z.string().min(1),
+    PUSHER_APP_SECRET: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
     NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY: z.string(),
+
+    // Pusher / Soketi (client-side)
+    NEXT_PUBLIC_PUSHER_APP_KEY: z.string().min(1),
+    NEXT_PUBLIC_PUSHER_WS_HOST: z.string().min(1),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -50,6 +60,14 @@ export const env = createEnv({
 
     INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
     INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+
+    PUSHER_APP_ID: process.env.PUSHER_APP_ID,
+    PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
+    PUSHER_APP_SECRET: process.env.PUSHER_APP_SECRET,
+    PUSHER_WS_HOST: process.env.PUSHER_WS_HOST,
+
+    NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
+    NEXT_PUBLIC_PUSHER_WS_HOST: process.env.NEXT_PUBLIC_PUSHER_WS_HOST,
   },
   onValidationError(issues: readonly StandardSchemaV1.Issue[]) {
     console.error("❌ Invalid environment variables:", issues);

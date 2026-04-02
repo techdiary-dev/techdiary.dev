@@ -60,6 +60,8 @@
     "modern-screenshot": "^4.6.8",
     "next": "^16.2.1",
     "pg": "^8.14.1",
+    "pusher": "^5.3.3",
+    "pusher-js": "^8.5.0",
     "react": "^19",
     "react-advanced-cropper": "^0.20.1",
     "react-dom": "^19",

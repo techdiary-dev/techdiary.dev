@@ -1,0 +1,46 @@
+import Pusher from "pusher";
+import { env } from "@/env";
+
+/**
+ * Lazy singleton for the server-side Pusher/Soketi client.
+ * Returns null when Pusher is not configured (no PUSHER_APP_ID etc.),
+ * so callers can gracefully skip publishing in non-realtime environments.
+ */
+function createPusherServer(): Pusher | null {
+  const { PUSHER_APP_ID, PUSHER_APP_KEY, PUSHER_APP_SECRET } = env;
+  if (!PUSHER_APP_ID || !PUSHER_APP_KEY || !PUSHER_APP_SECRET) {
+    return null;
+  }
+
+  return new Pusher({
+    host: env.PUSHER_WS_HOST,
+    appId: PUSHER_APP_ID,
+    key: PUSHER_APP_KEY,
+    secret: PUSHER_APP_SECRET,
+  });
+}
+
+export const pusherServer = createPusherServer();
+
+/**
+ * Best-effort publish. No-ops when Pusher is not configured; swallows errors
+ * so callers (e.g. Inngest) are not broken by broker failures.
+ */
+export async function publishMessage(
+  channel: string,
+  event: "comment.created" | "comment.updated" | "comment.deleted",
+  data: Record<string, unknown> = {},
+): Promise<void> {
+  console.log(`
+    [pusher] Publishing message to channel ${channel} with event ${event} and data ${JSON.stringify(data)}
+  `);
+
+  pusherServer
+    ?.trigger(channel, event, data)
+    .then((data) => {
+      console.log("[pusher] Published message successfully");
+    })
+    .catch((err) => {
+      console.error("[pusher] Failed to publish message:", JSON.stringify(err));
+    });
+}

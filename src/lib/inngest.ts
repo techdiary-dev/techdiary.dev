@@ -7,6 +7,7 @@ import {
 import { persistenceRepository } from "@/backend/persistence/persistence-repositories";
 import { ActionException } from "@/backend/services/RepositoryException";
 import { buildPersistableNotification } from "@/backend/services/notifications.payload";
+import { publishMessage } from "@/lib/pusher/pusher.server";
 import { deleteExpiredArticles } from "@/backend/services/article-cleanup-service";
 
 const notificationPayloadSchema = z.object({
@@ -187,6 +188,12 @@ export const persistNotificationFn = inngest.createFunction(
         created_at: new Date(),
       },
     ]);
+
+    // Broadcast a lightweight signal so the recipient's browser can invalidate
+    // its TanStack Query caches without polling.
+    await publishMessage(`private-user.${data.recipient_id}`, "notification.new", {
+      scope: "notifications",
+    });
 
     return { success: true };
   },

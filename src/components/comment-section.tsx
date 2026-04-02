@@ -18,7 +18,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useImmer } from "use-immer";
 import { useLoginPopup } from "./app-login-popup";
 import ResourceReaction from "./ResourceReaction";
@@ -38,6 +38,7 @@ import { Button } from "./ui/button";
 import { Skeleton } from "./ui/skeleton";
 import { Textarea } from "./ui/textarea";
 import getFileUrl from "@/utils/getFileUrl";
+import { listenChannel } from "@/lib/pusher/pusher.client";
 
 const Context = React.createContext<
   { mutatingId?: string; setMutatingId: (id?: string) => void } | undefined
@@ -154,6 +155,22 @@ export const CommentSection = (props: {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
   });
+
+  // Phase 2: subscribe to the resource's public Pusher channel and
+  // invalidate the comments query when any mutation arrives from another client.
+  useEffect(() => {
+    const channelName = `resource.${props.resource_type}.${props.resource_id}`;
+    const invalidate = () => {
+      queryClient.invalidateQueries({
+        queryKey: ["comments", props.resource_id, props.resource_type],
+      });
+    };
+    return listenChannel(channelName, {
+      "comment.created": invalidate,
+      "comment.updated": invalidate,
+      "comment.deleted": invalidate,
+    });
+  }, [props.resource_id, props.resource_type, queryClient]);
 
   const generated_comment_id = () => crypto.randomUUID();
   const listQueryKey = [

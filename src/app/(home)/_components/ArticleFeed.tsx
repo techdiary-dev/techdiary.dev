@@ -85,7 +85,7 @@ const ArticleFeed = () => {
                   !article?.cover_image
                     ? extractImageUrlsFromMarkdown(article?.body ?? "")?.splice(
                         0,
-                        4
+                        4,
                       )
                     : []
                 }

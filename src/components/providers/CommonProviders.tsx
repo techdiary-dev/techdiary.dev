@@ -11,6 +11,7 @@ import { ThemeProvider } from "./theme-provider";
 import { AppConfirmProvider } from "../app-confirm";
 import { AppAlertProvider } from "../app-alert";
 import { AppLoginPopupProvider } from "../app-login-popup";
+import { RealtimeProvider } from "./RealtimeProvider";
 
 type Props = PropsWithChildren<{
   initialTheme?: ThemePreference;
@@ -34,7 +35,7 @@ const CommonProviders: React.FC<Props> = ({
                   initialTheme={initialTheme}
                   migrateThemeFromLocalStorage={migrateThemeFromLocalStorage}
                 >
-                  {children}
+                  <RealtimeProvider>{children}</RealtimeProvider>
                 </ThemeProvider>
               </AppLoginPopupProvider>
             </Suspense>
