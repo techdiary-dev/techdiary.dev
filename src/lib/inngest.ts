@@ -122,13 +122,13 @@ export const persistNotificationFn = inngest.createFunction(
     id: "persist-notification",
     triggers: [{ event: "app/notification.requested" }],
   },
-  async ({ event }: { event: { data: NotificationEventData } }) => {
+  async ({ event, step }) => {
     const parsed = notificationEventSchema.safeParse(event.data);
     if (!parsed.success) {
       return { skipped: true, reason: "invalid-notification-payload" };
     }
 
-    let data = parsed.data;
+    let data: NotificationEventData = parsed.data;
 
     if (data.reaction_request && data.actor_id) {
       const built = await buildPersistableNotification({
@@ -182,23 +182,46 @@ export const persistNotificationFn = inngest.createFunction(
       return { skipped: true, reason: "self-notification" };
     }
 
-    await persistenceRepository.notification.insert([
-      {
-        recipient_id: data.recipient_id,
-        actor_id: data.actor_id ?? null,
-        type: data.type as NotificationType,
-        payload: (data.payload ?? null) as NotificationPayload | null,
-        created_at: new Date(),
-      },
-    ]);
+    const row = {
+      recipient_id: data.recipient_id,
+      actor_id: data.actor_id ?? null,
+      type: data.type as NotificationType,
+      payload: (data.payload ?? null) as NotificationPayload | null,
+      created_at: new Date(),
+    };
 
-    // Broadcast a lightweight signal so the recipient's browser can invalidate
-    // its TanStack Query caches without polling.
-    await publishMessage(
-      `private-user.${data.recipient_id}`,
-      REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW,
-      { scope: "notifications" },
-    );
+    await step.run("insert-notification-row", async () => {
+      try {
+        const result = await persistenceRepository.notification.insert([row]);
+        return {
+          insertedRow: result?.rows?.[0],
+        };
+      } catch (err) {
+        return {
+          insertedRow: null,
+          message: "Failed to insert notification row",
+        };
+      }
+    });
+
+    await step.run("publish-notification-realtime", async () => {
+      try {
+        await publishMessage(
+          `private-user.${data.recipient_id}`,
+          REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW,
+          { scope: "notifications" },
+        );
+        return {
+          published: true,
+          message: "Notification published successfully",
+        };
+      } catch (err) {
+        return {
+          published: false,
+          message: "Failed to publish notification",
+        };
+      }
+    });
 
     return { success: true };
   },

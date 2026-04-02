@@ -36,17 +36,12 @@ export async function publishMessage(
   channel: string,
   event: RealtimePusherEvent,
   data: Record<string, unknown> = {},
-): Promise<void> {
-  console.log(`
-    [pusher] Publishing message to channel ${channel} with event ${event} and data ${JSON.stringify(data)}
-  `);
-
-  pusherServer
-    ?.trigger(channel, event, data)
-    .then((data) => {
-      console.log("[pusher] Published message successfully");
-    })
-    .catch((err) => {
-      console.error("[pusher] Failed to publish message:", JSON.stringify(err));
-    });
+) {
+  if (!pusherServer) return;
+  try {
+    return await pusherServer.trigger(channel, event, data);
+  } catch (err) {
+    console.error("[pusher] Failed to publish message:", JSON.stringify(err));
+    return null;
+  }
 }

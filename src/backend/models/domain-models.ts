@@ -196,6 +196,7 @@ export enum DIRECTORY_NAME {
 }
 
 export interface Reaction {
+  id?: string;
   resource_id: string;
   resource_type: "ARTICLE" | "COMMENT" | "GIST";
   reaction_type: REACTION_TYPE;
