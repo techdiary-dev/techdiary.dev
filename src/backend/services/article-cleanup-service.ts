@@ -1,5 +1,5 @@
 "use server";
-import { and, lt, lte, neq } from "sqlkit";
+import { and, lte, neq } from "sqlkit";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { handleActionException } from "./RepositoryException";
 import { deleteArticleById } from "./search.service";
