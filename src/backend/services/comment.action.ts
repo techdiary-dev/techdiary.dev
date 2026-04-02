@@ -75,7 +75,7 @@ export const createMyComment = async (
       console.error("[inngest] Failed to send notification event:", err);
     });
 
-  void publishMessage(
+  await publishMessage(
     `resource.${resource_type}.${resource_id}`,
     REALTIME_PUSHER_EVENTS.COMMENT_CREATED,
     { scope: "comments" },
@@ -110,7 +110,7 @@ export const updateMyComment = async (
       data: { body: input.body, updated_at: new Date() },
     });
 
-    void publishMessage(
+    await publishMessage(
       `resource.${existing.resource_type}.${existing.resource_id}`,
       REALTIME_PUSHER_EVENTS.COMMENT_UPDATED,
       { scope: "comments" },
@@ -168,7 +168,7 @@ export const deleteMyComment = async (
       where: inArray("id", ids),
     });
 
-    void publishMessage(
+    await publishMessage(
       `resource.${root.resource_type}.${root.resource_id}`,
       REALTIME_PUSHER_EVENTS.COMMENT_DELETED,
       { scope: "comments" },

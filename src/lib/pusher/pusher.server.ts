@@ -36,11 +36,12 @@ export async function publishMessage(
   channel: string,
   event: RealtimePusherEvent,
   data: Record<string, unknown> = {},
-): Promise<void> {
+) {
   if (!pusherServer) return;
   try {
-    await pusherServer.trigger(channel, event, data);
+    return await pusherServer.trigger(channel, event, data);
   } catch (err) {
     console.error("[pusher] Failed to publish message:", JSON.stringify(err));
+    return null;
   }
 }

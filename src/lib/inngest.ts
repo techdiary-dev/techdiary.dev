@@ -196,7 +196,7 @@ export const persistNotificationFn = inngest.createFunction(
     });
 
     await step.run("publish-notification-realtime", async () => {
-      await publishMessage(
+      return await publishMessage(
         `private-user.${data.recipient_id}`,
         REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW,
         { scope: "notifications" },
