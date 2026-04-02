@@ -71,7 +71,7 @@ export const syncArticleById = async (articleId: string) => {
 
     if (!article) {
       throw new Error(
-        `Article with ID ${articleId} not found or not published.`
+        `Article with ID ${articleId} not found or not published.`,
       );
     }
 
@@ -91,6 +91,7 @@ export const syncArticleById = async (articleId: string) => {
     console.error(`Error syncing article ${articleId}:`, error);
   }
 };
+
 export const deleteArticleById = async (articleId: string) => {
   try {
     const response = await index.deleteDocument(articleId);
