@@ -57,7 +57,7 @@ const SocialLinksWidget = () => {
         </a>
 
         <a
-          href="/sitemaps/articles/sitemap.xml"
+          href="/rss/articles"
           target="_blank"
           rel="nofollow"
           className="text-foreground flex items-center space-x-2"

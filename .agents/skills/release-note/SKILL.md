@@ -1,10 +1,10 @@
 ---
 name: release-note
-description: Generate a semver-compliant release note from git history
+description: Generate a semver-compliant release note from git history; on user confirmation, bump version, update CHANGELOG, create git tag, and publish a GitHub Release with gh
 user-invocable: true
 ---
 
-Generate a release note for this project following https://semver.org/.
+Generate a release note for this project following https://semver.org/. When the user **confirms** the version, also **commit** (if needed), **tag**, **push the tag**, and **`gh release create`** using the final notes as the release description.
 
 ## Steps
 
@@ -75,15 +75,17 @@ Omit empty sections.
 After the draft, ask the user:
 
 > **Does `v<next>` look right?**
-> - Confirm → finalize and print the clean release note
+> - **Confirm** → finalize files, **create git tag**, **create GitHub Release** with the release notes as the description (see step 7)
 > - Provide a different version (e.g. `v2.0.0`) → reformat with that version
-> - Cancel → discard
+> - **Cancel** → discard (no file writes, no tag, no release)
 
-Once confirmed:
+### 7. After confirmation — files, tag, and GitHub Release
 
-1. **Update `package.json`** — read the file, set `"version"` to the confirmed version (without the `v` prefix, e.g. `"1.3.0"`), and write it back.
+Use the **confirmed** version as `v<next>` (e.g. `v0.4.0`). The **final release body** is the same content as in `CHANGELOG.md` for that version: title `## Release v<next> — <YYYY-MM-DD>` plus sections (omit empty ones). Do **not** include the draft-only line `> Suggested bump: ...`.
 
-2. **Update `CHANGELOG.md`** — prepend the new release section (without the `> Suggested bump:` line) to the top of the entries in `CHANGELOG.md`. If the file doesn't exist, create it with a standard header:
+1. **Update `package.json`** — set `"version"` to the semver without `v` (e.g. `"0.4.0"`).
+
+2. **Update `CHANGELOG.md`** — prepend the final release section (same as the GitHub Release description). If the file does not exist, create it with:
    ```markdown
    # Changelog
 
@@ -93,6 +95,39 @@ Once confirmed:
 
    ---
    ```
-   Then append the release section below the `---` separator.
 
-3. **Output the final release note** ready to paste into a GitHub Release or PR description.
+3. **Commit** the version bump and changelog (if the repo should record the release commit before tagging):
+   ```bash
+   git add package.json CHANGELOG.md
+   git commit -m "chore(release): v<next>"
+   git push origin HEAD
+   ```
+   Skip commit/push only if the user already committed these changes or explicitly asks not to.
+
+4. **Create an annotated tag** at the release commit:
+   ```bash
+   git tag -a "v<next>" -m "Release v<next>"
+   git push origin "v<next>"
+   ```
+   If the tag already exists locally or on the remote, stop and resolve (delete mistaken tag or bump version) before continuing.
+
+5. **Create the GitHub Release** with the same notes as `CHANGELOG` for this version:
+   ```bash
+   # Write the final body to a temp file, then:
+   gh release create "v<next>" --title "Release v<next>" --notes-file /tmp/release-v<next>.md
+   ```
+   Alternatively pass `--notes` with the full markdown string. Do not use `--generate-notes` if you want the curated changelog to match `CHANGELOG.md`.
+
+   Requirements: `gh` CLI authenticated (`gh auth status`), and permission to create releases on the repo.
+
+6. **Output** the final release note in chat for the user’s records (same text as in the Release description).
+
+#### If `gh release create` should create the tag (alternative)
+
+Some teams skip the local annotated tag and let GitHub create the tag from the default branch when publishing the release:
+
+```bash
+gh release create "v<next>" --title "Release v<next>" --notes-file /tmp/release-v<next>.md --target <branch>
+```
+
+Prefer the **annotated tag + push + `gh release create`** flow (steps 4–5) so the tag exists locally and matches the release commit; use `--target` only when aligning with a specific branch policy.
