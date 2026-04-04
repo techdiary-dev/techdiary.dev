@@ -12,10 +12,12 @@ const Page = () => {
       RightSidebar={<HomeRightSidebar />}
       NavbarTrailing={<SidebarToggleButton />}
     >
-      <div className="px-4 my-2 md:m-0">
-        <FakeEditor />
+      <div className="flex flex-col gap-3 p-2">
+        <div className="pb-2 md:m-0">
+          <FakeEditor />
+        </div>
+        <ArticleFeed />
       </div>
-      <ArticleFeed />
     </HomepageLayout>
   );
 };

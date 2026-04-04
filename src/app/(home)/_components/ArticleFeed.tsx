@@ -47,7 +47,7 @@ const ArticleFeed = () => {
   return (
     <>
       {/* <pre>{JSON.stringify(articleFeedQuery.data, null, 2)}</pre> */}
-      <div className="flex flex-col gap-10 mt-2">
+      <div className="flex flex-col gap-10">
         {articleFeedQuery.isPending && (
           <>
             <div

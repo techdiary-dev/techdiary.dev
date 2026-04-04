@@ -47,7 +47,7 @@ const ArticleCard = ({
   }, [author.username, handle]);
 
   return (
-    <div data-article-id={id} className="flex flex-col p-4 sm:p-5 group">
+    <div data-article-id={id} className="flex flex-col group">
       <div className="mb-4 flex items-center">
         <HoverCard openDelay={0}>
           <HoverCardTrigger asChild>

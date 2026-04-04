@@ -139,7 +139,7 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
         RightSidebar={<ArticleSidebar article={article} />}
       >
         {/* {!article && <div>Article not found</div>} */}
-        <div className="px-4 my-2 md:m-0">
+        <div className="p-2 md:m-0">
           <UnpublishedArticleNotice
             publishedAt={article.published_at}
             authorId={article.author_id}
