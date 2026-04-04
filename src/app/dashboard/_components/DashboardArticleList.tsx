@@ -70,7 +70,7 @@ const DashboardArticleList = () => {
         enableToast: true,
       }),
     onMutate: async (article_id: string) => {
-      await queryClient.cancelQueries({ queryKey: ["dashboard-articles"] });
+      await queryClient.cancelQueries({ queryKey: ["dashboard-articles", sortBy, sortOrder, status] });
 
       const previousData = queryClient.getQueryData(["dashboard-articles", sortBy, sortOrder, status]);
 
@@ -110,7 +110,7 @@ const DashboardArticleList = () => {
         { enableToast: true }
       ),
     onMutate: async (article_id: string) => {
-      await queryClient.cancelQueries({ queryKey: ["dashboard-articles"] });
+      await queryClient.cancelQueries({ queryKey: ["dashboard-articles", sortBy, sortOrder, status] });
 
       const previousData = queryClient.getQueryData(["dashboard-articles", sortBy, sortOrder, status]);
 
