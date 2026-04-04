@@ -107,7 +107,7 @@ const ArticleCard = ({
 
         {coverImage && (
           <Link href={articleUrl} className="block">
-            <div className="relative mt-4 overflow-hidden rounded-md aspect-[16/9]">
+            <div className="relative mt-4 aspect-video overflow-hidden rounded-md">
               <Image
                 src={coverImage}
                 alt={title}

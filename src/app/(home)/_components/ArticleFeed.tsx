@@ -8,6 +8,35 @@ import getFileUrl from "@/utils/getFileUrl";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
+/** Mirrors `ArticleCard` layout so loading state matches width, rhythm, and rough height. */
+function ArticleFeedCardSkeleton() {
+  return (
+    <div
+      className="flex animate-pulse flex-col"
+      aria-hidden
+      suppressHydrationWarning
+    >
+      <div className="mb-4 flex items-center">
+        <div className="size-8 shrink-0 rounded-full bg-muted" />
+        <div className="ml-2.5 flex min-w-0 flex-1 flex-col gap-2 py-0.5">
+          <div className="h-3.5 w-28 max-w-[50%] rounded bg-muted" />
+          <div className="h-2.5 w-36 max-w-[60%] rounded bg-muted" />
+        </div>
+      </div>
+      <div className="mb-3 flex flex-col space-y-2">
+        <div className="h-5 w-[85%] max-w-xl rounded bg-muted" />
+        <div className="h-3.5 w-full rounded bg-muted" />
+        <div className="h-3.5 w-[92%] rounded bg-muted" />
+      </div>
+      <div className="relative mt-4 aspect-video overflow-hidden rounded-md bg-muted" />
+      <div className="mt-4 flex items-center justify-between">
+        <div className="h-8 w-28 rounded-md bg-muted" />
+        <div className="h-8 w-8 rounded-md bg-muted" />
+      </div>
+    </div>
+  );
+}
+
 const ArticleFeed = () => {
   const [feedType, setFeedType] = useState<"articles" | "series">("articles");
 
@@ -50,22 +79,9 @@ const ArticleFeed = () => {
       <div className="flex flex-col gap-10">
         {articleFeedQuery.isPending && (
           <>
-            <div
-              className="h-56 bg-muted animate-pulse mx-4"
-              suppressHydrationWarning={true}
-            />
-            <div
-              className="h-56 bg-muted animate-pulse mx-4"
-              suppressHydrationWarning={true}
-            />
-            <div
-              className="h-56 bg-muted animate-pulse mx-4"
-              suppressHydrationWarning={true}
-            />
-            <div
-              className="h-56 bg-muted animate-pulse mx-4"
-              suppressHydrationWarning={true}
-            />
+            {[0, 1, 2, 3].map((i) => (
+              <ArticleFeedCardSkeleton key={i} />
+            ))}
           </>
         )}
         {/* <pre>{JSON.stringify(articleFeedQuery, null, 2)}</pre> */}
