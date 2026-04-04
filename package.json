@@ -51,6 +51,7 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
+    "gray-matter": "^4.0.3",
     "immer": "^10.1.1",
     "inngest": "^4.1.0",
     "jotai": "^2.12.2",
