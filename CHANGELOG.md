@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.12.0 — 2026-04-04
+
+### ✨ Features
+- **Article feed** loading skeleton mirrors **`ArticleCard`** layout and width (author row, text placeholders, **`aspect-video`** media, action row).
+- **Article card** cover uses **`aspect-video`** for a consistent aspect ratio with the skeleton.
+
+---
+
 ## v1.11.0 — 2026-04-04
 
 ### ✨ Features
