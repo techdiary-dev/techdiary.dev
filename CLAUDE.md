@@ -365,7 +365,6 @@ const feedQuery = useInfiniteQuery({
 - **Bengali Language Support**: Custom font loading (Kohinoor Bangla) and i18n in `src/i18n/`
 - **SEO Optimization**: Dynamic sitemaps in `src/app/sitemaps/`, Open Graph tags, and schema markup
 - **No test framework**: There are no automated tests — use `bun run play` for backend experimentation
-- **Cloudflare Workers**: `wrangler.toml` still references `src/workers/cron-worker.ts` but the cron trigger has been removed. Article cleanup is now handled by Inngest (see below).
 - **Article soft-delete**: Articles have a `delete_scheduled_at` field. Setting it schedules permanent deletion; `article-cleanup-service.ts` processes them when the **Inngest cron** (`cleanup-expired-articles`, `0 2 * * *` UTC) fires. Use `restoreScheduleDeletedArticle` to cancel.
 
 ## Caching & ISR (Incremental Static Regeneration)
