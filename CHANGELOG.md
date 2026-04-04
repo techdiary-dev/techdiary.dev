@@ -6,6 +6,19 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.13.0 — 2026-04-04
+
+### ✨ Features
+- **Profile page** Open Graph image for richer link previews.
+
+### 🐛 Bug Fixes
+- Correct **TechDiary** brand capitalization on profile OG image.
+
+### 🔧 Other Changes
+- Add **`docs/job-listing.md`** — master plan for the embedded job board (companies, roles, routes, schema, implementation order).
+
+---
+
 ## v1.12.0 — 2026-04-04
 
 ### ✨ Features
