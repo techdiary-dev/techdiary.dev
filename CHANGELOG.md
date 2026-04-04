@@ -6,6 +6,20 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.9.0 — 2026-04-04
+
+### ✨ Features
+- **Articles RSS feed** at `/rss/articles` (Open Graph–style HTML in descriptions; feature image when present); sidebar “RSS” points at the feed instead of the sitemap.
+- **Navbar notifications** open a **scrollable popover** with the same feed as the dashboard; full page remains available from the popover and sidebar.
+- **Markdown: bare URLs become links** via a shared Markdoc tokenizer (`linkify`), aligned with RSS HTML rendering (`markdoc-html-string`).
+
+### 🔧 Other Changes
+- Refactor dashboard notifications page to use shared `MyNotificationsFeed`.
+- Remove deprecated Cloudflare cron documentation; assorted README / release-note docs; remove stray `issue93-body.md`.
+- Chore: drop unused Markdoc import in `ArticleEditor`.
+
+---
+
 ## v1.8.0 — 2026-04-03
 
 ### ✨ Features
