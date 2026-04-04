@@ -1,5 +1,6 @@
 import Markdoc, { type Node, Tag } from "@markdoc/markdoc";
 import { removeMarkdownSyntax } from "@/lib/utils";
+import { parseMarkdocDocument } from "./markdoc-tokenizer";
 
 function safeForCdata(html: string): string {
   return html.replace(/]]>/g, "]]]]><![CDATA[>");
@@ -43,7 +44,7 @@ export function markdocToHtmlForRss(
   const prefix = featureUrl ? featureImageMarkup(featureUrl, alt) : "";
 
   try {
-    const ast = Markdoc.parse(md);
+    const ast = parseMarkdocDocument(md);
     const content = Markdoc.transform(ast, {
       tags: {
         youtube: {
