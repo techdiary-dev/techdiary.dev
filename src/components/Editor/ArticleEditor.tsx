@@ -14,7 +14,6 @@ import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { useServerFile } from "@/hooks/use-file-upload";
 import { useToggle } from "@/hooks/use-toggle";
 import { actionPromisify, formattedTime } from "@/lib/utils";
-import { markdocParser } from "@/lib/markdown/markdoc-parser";
 import { useMutation } from "@tanstack/react-query";
 import clsx from "clsx";
 import { TrashIcon } from "lucide-react";
