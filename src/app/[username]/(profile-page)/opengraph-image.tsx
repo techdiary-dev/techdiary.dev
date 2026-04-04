@@ -153,7 +153,7 @@ export default async function Image(options: ProfilePageProps) {
               src={(await getFileLocation("logo-lg.png")) as any}
               alt="logo"
             />
-            <p style={{ fontSize: 28 }}>Techdiary</p>
+            <p style={{ fontSize: 28 }}>TechDiary</p>
           </div>
         </div>
       </div>
