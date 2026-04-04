@@ -128,6 +128,7 @@ Server-side:
 - `GITHUB_CALLBACK_URL` - GitHub OAuth callback URL (legacy flow)
 - `CLOUDINARY_URL` - Cloudinary configuration
 - `MEILISEARCH_ADMIN_API_KEY` - MeilSearch admin API key
+- `UNSPLASH_API_KEY` - Unsplash API key (required by env schema)
 
 Client-side:
 
@@ -138,14 +139,24 @@ Client-side:
 Cloudflare R2 (S3-compatible):
 
 - `S3_ENDPOINT` - R2 endpoint URL
+- `S3_REGION` - R2 region (usually `auto`)
 - `S3_BUCKET` - R2 bucket name
 - `S3_ACCESS_KEY_ID` - R2 access key
-- `S3_SECRET_ACCESS_KEY` - R2 secret key
+- `S3_ACCESS_SECRET` - R2 secret key
 
 Inngest:
 
 - `INNGEST_EVENT_KEY` - Inngest event key (optional for local dev)
 - `INNGEST_SIGNING_KEY` - Inngest signing key (optional for local dev)
+
+Pusher / Soketi (real-time):
+
+- `PUSHER_APP_ID` - Pusher app ID
+- `PUSHER_APP_KEY` - Pusher app key
+- `PUSHER_APP_SECRET` - Pusher app secret
+- `PUSHER_WS_HOST` - WebSocket host (self-hosted Soketi or pusher.com)
+- `NEXT_PUBLIC_PUSHER_APP_KEY` - Client-side app key
+- `NEXT_PUBLIC_PUSHER_WS_HOST` - Client-side WebSocket host
 
 ## Key Features Implementation
 
@@ -239,7 +250,7 @@ persistenceRepository.article.paginate({ where, orderBy, limit, page })
 persistenceRepository.article.find({ where, columns, joins })
 ```
 
-Available repositories: `user`, `userSocial`, `userSession`, `article`, `bookmark`, `comment`, `reaction`, `articleTagPivot`, `tags`, `series`, `seriesItems`, `kv`, `gist`, `gistFile`.
+Available repositories: `user`, `userSocial`, `userSession`, `article`, `bookmark`, `comment`, `reaction`, `articleTagPivot`, `tags`, `series`, `seriesItems`, `kv`, `gist`, `gistFile`, `notification`.
 
 For complex multi-join queries, raw SQL is executed directly via `pgClient.executeSQL()`.
 
@@ -366,6 +377,8 @@ const feedQuery = useInfiniteQuery({
 - **SEO Optimization**: Dynamic sitemaps in `src/app/sitemaps/`, Open Graph tags, and schema markup
 - **No test framework**: There are no automated tests — use `bun run play` for backend experimentation
 - **Article soft-delete**: Articles have a `delete_scheduled_at` field. Setting it schedules permanent deletion; `article-cleanup-service.ts` processes them when the **Inngest cron** (`cleanup-expired-articles`, `0 2 * * *` UTC) fires. Use `restoreScheduleDeletedArticle` to cancel.
+- **Inngest functions** (`src/lib/inngest.ts`): Two registered functions — `cleanup-expired-articles` (daily cron) and `persist-notification` (event: `app/notification.requested`). The notification function handles both pre-built payloads and minimal `reaction_request` / `comment_request` shortcuts that it resolves internally. All functions are served via `src/app/api/inngest/route.ts`.
+- **Real-time notifications**: After persisting a notification, Inngest publishes to Pusher on channel `private-user.<recipient_id>` with event `REALTIME_PUSHER_EVENTS.NOTIFICATION_NEW`. Client subscribes via `src/lib/pusher/pusher.client.ts`. Pusher is optional — `pusherServer` is `null` when env vars are missing, so `publishMessage()` no-ops gracefully.
 
 ## Caching & ISR (Incremental Static Regeneration)
 
