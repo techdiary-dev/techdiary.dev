@@ -6,6 +6,13 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.10.1 — 2026-04-04
+
+### 🔧 Other Changes
+- Remove legacy **Cloudflare Worker** used for article cleanup (`src/workers/cron-worker.ts`). Scheduled cleanup stays on **Inngest**.
+
+---
+
 ## v1.10.0 — 2026-04-04
 
 ### ✨ Features
