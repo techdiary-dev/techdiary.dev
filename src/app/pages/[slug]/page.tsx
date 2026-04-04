@@ -9,10 +9,12 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-const PAGE_TITLES: Record<string, string> = {
-  privacy: "Privacy Policy",
-  "terms-and-conditions": "Terms and Conditions",
-};
+function slugToTitle(slug: string): string {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
 
 async function getPageContent(slug: string): Promise<string | null> {
   "use cache";
@@ -23,7 +25,7 @@ async function getPageContent(slug: string): Promise<string | null> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const title = PAGE_TITLES[slug] ?? slug;
+  const title = slugToTitle(slug);
   return { title };
 }
 
