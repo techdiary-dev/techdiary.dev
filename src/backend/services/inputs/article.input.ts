@@ -119,6 +119,9 @@ export const ArticleRepositoryInput = {
   myArticleInput: z.object({
     page: z.number().default(1),
     limit: z.number().default(10),
+    sort_by: z.enum(["created_at", "title", "published_at"]).default("created_at"),
+    sort_order: z.enum(["asc", "desc"]).default("desc"),
+    status: z.enum(["all", "published", "draft"]).default("all"),
   }),
 
   tagFeedInput: z.object({

@@ -11,7 +11,7 @@ import {
 } from "@/lib/utils";
 import { addDays } from "date-fns";
 import * as sk from "sqlkit";
-import { and, desc, eq, like, neq, or } from "sqlkit";
+import { and, asc, desc, eq, isNotNull, isNull, like, neq, or } from "sqlkit";
 import { z } from "zod/v4";
 import { ActionResponse } from "../models/action-contracts";
 import { Article, User } from "../models/domain-models";
@@ -664,8 +664,19 @@ export async function myArticles(
   }
 
   try {
+    const sortFn = input.sort_order === "asc" ? asc : desc;
+    const statusCondition =
+      input.status === "published"
+        ? isNotNull<Article>("published_at")
+        : input.status === "draft"
+          ? isNull<Article>("published_at")
+          : undefined;
+
     const articles = await persistenceRepository.article.paginate({
-      where: eq("author_id", sessionUserId!),
+      where: and(
+        eq("author_id", sessionUserId!),
+        ...(statusCondition ? [statusCondition] : [])
+      ),
       columns: [
         "id",
         "title",
@@ -677,7 +688,7 @@ export async function myArticles(
       ],
       limit: input.limit,
       page: input.page,
-      orderBy: [desc("created_at")],
+      orderBy: [sortFn(input.sort_by)],
     });
     return articles;
   } catch (error) {

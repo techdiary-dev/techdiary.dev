@@ -13,6 +13,8 @@ import VisibilitySensor from "@/components/VisibilitySensor";
 import { useTranslation } from "@/i18n/use-translation";
 import { actionPromisify, formattedTime } from "@/lib/utils";
 import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   CardStackIcon,
   DotsHorizontalIcon,
   Pencil1Icon,
@@ -29,15 +31,31 @@ import clsx from "clsx";
 import { addDays, differenceInHours } from "date-fns";
 import { TrashIcon } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+
+type SortBy = "created_at" | "title" | "published_at";
+type SortOrder = "asc" | "desc";
+type StatusFilter = "all" | "published" | "draft";
 
 const DashboardArticleList = () => {
   const { _t } = useTranslation();
   const queryClient = useQueryClient();
   const appConfirm = useAppConfirm();
+
+  const [sortBy, setSortBy] = useState<SortBy>("created_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [status, setStatus] = useState<StatusFilter>("all");
+
   const feedInfiniteQuery = useInfiniteQuery({
-    queryKey: ["dashboard-articles"],
+    queryKey: ["dashboard-articles", sortBy, sortOrder, status],
     queryFn: ({ pageParam }) =>
-      articleActions.myArticles({ limit: 10, page: pageParam }),
+      articleActions.myArticles({
+        limit: 10,
+        page: pageParam,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        status,
+      }),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       const _page = lastPage?.meta?.currentPage ?? 1;
@@ -54,9 +72,9 @@ const DashboardArticleList = () => {
     onMutate: async (article_id: string) => {
       await queryClient.cancelQueries({ queryKey: ["dashboard-articles"] });
 
-      const previousData = queryClient.getQueryData(["dashboard-articles"]);
+      const previousData = queryClient.getQueryData(["dashboard-articles", sortBy, sortOrder, status]);
 
-      queryClient.setQueryData(["dashboard-articles"], (old: any) => {
+      queryClient.setQueryData(["dashboard-articles", sortBy, sortOrder, status], (old: any) => {
         if (!old) return old;
 
         return {
@@ -80,7 +98,7 @@ const DashboardArticleList = () => {
     },
     onError: (err, variables, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(["dashboard-articles"], context.previousData);
+        queryClient.setQueryData(["dashboard-articles", sortBy, sortOrder, status], context.previousData);
       }
     },
   });
@@ -94,9 +112,9 @@ const DashboardArticleList = () => {
     onMutate: async (article_id: string) => {
       await queryClient.cancelQueries({ queryKey: ["dashboard-articles"] });
 
-      const previousData = queryClient.getQueryData(["dashboard-articles"]);
+      const previousData = queryClient.getQueryData(["dashboard-articles", sortBy, sortOrder, status]);
 
-      queryClient.setQueryData(["dashboard-articles"], (old: any) => {
+      queryClient.setQueryData(["dashboard-articles", sortBy, sortOrder, status], (old: any) => {
         if (!old) return old;
 
         return {
@@ -116,10 +134,22 @@ const DashboardArticleList = () => {
     },
     onError: (_, __, context) => {
       if (context?.previousData) {
-        queryClient.setQueryData(["dashboard-articles"], context.previousData);
+        queryClient.setQueryData(["dashboard-articles", sortBy, sortOrder, status], context.previousData);
       }
     },
   });
+
+  const sortByLabels: Record<SortBy, string> = {
+    created_at: _t("Created at"),
+    title: _t("Title"),
+    published_at: _t("Published at"),
+  };
+
+  const statusFilters: { value: StatusFilter; label: string }[] = [
+    { value: "all", label: _t("All") },
+    { value: "published", label: _t("Published") },
+    { value: "draft", label: _t("Draft") },
+  ];
 
   return (
     <div>
@@ -131,6 +161,58 @@ const DashboardArticleList = () => {
             <PlusIcon className="w-5 h-5" />
             <span className="ml-2">{_t("New diary")}</span>
           </Link>
+        </Button>
+      </div>
+
+      {/* Sorter toolbar */}
+      <div className="flex flex-wrap items-center gap-2 mt-3">
+        {/* Status filter */}
+        <div className="flex items-center rounded-md border border-border overflow-hidden">
+          {statusFilters.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => setStatus(filter.value)}
+              className={clsx(
+                "px-3 py-1.5 text-sm transition-colors",
+                status === filter.value
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-muted"
+              )}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort by */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="text-sm">
+              {sortByLabels[sortBy]}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {(Object.keys(sortByLabels) as SortBy[]).map((key) => (
+              <DropdownMenuItem key={key} onClick={() => setSortBy(key)}>
+                {sortByLabels[key]}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Sort order toggle */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+          className="flex items-center gap-1"
+        >
+          {sortOrder === "asc" ? (
+            <ArrowUpIcon className="h-4 w-4" />
+          ) : (
+            <ArrowDownIcon className="h-4 w-4" />
+          )}
+          <span className="text-sm">{sortOrder === "asc" ? _t("Ascending") : _t("Descending")}</span>
         </Button>
       </div>
 
@@ -176,18 +258,6 @@ const DashboardArticleList = () => {
 
               <div className="flex items-center gap-10 justify-between">
                 <div className="flex gap-4 items-center">
-                  {/* {!article.approved_at && (
-                    <p className="bg-yellow-400/30 rounded-sm px-2 py-1 text-sm">
-                      🚧 {_t("অনুমোদনাধীন")}
-                    </p>
-                  )} */}
-
-                  {/* {article.approved_at && (
-                    <p className="bg-green-400/30 rounded-sm px-2 py-1 text-sm">
-                      ✅ {_t("অনুমোদিত")}
-                    </p>
-                  )} */}
-
                   {!Boolean(article?.published_at) && (
                     <p className="bg-yellow-400/30 rounded-sm px-2 py-1 text-sm">
                       🚧 {_t("Draft")}
@@ -199,16 +269,6 @@ const DashboardArticleList = () => {
                       ✅ {_t("Published")}
                     </p>
                   )}
-
-                  {/* <div className="text-forground-muted flex items-center gap-1">
-                  <ChatBubbleIcon className="h-4 w-4" />
-                  <p>{article?.comments_count || 0} </p>
-                </div> */}
-
-                  {/* <div className="text-forground-muted flex items-center gap-1">
-                  <ThickArrowUpIcon className="h-4 w-4" />
-                  <p>{article?.votes?.score || 0} </p>
-                </div> */}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2">
