@@ -6,6 +6,21 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.11.0 — 2026-04-04
+
+### ✨ Features
+- **Markdown-backed pages** at `/pages/[slug]` (e.g. `/pages/privacy`, `/pages/terms-and-conditions`) with content in `src/content/`, restoring those URLs that previously returned 404.
+- **Frontmatter** for page metadata via **gray-matter**.
+
+### 🐛 Bug Fixes
+- Restore working **privacy** and **terms** pages backed by markdown.
+
+### 🔧 Other Changes
+- Replace separate legal page routes with a single dynamic `/pages/[slug]` route.
+- Derive page title from the slug; remove a static `PAGE_TITLES` map.
+
+---
+
 ## v1.10.1 — 2026-04-04
 
 ### 🔧 Other Changes
