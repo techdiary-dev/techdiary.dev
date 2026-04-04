@@ -6,6 +6,19 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.10.0 — 2026-04-04
+
+### ✨ Features
+- Add **sorter** to the dashboard article list.
+
+### 🐛 Bug Fixes
+- Use full **queryKey** in `cancelQueries` for dashboard article mutations so cache invalidation matches TanStack Query keys.
+
+### 🔧 Other Changes
+- Remove obsolete configuration and type definition files (Wrangler / worker leftovers, `skills-lock.json`).
+
+---
+
 ## v1.9.0 — 2026-04-04
 
 ### ✨ Features
