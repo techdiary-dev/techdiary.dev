@@ -6,6 +6,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.16.0 — 2026-04-07
+
+### ✨ Features
+- **Analytics referrer** — send `document.referrer` from the client and prefer it over the POST `Referer` header so traffic sources (e.g. social) are less often stored as the article URL itself.
+
+### 🔧 Other Changes
+- **Analytics actions** readability and performance tweaks.
+
+---
+
 ## v1.15.0 — 2026-04-06
 
 ### ✨ Features
