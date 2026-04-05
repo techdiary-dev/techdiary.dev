@@ -20,6 +20,7 @@ import {
   LockClosedIcon,
   ArrowLeftIcon,
 } from "@radix-ui/react-icons";
+import { LineChartIcon } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -285,13 +286,24 @@ export default function GistEditor({ gist, onSuccess }: GistEditorProps) {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
       {gist && (
-        <Link
-          href={`/gists/${gist.id}`}
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeftIcon className="w-3.5 h-3.5" />
-          Back to gist
-        </Link>
+        <div className="flex flex-wrap items-center gap-4">
+          <Link
+            href={`/gists/${gist.id}`}
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeftIcon className="w-3.5 h-3.5" />
+            Back to gist
+          </Link>
+          {isPublic ? (
+            <Link
+              href={`/dashboard/analytics/gist/${gist.id}`}
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <LineChartIcon className="w-3.5 h-3.5" />
+              Analytics
+            </Link>
+          ) : null}
+        </div>
       )}
 
       {/* Meta section */}

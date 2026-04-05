@@ -16,7 +16,7 @@ import { useToggle } from "@/hooks/use-toggle";
 import { actionPromisify, formattedTime } from "@/lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import clsx from "clsx";
-import { TrashIcon } from "lucide-react";
+import { LineChartIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -235,7 +235,16 @@ const ArticleEditor: React.FC<ArticleEditorProps> = ({ article, uuid }) => {
           </div>
 
           {uuid && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              {article?.published_at ? (
+                <Link
+                  href={`/dashboard/analytics/article/${uuid}`}
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1 text-sm font-semibold text-muted-foreground transition-colors rounded-sm hover:bg-muted hover:text-foreground"
+                >
+                  <LineChartIcon className="size-4" />
+                  {_t("Analytics")}
+                </Link>
+              ) : null}
               <button
                 onClick={toggleEditorMode}
                 className="px-4 py-1 hidden md:block font-semibold transition-colors duration-200 rounded-sm hover:bg-muted"

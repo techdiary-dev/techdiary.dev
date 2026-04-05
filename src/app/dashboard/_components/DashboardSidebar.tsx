@@ -16,6 +16,7 @@ import {
   Bookmark,
   Home,
   KeySquareIcon,
+  LineChart,
   Settings2,
 } from "lucide-react";
 import Link from "next/link";
@@ -30,6 +31,11 @@ const DashboardSidebar = () => {
       title: _t("Dashboard"),
       url: "",
       icon: Home,
+    },
+    {
+      title: _t("Reach"),
+      url: "/dashboard#dashboard-analytics",
+      icon: LineChart,
     },
     // {
     //   title: _t("Series"),
@@ -59,15 +65,23 @@ const DashboardSidebar = () => {
           <SidebarGroupLabel>{_t("Dashboard")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.slice(0, 1).map((item, key) => (
+              {items.slice(0, 2).map((item, key) => (
                 <SidebarMenuItem key={key}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathName === `/dashboard${item.url}`}
+                    isActive={
+                      item.url.startsWith("#")
+                        ? false
+                        : pathName === `/dashboard${item.url}`
+                    }
                   >
                     <Link
                       className="text-muted-foreground"
-                      href={`/dashboard${item.url}`}
+                      href={
+                        item.url.startsWith("/dashboard#")
+                          ? item.url
+                          : `/dashboard${item.url}`
+                      }
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -79,7 +93,7 @@ const DashboardSidebar = () => {
                 pathName={pathName}
                 label={_t("Notifications")}
               />
-              {items.slice(1).map((item, key) => (
+              {items.slice(2).map((item, key) => (
                 <SidebarMenuItem key={`rest-${key}`}>
                   <SidebarMenuButton
                     asChild
