@@ -10,6 +10,12 @@ type Props = {
   authorId: string;
 };
 
+/** Inline reading time label for the article byline. */
+export function ArticleReadingTime({ minutes }: { minutes: number }) {
+  const { _t } = useTranslation();
+  return <span>{_t("$ min read", [minutes])}</span>;
+}
+
 /** Inline label next to the byline date when the article has no `published_at`. */
 export function ArticleDraftBylineLabel() {
   const { _t } = useTranslation();

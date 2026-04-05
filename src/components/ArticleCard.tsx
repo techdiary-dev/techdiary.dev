@@ -40,7 +40,7 @@ const ArticleCard = ({
   readingTime,
   galleryImages,
 }: ArticleCardProps) => {
-  const { lang } = useTranslation();
+  const { lang, _t } = useTranslation();
 
   const articleUrl = useMemo(() => {
     return `/@${author.username}/${handle}`;
@@ -87,7 +87,7 @@ const ArticleCard = ({
               {formattedTime(new Date(publishedAt), lang)}
             </time>
             <span className="mx-1.5">·</span>
-            <span>{readingTime} min read</span>
+            <span>{_t("$ min read", [readingTime])}</span>
           </div>
         </div>
       </div>

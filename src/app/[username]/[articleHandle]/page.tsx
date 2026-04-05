@@ -26,6 +26,7 @@ import ArticleSidebar from "./_components/ArticleSidebar";
 import EditArticleButton from "./_components/EditArticleButton";
 import {
   ArticleDraftBylineLabel,
+  ArticleReadingTime,
   UnpublishedArticleNotice,
 } from "./_components/UnpublishedArticleNotice";
 
@@ -196,7 +197,7 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
                   <ArticleDraftBylineLabel />
                 )}
                 <span className="mx-1.5">·</span>
-                <span>{readingTime(article?.body ?? "")} min read</span>
+                <ArticleReadingTime minutes={readingTime(article?.body ?? "")} />
               </div>
             </div>
           </div>
