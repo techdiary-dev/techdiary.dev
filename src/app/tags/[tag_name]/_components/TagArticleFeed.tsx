@@ -68,7 +68,7 @@ const TagArticleFeed: React.FC<TagArticleFeedProps> = ({ tag }) => {
   if (tagFeedQuery.isError) {
     // Show error state
     return (
-      <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
           Error loading articles
         </h2>
@@ -101,7 +101,7 @@ const TagArticleFeed: React.FC<TagArticleFeedProps> = ({ tag }) => {
 
   return (
     <>
-      <div className="mb-8 p-4">
+      <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {_t(`Articles tagged with "$"`, [tag?.name])}
         </h1>

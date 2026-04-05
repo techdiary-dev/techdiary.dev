@@ -26,7 +26,9 @@ export default async function TagPage({ params }: TagPageProps) {
       RightSidebar={<HomeRightSidebar />}
       NavbarTrailing={<SidebarToggleButton />}
     >
-      <TagArticleFeed tag={tag?.data} />
+      <div className="flex flex-col gap-3 p-2">
+        <TagArticleFeed tag={tag?.data} />
+      </div>
     </HomepageLayout>
   );
 }
