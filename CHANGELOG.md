@@ -6,6 +6,19 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.14.0 — 2026-04-05
+
+### ✨ Features
+- **Reading time** estimate at 200 wpm with i18n support.
+
+### 🐛 Bug Fixes
+- Improve **Open Graph** image handling for profile pages.
+
+### 🔧 Other Changes
+- **Tag article feed** layout and styling updates in `TagArticleFeed`.
+
+---
+
 ## v1.13.0 — 2026-04-04
 
 ### ✨ Features
