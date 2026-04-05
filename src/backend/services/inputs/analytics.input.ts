@@ -55,6 +55,11 @@ export const AnalyticsInput = {
     resource_type: z.enum(TRACKED_RESOURCE_TYPES),
     resource_id: z.string().uuid(),
     session_id: z.string().min(8).max(128),
+    /**
+     * `document.referrer` at page load (previous page). Prefer this over the HTTP
+     * Referer on this POST, which is usually the article URL (fetch initiator).
+     */
+    document_referrer: z.union([z.string().max(2048), z.literal("")]).optional(),
   }),
 
   getResourceAnalyticsInput: z

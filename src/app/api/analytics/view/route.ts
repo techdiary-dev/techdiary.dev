@@ -32,7 +32,11 @@ export async function POST(req: Request) {
   }
 
   const userId = await authID();
-  const referrer = req.headers.get("referer");
+
+  const referrer =
+    parsed.data.document_referrer !== undefined
+      ? parsed.data.document_referrer.trim().slice(0, 2048) || null
+      : req.headers.get("referer")?.slice(0, 2048) ?? null;
 
   const session =
     userId != null

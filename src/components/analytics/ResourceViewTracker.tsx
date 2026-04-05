@@ -46,6 +46,9 @@ export function ResourceViewTracker({
       resource_type: resourceType,
       resource_id: resourceId,
       session_id: sessionId,
+      document_referrer: document.referrer
+        ? document.referrer.slice(0, 2048)
+        : "",
     });
 
     try {
