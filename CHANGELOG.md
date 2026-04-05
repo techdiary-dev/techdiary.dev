@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.15.0 — 2026-04-06
+
+### ✨ Features
+- **ClickHouse resource analytics** — view/impression tracking for published articles and public gists, dashboard overview, per-article/gist analytics pages, optional custom date ranges.
+- **Resource analytics plan** documentation (`docs/resource-analytics-plan.md`).
+
+---
+
 ## v1.14.0 — 2026-04-05
 
 ### ✨ Features
