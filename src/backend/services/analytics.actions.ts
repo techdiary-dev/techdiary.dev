@@ -2,7 +2,10 @@
 
 import { z } from "zod/v4";
 import { and, eq, isNotNull } from "sqlkit";
-import { getClickHouseClient, isClickHouseConfigured } from "../persistence/clickhouse.client";
+import {
+  getClickHouseClient,
+  isClickHouseConfigured,
+} from "../persistence/clickhouse.client";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { pgClient } from "../persistence/clients";
 import { ActionException, handleActionException } from "./RepositoryException";
@@ -37,7 +40,7 @@ export type DashboardAnalyticsOverviewData = ResourceAnalyticsData & {
   publicGistCount: number;
 };
 
-const MAX_TRACKED_ARTICLES = 500;
+const MAX_TRACKED_ARTICLES = 5000;
 const MAX_TRACKED_GISTS = 200;
 const MAX_CUSTOM_RANGE_MS = 366 * 86400000;
 
@@ -86,7 +89,9 @@ function clickHouseTimePredicate(filter: ClickHouseTimeFilter): string {
     : "viewed_at >= parseDateTimeBestEffort({range_start:String}) AND viewed_at < parseDateTimeBestEffort({range_end_exclusive:String})";
 }
 
-function clickHouseTimeParams(filter: ClickHouseTimeFilter): Record<string, string | number> {
+function clickHouseTimeParams(
+  filter: ClickHouseTimeFilter,
+): Record<string, string | number> {
   if (filter.kind === "preset") {
     return { days: filter.days };
   }
@@ -96,15 +101,22 @@ function clickHouseTimeParams(filter: ClickHouseTimeFilter): Record<string, stri
   };
 }
 
-function buildClickHouseResourceFilter(articleIds: string[], gistIds: string[]) {
+function buildClickHouseResourceFilter(
+  articleIds: string[],
+  gistIds: string[],
+) {
   const parts: string[] = [];
   const extra: Record<string, string[]> = {};
   if (articleIds.length > 0) {
-    parts.push(`(resource_type = 'ARTICLE' AND resource_id IN {article_ids:Array(UUID)})`);
+    parts.push(
+      `(resource_type = 'ARTICLE' AND resource_id IN {article_ids:Array(UUID)})`,
+    );
     extra.article_ids = articleIds;
   }
   if (gistIds.length > 0) {
-    parts.push(`(resource_type = 'GIST' AND resource_id IN {gist_ids:Array(UUID)})`);
+    parts.push(
+      `(resource_type = 'GIST' AND resource_id IN {gist_ids:Array(UUID)})`,
+    );
     extra.gist_ids = gistIds;
   }
   return { parts, extra };
@@ -163,7 +175,8 @@ export async function getResourceAnalytics(
   input: z.infer<typeof AnalyticsInput.getResourceAnalyticsInput>,
 ): Promise<ActionResponse<ResourceAnalyticsData>> {
   try {
-    const payload = await AnalyticsInput.getResourceAnalyticsInput.parseAsync(input);
+    const payload =
+      await AnalyticsInput.getResourceAnalyticsInput.parseAsync(input);
     const userId = await authID();
     if (!userId) {
       throw new ActionException("Unauthorized");
@@ -273,7 +286,10 @@ export async function getResourceAnalytics(
   }
 }
 
-async function countReactionsForResources(articleIds: string[], gistIds: string[]) {
+async function countReactionsForResources(
+  articleIds: string[],
+  gistIds: string[],
+) {
   const q = sql`
     SELECT COUNT(*)::int AS c FROM reactions
     WHERE
@@ -302,7 +318,8 @@ export async function getDashboardAnalyticsOverview(
   input: z.infer<typeof AnalyticsInput.getDashboardAnalyticsOverviewInput>,
 ): Promise<ActionResponse<DashboardAnalyticsOverviewData>> {
   try {
-    const payload = await AnalyticsInput.getDashboardAnalyticsOverviewInput.parseAsync(input);
+    const payload =
+      await AnalyticsInput.getDashboardAnalyticsOverviewInput.parseAsync(input);
     const userId = await authID();
     if (!userId) {
       throw new ActionException("Unauthorized");
