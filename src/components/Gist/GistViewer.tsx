@@ -24,6 +24,7 @@ import {
   CommentSection,
   CommentSectionProvider,
 } from "@/components/comment-section";
+import { ResourceViewTracker } from "@/components/analytics/ResourceViewTracker";
 import ResourceReaction from "@/components/ResourceReaction";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -154,6 +155,9 @@ export default function GistViewer({
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      {gist.is_public ? (
+        <ResourceViewTracker resourceType="GIST" resourceId={gist.id} />
+      ) : null}
       {/* Header */}
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">

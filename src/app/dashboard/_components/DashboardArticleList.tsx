@@ -29,7 +29,7 @@ import {
 } from "@tanstack/react-query";
 import clsx from "clsx";
 import { addDays, differenceInHours } from "date-fns";
-import { TrashIcon } from "lucide-react";
+import { LineChartIcon, TrashIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -257,7 +257,7 @@ const DashboardArticleList = () => {
               </div>
 
               <div className="flex items-center gap-10 justify-between">
-                <div className="flex gap-4 items-center">
+                <div className="flex flex-wrap gap-3 items-center">
                   {!Boolean(article?.published_at) && (
                     <p className="bg-yellow-400/30 rounded-sm px-2 py-1 text-sm">
                       🚧 {_t("Draft")}
@@ -269,6 +269,16 @@ const DashboardArticleList = () => {
                       ✅ {_t("Published")}
                     </p>
                   )}
+
+                  {Boolean(article?.published_at) ? (
+                    <Link
+                      href={`/dashboard/analytics/article/${article.id}`}
+                      className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-2.5 py-1 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                    >
+                      <LineChartIcon className="size-4 shrink-0" />
+                      {_t("Article analytics")}
+                    </Link>
+                  ) : null}
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-2">
@@ -285,6 +295,18 @@ const DashboardArticleList = () => {
                         <span>{_t("Edit")}</span>
                       </Link>
                     </DropdownMenuItem>
+
+                    {Boolean(article?.published_at) ? (
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href={`/dashboard/analytics/article/${article.id}`}
+                          className="text-foreground"
+                        >
+                          <LineChartIcon className="size-4" />
+                          <span>{_t("Analytics")}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    ) : null}
 
                     <DropdownMenuItem asChild>
                       <button
