@@ -76,10 +76,12 @@ export function extractImageUrlsFromMarkdown(markdown: string): string[] {
 }
 
 export function readingTime(text: string) {
-  const wordsPerMinute = 120;
-  const textWithoutPunctuation = text.replace(/[.,!?;:]/g, "");
-  const wordCount = textWithoutPunctuation.split(/\s+/).length;
-  const minutes = Math.round(wordCount / wordsPerMinute);
+  const wordsPerMinute = 200;
+  const trimmed = text.trim();
+  if (!trimmed) return 0;
+  const textWithoutPunctuation = trimmed.replace(/[.,!?;:]/g, "");
+  const wordCount = textWithoutPunctuation.split(/\s+/).filter(Boolean).length;
+  const minutes = Math.max(1, Math.round(wordCount / wordsPerMinute));
   return minutes;
 }
 
