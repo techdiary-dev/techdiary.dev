@@ -35,18 +35,24 @@ Single events table keyed by resource, not by article only.
 
 ```sql
 CREATE TABLE resource_views (
-  resource_type  LowCardinality(String), -- e.g. ARTICLE, GIST (allowlist)
-  resource_id    UUID,
-  viewer_id      Nullable(UUID),         -- NULL when anonymous
-  session_id     String,                 -- stable anonymous bucket (cookie / hash)
-  referrer       Nullable(String),
-  country_code   Nullable(String),       -- optional, from geo later
-  viewed_at      DateTime DEFAULT now()
+  resource_type   LowCardinality(String), -- e.g. ARTICLE, GIST (allowlist)
+  resource_id     UUID,
+  session_type    LowCardinality(String), -- ANON | AUTHENTICATED
+  session_id      String,                 -- ANON: client token; AUTHENTICATED: user id (UUID string)
+  referrer        Nullable(String),
+  country_code    Nullable(String),
+  viewed_at       DateTime DEFAULT now()
 )
 ENGINE = MergeTree()
 PARTITION BY toYYYYMM(viewed_at)
 ORDER BY (resource_type, resource_id, viewed_at);
 ```
+
+Existing tables with `viewer_id`: run these **one statement per HTTP request** (or `clickhouse-client`), in order:
+
+1. `migrations/clickhouse-migrate-session-type-1-add-column.sql`
+2. `migrations/clickhouse-migrate-session-type-2-backfill.sql`
+3. `migrations/clickhouse-migrate-session-type-3-drop-viewer.sql`
 
 **Deduped “views” metric (v1):** `uniq(session_id)` per calendar day per resource, for a chosen window:
 
@@ -68,10 +74,10 @@ Adjust interval via app-level parameter (7 / 30 / 90 / custom).
 
 Append-on-each-load stores **one row per event**. That supports **two KPIs from the same table** without changing ingestion:
 
-| Metric | Meaning | Per-day aggregation |
-|--------|---------|---------------------|
-| **Impressions** | Total times the page was loaded and sent an event (includes refreshes, repeat loads same session). | `count()` |
-| **Unique viewers** | Distinct sessions that saw the resource at least once that day. | `uniq(session_id)` |
+| Metric             | Meaning                                                                                            | Per-day aggregation |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ------------------- |
+| **Impressions**    | Total times the page was loaded and sent an event (includes refreshes, repeat loads same session). | `count()`           |
+| **Unique viewers** | Distinct sessions that saw the resource at least once that day.                                    | `uniq(session_id)`  |
 
 **Single query — daily series for both** (same filter as above):
 
@@ -99,7 +105,7 @@ ORDER BY date;
 ### HTTP API
 
 - **Route:** `POST /api/analytics/view` (or `pageview` if you prefer naming parity with #114).
-- **Body (JSON):** `{ "resource_type": "ARTICLE", "resource_id": "<uuid>", "session_id": "<string>" }`.
+- **Body (JSON):** `{ "resource_type": "ARTICLE", "resource_id": "<uuid>", "session_id": "<string>" }`. The server sets **`session_type`** and the canonical **`session_id`**: if the user is logged in, `session_type = AUTHENTICATED` and `session_id = user id`; otherwise `session_type = ANON` and `session_id` is the client token from the body.
 - **Behavior:** validate allowlist + UUID, insert one row, return **204** quickly. Optionally use **wait_end_of_query: false** (or fire-and-forget pattern) so the client never blocks on ClickHouse latency.
 
 ### Client
@@ -158,12 +164,14 @@ Keep **ownership checks** in one module (e.g. `assertResourceAnalyticsAccess`) s
 
 Add to the server env schema (e.g. `@t3-oss/env-nextjs`):
 
-- `CLICKHOUSE_HOST`
-- `CLICKHOUSE_DATABASE`
+- `CLICKHOUSE_HOST` (hostname only, no protocol)
+- `CLICKHOUSE_PORT` (optional, default `8123` in code)
+- `CLICKHOUSE_DATABASE` (optional, default `default`)
 - `CLICKHOUSE_USERNAME`
 - `CLICKHOUSE_PASSWORD`
+- `CLICKHOUSE_SECURE` — `true` | `false` for `https://` vs `http://`
 
-Optional: `CLICKHOUSE_URL` if using a single connection string provider.
+DDL for the events table lives in `migrations/clickhouse-schema.sql` (run once against the instance).
 
 When vars are missing, ingest route should **no-op or 503** consistently; dashboard should show a clear “analytics unavailable” state so local dev without ClickHouse still runs.
 

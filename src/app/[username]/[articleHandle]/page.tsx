@@ -24,6 +24,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Article, WithContext } from "schema-dts";
 import { eq } from "sqlkit";
+import { ResourceViewTracker } from "@/components/analytics/ResourceViewTracker";
 import ArticleSidebar from "./_components/ArticleSidebar";
 import EditArticleButton from "./_components/EditArticleButton";
 import {
@@ -141,6 +142,9 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
 
   return (
     <>
+      {article.published_at ? (
+        <ResourceViewTracker resourceType="ARTICLE" resourceId={article.id} />
+      ) : null}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -208,7 +212,9 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
                   <ArticleDraftBylineLabel />
                 )}
                 <span className="mx-1.5">·</span>
-                <ArticleReadingTime minutes={readingTime(article?.body ?? "")} />
+                <ArticleReadingTime
+                  minutes={readingTime(article?.body ?? "")}
+                />
               </div>
             </div>
           </div>

@@ -1,6 +1,6 @@
 {
   "name": "techdiary.dev-next",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",
@@ -17,6 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.828.0",
     "@aws-sdk/s3-request-presigner": "^3.828.0",
+    "@clickhouse/client": "^1.18.2",
     "@cloudinary/react": "^1.14.1",
     "@cloudinary/url-gen": "^1.21.0",
     "@codesandbox/sandpack-react": "^2.20.0",

@@ -1,11 +1,11 @@
+import DashboardAnalyticsOverview from "./_components/DashboardAnalyticsOverview";
 import DashboardArticleList from "./_components/DashboardArticleList";
 import MatrixReport from "./_components/MatrixReport";
-// import ViewsChart from "./_components/ViewsChart";
 
 const page = () => {
   return (
     <>
-      {/* <ViewsChart /> */}
+      <DashboardAnalyticsOverview />
       <MatrixReport />
       <DashboardArticleList />
     </>

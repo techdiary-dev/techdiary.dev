@@ -29,6 +29,32 @@ export const env = createEnv({
     PUSHER_APP_ID: z.string().min(1),
     PUSHER_APP_KEY: z.string().min(1),
     PUSHER_APP_SECRET: z.string().min(1),
+
+    // ClickHouse (resource analytics) — all optional; when unset, ingest/query no-op
+    CLICKHOUSE_HOST: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    CLICKHOUSE_PORT: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    CLICKHOUSE_USERNAME: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    CLICKHOUSE_PASSWORD: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    CLICKHOUSE_DATABASE: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    CLICKHOUSE_SECURE: z.preprocess(
+      (v) => (v === "" || v === undefined ? undefined : v),
+      z.enum(["true", "false"]).optional(),
+    ),
   },
   client: {
     NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
@@ -68,6 +94,13 @@ export const env = createEnv({
 
     NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
     NEXT_PUBLIC_PUSHER_WS_HOST: process.env.NEXT_PUBLIC_PUSHER_WS_HOST,
+
+    CLICKHOUSE_HOST: process.env.CLICKHOUSE_HOST,
+    CLICKHOUSE_PORT: process.env.CLICKHOUSE_PORT,
+    CLICKHOUSE_USERNAME: process.env.CLICKHOUSE_USERNAME,
+    CLICKHOUSE_PASSWORD: process.env.CLICKHOUSE_PASSWORD,
+    CLICKHOUSE_DATABASE: process.env.CLICKHOUSE_DATABASE,
+    CLICKHOUSE_SECURE: process.env.CLICKHOUSE_SECURE as "true" | "false" | undefined,
   },
   onValidationError(issues: readonly StandardSchemaV1.Issue[]) {
     console.error("❌ Invalid environment variables:", issues);
