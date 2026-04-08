@@ -9,9 +9,11 @@ import {
 import HomepageLayout from "@/components/layout/HomepageLayout";
 import ResourceBookmark from "@/components/ResourceBookmark";
 import ResourceReaction from "@/components/ResourceReaction";
+import { linkifyHashtagsForMarkdown } from "@/lib/linkify-hashtags-markdown";
 import Markdown from "@/lib/markdown/Markdown";
 import {
   getAvatarPlaceholder,
+  getFirstOgImageUrlFromMarkdown,
   readingTime,
   removeMarkdownSyntax,
 } from "@/lib/utils";
@@ -60,6 +62,10 @@ export async function generateMetadata(
     ],
   });
 
+  if (!article) {
+    return { title: "Article" };
+  }
+
   const description = removeMarkdownSyntax(
     article.excerpt ?? article.body ?? "",
     20,
@@ -72,14 +78,13 @@ export async function generateMetadata(
     type: "article",
   };
 
-  if (article?.cover_image?.key) {
-    openGraph["images"] = [
-      {
-        url: getFileUrl(article.cover_image),
-        alt: article.title,
-      },
-    ];
-  }
+  const ogImageUrl = article.cover_image?.key
+    ? getFileUrl(article.cover_image)
+    : getFirstOgImageUrlFromMarkdown(article.body);
+
+  const defaultOg = "https://www.techdiary.dev/og.png";
+  const resolvedOgUrl = ogImageUrl ?? defaultOg;
+  openGraph.images = [{ url: resolvedOgUrl, alt: article.title }];
 
   return {
     title: article.title,
@@ -88,6 +93,10 @@ export async function generateMetadata(
       "last-updated": article.published_at?.toString() ?? new Date().toString(),
     },
     openGraph,
+    twitter: {
+      card: "summary_large_image",
+      images: [resolvedOgUrl],
+    },
   };
 }
 
@@ -102,7 +111,9 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
     "@type": "Article",
     name: article?.title,
     headline: article?.title,
-    image: article?.cover_image ? getFileUrl(article?.cover_image) : undefined,
+    image: article?.cover_image?.key
+      ? getFileUrl(article.cover_image)
+      : getFirstOgImageUrlFromMarkdown(article?.body),
     description: article?.excerpt ?? removeMarkdownSyntax(article?.body ?? ""),
     url: `https://www.techdiary.dev/@${article?.user?.username}/${article?.handle}`,
     author: {
@@ -243,7 +254,11 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
           </div>
 
           <div className="mx-auto content-typography">
-            {article?.body && <Markdown content={article?.body!} />}
+            {article?.body && (
+              <Markdown
+                content={linkifyHashtagsForMarkdown(article.body)}
+              />
+            )}
           </div>
         </div>
 

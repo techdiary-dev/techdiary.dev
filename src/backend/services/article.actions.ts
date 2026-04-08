@@ -21,7 +21,7 @@ import { ArticleRepositoryInput } from "./inputs/article.input";
 import { ActionException, handleActionException } from "./RepositoryException";
 import { deleteArticleById, syncArticleById } from "./search.service";
 import { authID } from "./session.actions";
-import { syncTagsWithArticles } from "./tag.action";
+import { syncHashtagTagsForArticle, syncTagsWithArticles } from "./tag.action";
 
 export async function createMyArticle(
   _input: z.infer<typeof ArticleRepositoryInput.createMyArticleInput>
@@ -89,7 +89,11 @@ export async function createMyArticle(
         approved_at: new Date(), // TODO: manually handle this from seperate dashboard
       },
     ]);
-    return article?.rows?.[0];
+    const created = article?.rows?.[0];
+    if (created?.id && input.body) {
+      await syncHashtagTagsForArticle(created.id, input.body);
+    }
+    return created;
   } catch (error) {
     console.error("Article creation error:", error);
     handleActionException(error);
@@ -216,6 +220,10 @@ export async function updateMyArticle(
         article_id: input.article_id,
         tag_ids: input.tag_ids,
       });
+    }
+
+    if (input.body !== undefined) {
+      await syncHashtagTagsForArticle(input.article_id, input.body);
     }
 
     return {

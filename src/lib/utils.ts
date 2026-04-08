@@ -75,6 +75,29 @@ export function extractImageUrlsFromMarkdown(markdown: string): string[] {
   return urls;
 }
 
+const OG_IMAGE_SKIP = new Set(["uploading", "error"]);
+
+/**
+ * First usable image URL from `![](url)` markdown for Open Graph / JSON-LD.
+ * Strips optional markdown titles, resolves site-relative paths with `siteOrigin`.
+ */
+export function getFirstOgImageUrlFromMarkdown(
+  markdown: string | null | undefined,
+  siteOrigin = "https://www.techdiary.dev",
+): string | undefined {
+  if (!markdown?.trim()) return undefined;
+  for (const raw of extractImageUrlsFromMarkdown(markdown)) {
+    let href = raw.trim().split(/\s+/)[0] ?? "";
+    href = href.replace(/^<|>$/g, "").trim();
+    if (!href || OG_IMAGE_SKIP.has(href)) continue;
+    if (href.startsWith("data:")) continue;
+    if (href.startsWith("http://") || href.startsWith("https://")) return href;
+    if (href.startsWith("//")) return `https:${href}`;
+    if (href.startsWith("/")) return `${siteOrigin}${href}`;
+  }
+  return undefined;
+}
+
 export function readingTime(text: string) {
   const wordsPerMinute = 200;
   const trimmed = text.trim();

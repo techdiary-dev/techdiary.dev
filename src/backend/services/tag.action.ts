@@ -7,6 +7,8 @@ import { z } from "zod/v4";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 import { TagRepositoryInput } from "./inputs/tag.input";
 import { ActionException, handleActionException } from "./RepositoryException";
+import { authID } from "./session.actions";
+import { extractHashtagSlugsFromBody } from "@/lib/extract-hashtag-slugs";
 
 const sql = String.raw;
 
@@ -38,7 +40,7 @@ export async function getTagsWithArticleCounts() {
         GROUP BY t.id, t.name, t.icon, t.color
         ORDER BY article_count DESC, LOWER(t.name) ASC
       `,
-      []
+      [],
     );
     const rows = (result?.rows ?? []) as Record<string, unknown>[];
     const data: TagWithArticleCount[] = rows.map((row) => ({
@@ -67,7 +69,7 @@ export const getTopTags = async (limit = 8) => {
         ORDER BY article_count DESC
         LIMIT $1
       `,
-      [limit]
+      [limit],
     );
     return { success: true as const, data: result?.rows ?? [] };
   } catch (error) {
@@ -76,7 +78,7 @@ export const getTopTags = async (limit = 8) => {
 };
 
 export const getTags = async (
-  _input: z.infer<typeof TagRepositoryInput.findAllInput>
+  _input: z.infer<typeof TagRepositoryInput.findAllInput>,
 ) => {
   try {
     const input = await TagRepositoryInput.findAllInput.parseAsync(_input);
@@ -95,7 +97,7 @@ export const getTags = async (
 };
 
 export const getTag = async (
-  _input: z.infer<typeof TagRepositoryInput.getTag>
+  _input: z.infer<typeof TagRepositoryInput.getTag>,
 ) => {
   "use cache";
   try {
@@ -118,7 +120,7 @@ export const getTag = async (
 };
 
 export const createTag = async (
-  _input: z.infer<typeof TagRepositoryInput.createInput>
+  _input: z.infer<typeof TagRepositoryInput.createInput>,
 ) => {
   try {
     const input = await TagRepositoryInput.createInput.parseAsync(_input);
@@ -140,7 +142,7 @@ export const createTag = async (
 };
 
 export const syncTagsWithArticles = async (
-  _input: z.infer<typeof TagRepositoryInput.syncTagsWithArticlesInput>
+  _input: z.infer<typeof TagRepositoryInput.syncTagsWithArticlesInput>,
 ) => {
   try {
     const input =
@@ -157,10 +159,10 @@ export const syncTagsWithArticles = async (
 
     // find all tags attached to article
     const tagsToRemove = attachedTagIds.filter(
-      (tag) => !input.tag_ids.includes(tag)
+      (tag) => !input.tag_ids.includes(tag),
     );
     const tagsToAdd = input.tag_ids.filter(
-      (tag) => !attachedTagIds.includes(tag)
+      (tag) => !attachedTagIds.includes(tag),
     );
 
     if (tagsToAdd.length) {
@@ -168,14 +170,14 @@ export const syncTagsWithArticles = async (
         tagsToAdd.map((tag) => ({
           article_id: input.article_id,
           tag_id: tag,
-        }))
+        })),
       );
     }
 
     await persistenceRepository.articleTagPivot.delete({
       where: and(
         eq("article_id", input.article_id),
-        inArray("tag_id", tagsToRemove)
+        inArray("tag_id", tagsToRemove),
       ),
     });
 
@@ -184,3 +186,75 @@ export const syncTagsWithArticles = async (
     return handleActionException(error);
   }
 };
+
+/**
+ * For each #hashtag in the article body: resolve tag by slugified name (create if missing) and link to the article.
+ * Merges with tags already on the article (drawer / manual); does not remove tags when hashtags disappear from the body.
+ */
+export async function syncHashtagTagsForArticle(
+  articleId: string,
+  body: string | null | undefined,
+) {
+  try {
+    const sessionUserId = await authID();
+    if (!sessionUserId) {
+      throw new ActionException("Unauthorized");
+    }
+
+    if (body == null || body === "") {
+      return;
+    }
+
+    const slugs = extractHashtagSlugsFromBody(body);
+    if (!slugs.length) {
+      return;
+    }
+
+    const [article] = await persistenceRepository.article.find({
+      where: and(eq("id", articleId), eq("author_id", sessionUserId)),
+      limit: 1,
+      columns: ["id"],
+    });
+    if (!article) {
+      throw new ActionException("Unauthorized");
+    }
+
+    const existingWithName = await persistenceRepository.tags.find({
+      where: inArray("name", slugs),
+    });
+    const nameToId = new Map(
+      existingWithName.map((t) => [t.name, t.id] as const),
+    );
+
+    const now = new Date();
+    const missing = slugs.filter((s) => !nameToId.has(s));
+    if (missing.length) {
+      const inserted = await persistenceRepository.tags.insert(
+        missing.map((name) => ({
+          name,
+          created_at: now,
+          updated_at: now,
+        })),
+      );
+      for (const row of inserted.rows) {
+        nameToId.set(row.name, row.id);
+      }
+    }
+
+    const hashtagTagIds = slugs.map((s) => nameToId.get(s)!);
+
+    const attached = await persistenceRepository.articleTagPivot.find({
+      where: eq("article_id", articleId),
+    });
+    const existingIds = attached.map((p) => p.tag_id);
+    const merged = [...new Set([...existingIds, ...hashtagTagIds])];
+
+    await syncTagsWithArticles({
+      article_id: articleId,
+      tag_ids: merged,
+    });
+  } catch (error) {
+    console.error("syncHashtagTagsForArticle:", error);
+    return handleActionException(error);
+  }
+}
