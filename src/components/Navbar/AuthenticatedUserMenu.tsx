@@ -1,5 +1,6 @@
 "use client";
 
+import { APP_VERSION } from "@/lib/app-version";
 import { useTranslation } from "@/i18n/use-translation";
 import { useSession } from "@/store/session.atom";
 import Link from "next/link";
@@ -9,6 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
@@ -83,6 +85,9 @@ const AuthenticatedUserMenu = () => {
         >
           {_t("Logout")}
         </DropdownMenuItem>
+        <div className="px-2 py-1.5 text-center text-xs text-muted-foreground select-none">
+          v{APP_VERSION}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
