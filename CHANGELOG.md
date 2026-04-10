@@ -6,6 +6,16 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## v1.17.0 — 2026-04-10
+
+### ✨ Features
+- **Article share** on article detail pages — Web Share or copy on small screens; on `md+`, a menu with copy link, system share when available, and Twitter / Facebook share links. New Bengali strings for Share and copy errors.
+
+### 🔧 Other Changes
+- Remove unused OpenGraph image generation component.
+
+---
+
 ## v1.15.0 — 2026-04-06
 
 ### ✨ Features
