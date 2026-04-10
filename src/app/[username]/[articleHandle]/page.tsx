@@ -25,6 +25,7 @@ import { notFound } from "next/navigation";
 import type { Article, WithContext } from "schema-dts";
 import { eq } from "sqlkit";
 import { ResourceViewTracker } from "@/components/analytics/ResourceViewTracker";
+import ArticleShareButton from "./_components/ArticleShareButton";
 import ArticleSidebar from "./_components/ArticleSidebar";
 import EditArticleButton from "./_components/EditArticleButton";
 import {
@@ -251,6 +252,11 @@ const Page: NextPage<ArticlePageProps> = async ({ params }) => {
                   article_author_id={article.user?.id}
                 />
               )}
+
+              <ArticleShareButton
+                url={`https://www.techdiary.dev/@${article.user?.username}/${article.handle}`}
+                title={article.title}
+              />
 
               <ResourceBookmark
                 resource_type="ARTICLE"
