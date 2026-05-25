@@ -18,6 +18,7 @@ import {
   KeySquareIcon,
   LineChart,
   Settings2,
+  Files,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,6 +47,11 @@ const DashboardSidebar = () => {
       title: _t("Bookmarks"),
       url: "/bookmarks",
       icon: Bookmark,
+    },
+    {
+      title: _t("My Gists"),
+      url: "/gists",
+      icon: Files,
     },
     {
       title: _t("Settings"),
