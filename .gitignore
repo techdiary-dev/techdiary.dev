@@ -8,7 +8,6 @@ yarn.lock
 pnpm-lock.yaml
 .yarn/cache
 bun.lockb
-bun.lock
 .yarn/install-state.gz
 package-lock.json
 
