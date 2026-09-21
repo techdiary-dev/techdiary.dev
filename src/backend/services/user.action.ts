@@ -1,6 +1,7 @@
 "use server";
 
 import { filterUndefined } from "@/lib/utils";
+import { cacheTag } from "next/cache";
 import { and, desc, eq } from "sqlkit";
 import { z } from "zod/v4";
 import { User } from "../models/domain-models";
@@ -263,6 +264,8 @@ export async function getUserByEmail(email: string): Promise<User | null> {
  * @throws {RepositoryException} If query fails
  */
 export async function getUsers(page: number = 1, limit: number = 10) {
+  "use cache";
+  cacheTag("latest-users");
   try {
     return persistenceRepository.user.paginate({
       limit,

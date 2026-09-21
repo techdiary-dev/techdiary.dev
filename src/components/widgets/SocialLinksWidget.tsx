@@ -1,6 +1,9 @@
-import _t from "@/i18n/_t";
+"use client";
+
+import { useTranslation } from "@/i18n/use-translation";
 
 const SocialLinksWidget = () => {
+  const { _t } = useTranslation();
   return (
     <div>
       <h3 className="text-sm font-semibold">{_t("Connect with us")}</h3>

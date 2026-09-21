@@ -21,13 +21,14 @@ function getPusherClient(): Pusher | null {
   const key = env.NEXT_PUBLIC_PUSHER_APP_KEY;
   if (!key) return null;
 
-  // pusher-js always requires cluster; use empty string as placeholder when
-  // connecting to a self-hosted Soketi/compatible broker via wsHost.
+  const wsHost = env.NEXT_PUBLIC_PUSHER_WS_HOST;
   _pusherClient = new Pusher(key, {
-    cluster: "mt1",
+    cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER ?? "mt1",
     authEndpoint: "/api/socket/auth",
-    wsHost: env.NEXT_PUBLIC_PUSHER_WS_HOST,
-    enabledTransports: ["ws", "wss"],
+    forceTLS: true,
+    ...(wsHost
+      ? { wsHost, enabledTransports: ["ws", "wss"] as const }
+      : {}),
   });
 
   return _pusherClient;

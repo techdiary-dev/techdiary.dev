@@ -18,11 +18,22 @@ function createPusherServer(): Pusher | null {
     return null;
   }
 
+  if (env.PUSHER_WS_HOST) {
+    return new Pusher({
+      appId: PUSHER_APP_ID,
+      key: PUSHER_APP_KEY,
+      secret: PUSHER_APP_SECRET,
+      useTLS: true,
+      host: env.PUSHER_WS_HOST,
+    });
+  }
+
   return new Pusher({
-    host: env.PUSHER_WS_HOST,
     appId: PUSHER_APP_ID,
     key: PUSHER_APP_KEY,
     secret: PUSHER_APP_SECRET,
+    useTLS: true,
+    cluster: env.PUSHER_CLUSTER ?? "mt1",
   });
 }
 

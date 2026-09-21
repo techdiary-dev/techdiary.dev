@@ -1,8 +1,11 @@
-import _t from "@/i18n/_t";
+"use client";
+
+import { useTranslation } from "@/i18n/use-translation";
 import Link from "next/link";
 import React from "react";
 
 const ImportantLinksWidget = () => {
+  const { _t } = useTranslation();
   return (
     <div className="flex flex-col space-y-2">
       <Link

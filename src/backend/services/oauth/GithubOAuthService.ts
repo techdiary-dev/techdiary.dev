@@ -9,11 +9,24 @@ import {
 } from "./oauth-contract";
 
 export class GithubOAuthService implements IOAuthService<IGithubUser> {
+  private requireGithubOAuth() {
+    const clientId = env.GITHUB_CLIENT_ID;
+    const clientSecret = env.GITHUB_CLIENT_SECRET;
+    const callbackUrl = env.GITHUB_CALLBACK_URL;
+    if (!clientId || !clientSecret || !callbackUrl) {
+      throw new ActionException(
+        "Legacy GitHub OAuth is not configured. Use WorkOS sign-in.",
+      );
+    }
+    return { clientId, clientSecret, callbackUrl };
+  }
+
   async getAuthorizationUrl(): Promise<string> {
+    const { clientId, callbackUrl } = this.requireGithubOAuth();
     const state = generateRandomString(50);
     const params = new URLSearchParams({
-      client_id: env.GITHUB_CLIENT_ID,
-      redirect_uri: env.GITHUB_CALLBACK_URL,
+      client_id: clientId,
+      redirect_uri: callbackUrl,
       scope: "read:user,user:email",
       state,
     });
@@ -40,11 +53,12 @@ export class GithubOAuthService implements IOAuthService<IGithubUser> {
         throw new ActionException("Please restart the process.");
       }
 
+      const { clientId, clientSecret, callbackUrl } = this.requireGithubOAuth();
       const githubAccessToken = await validateGitHubCode(
         code,
-        env.GITHUB_CLIENT_ID,
-        env.GITHUB_CLIENT_SECRET,
-        env.GITHUB_CALLBACK_URL
+        clientId,
+        clientSecret,
+        callbackUrl,
       );
 
       return {

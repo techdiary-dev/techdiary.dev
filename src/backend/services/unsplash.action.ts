@@ -14,14 +14,14 @@ export const searchUnsplash = async (query: string, page: number = 1) => {
     });
 
     const response = await fetch(
-      `https://api.unsplash.com/search/photos?${params.toString()}`
+      `https://api.unsplash.com/search/photos?${params.toString()}`,
     );
     const data = (await response.json()) as {
       results: IUnsplashImage[];
       total: number;
       total_pages: number;
     };
-    
+
     return {
       success: true as const,
       data: {

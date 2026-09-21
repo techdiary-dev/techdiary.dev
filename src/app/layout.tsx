@@ -42,7 +42,7 @@ export const metadata: Metadata = {
 const RootLayout: React.FC<PropsWithChildren> = ({ children }) => {
   return (
     <html lang="bn" suppressHydrationWarning>
-      <body style={fontKohinoorBanglaRegular.style}>
+      <body style={fontKohinoorBanglaRegular.style} suppressHydrationWarning>
         <Script id="theme-init" strategy="beforeInteractive">
           {THEME_INIT_SCRIPT}
         </Script>

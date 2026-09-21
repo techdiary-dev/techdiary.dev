@@ -7,9 +7,19 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "production", "test"]),
     UNSPLASH_API_KEY: z.string(),
     CLOUDINARY_URL: z.string(),
-    GITHUB_CLIENT_ID: z.string(),
-    GITHUB_CLIENT_SECRET: z.string(),
-    GITHUB_CALLBACK_URL: z.string(),
+    // Legacy GitHub OAuth only. WorkOS is primary — leave unset.
+    GITHUB_CLIENT_ID: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    GITHUB_CLIENT_SECRET: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    GITHUB_CALLBACK_URL: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
     DATABASE_URL: z.string(),
     MEILISEARCH_ADMIN_API_KEY: z.string(),
 
@@ -24,11 +34,19 @@ export const env = createEnv({
     INNGEST_EVENT_KEY: z.string().optional(),
     INNGEST_SIGNING_KEY: z.string().optional(),
 
-    // Pusher / Soketi (server-side)
-    PUSHER_WS_HOST: z.string().min(1),
+    // Pusher Cloud: set PUSHER_CLUSTER, leave PUSHER_WS_HOST empty.
+    // Soketi: set PUSHER_WS_HOST, cluster unused.
     PUSHER_APP_ID: z.string().min(1),
     PUSHER_APP_KEY: z.string().min(1),
     PUSHER_APP_SECRET: z.string().min(1),
+    PUSHER_CLUSTER: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    PUSHER_WS_HOST: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
 
     // ClickHouse (resource analytics) — all optional; when unset, ingest/query no-op
     CLICKHOUSE_HOST: z
@@ -60,9 +78,15 @@ export const env = createEnv({
     NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
     NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY: z.string(),
 
-    // Pusher / Soketi (client-side)
     NEXT_PUBLIC_PUSHER_APP_KEY: z.string().min(1),
-    NEXT_PUBLIC_PUSHER_WS_HOST: z.string().min(1),
+    NEXT_PUBLIC_PUSHER_CLUSTER: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
+    NEXT_PUBLIC_PUSHER_WS_HOST: z
+      .string()
+      .optional()
+      .transform((v) => (v === "" ? undefined : v)),
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -90,9 +114,11 @@ export const env = createEnv({
     PUSHER_APP_ID: process.env.PUSHER_APP_ID,
     PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
     PUSHER_APP_SECRET: process.env.PUSHER_APP_SECRET,
+    PUSHER_CLUSTER: process.env.PUSHER_CLUSTER,
     PUSHER_WS_HOST: process.env.PUSHER_WS_HOST,
 
     NEXT_PUBLIC_PUSHER_APP_KEY: process.env.NEXT_PUBLIC_PUSHER_APP_KEY,
+    NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     NEXT_PUBLIC_PUSHER_WS_HOST: process.env.NEXT_PUBLIC_PUSHER_WS_HOST,
 
     CLICKHOUSE_HOST: process.env.CLICKHOUSE_HOST,
