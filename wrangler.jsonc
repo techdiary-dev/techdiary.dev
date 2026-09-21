@@ -6,25 +6,37 @@
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS",
+    "binding": "ASSETS"
   },
+  // Preserve plain-text Vars set in the dashboard (do not wipe on deploy).
+  // Sensitive values stay as dashboard Vars (not Secrets) — not committed here.
   "keep_vars": true,
+  "vars": {
+    "NODE_ENV": "production",
+    "ALGOLIA_APP_ID": "8A94B5UENX",
+    "NEXT_PUBLIC_ALGOLIA_APP_ID": "8A94B5UENX",
+    "NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY": "9a87fb1af535dc66c8794de4dac1197e",
+    "NEXT_PUBLIC_PUSHER_APP_KEY": "ecd078d7fb446d6271df",
+    "NEXT_PUBLIC_PUSHER_CLUSTER": "ap2",
+    "NEXT_PUBLIC_PUSHER_WS_HOST": "",
+    "NEXT_PUBLIC_WORKOS_REDIRECT_URI": "https://www.techdiary.dev/api/auth/wos/callback"
+  },
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",
-      "service": "techdiary-dev",
-    },
+      "service": "techdiary-dev"
+    }
   ],
   "observability": {
-    "enabled": true,
+    "enabled": true
   },
   "images": {
-    "binding": "IMAGES",
+    "binding": "IMAGES"
   },
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
-      "id": "02719c30e70c4bca96def28ff76091d7",
-    },
-  ],
+      "id": "02719c30e70c4bca96def28ff76091d7"
+    }
+  ]
 }

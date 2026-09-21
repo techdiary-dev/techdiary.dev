@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const nextConfig: NextConfig = {
   // Docker/Node uses standalone; OpenNext on Workers ignores this path.
@@ -88,5 +89,8 @@ const nextConfig: NextConfig = {
 
 export default nextConfig;
 
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
-initOpenNextCloudflareForDev();
+// Local `next dev` only — calling this during `next build` / Workers Builds
+// throws without CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_*.
+if (process.env.NODE_ENV === "development") {
+  initOpenNextCloudflareForDev();
+}
