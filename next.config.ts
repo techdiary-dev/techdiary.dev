@@ -3,7 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Docker/Node uses standalone; OpenNext on Workers ignores this path.
   output: "standalone",
-  cacheComponents: true,
+  // Cache Components staged rendering hangs on workerd (Error 1101 / "Worker hung").
+  // Keep `"use cache"` via experimental.useCache until OpenNext #1318 ships.
+  // See: https://github.com/opennextjs/opennextjs-cloudflare/pull/1318
+  cacheComponents: false,
   // File tracing often drops pg-cloudflare's workerd entry; include it for OpenNext.
   outputFileTracingIncludes: {
     "/**": [
@@ -16,6 +19,7 @@ const nextConfig: NextConfig = {
     fetches: { fullUrl: true },
   },
   experimental: {
+    useCache: true,
     optimizePackageImports: [],
     scrollRestoration: true,
   },
