@@ -15,7 +15,7 @@ export const markdocParser = (markdown: string) => {
     nodes: {
       fence: CodeTagConfig,
     },
-  });
+  } as Parameters<typeof Markdoc.transform>[1]);
 
   return Markdoc.renderers.react(content, React, {
     components: {

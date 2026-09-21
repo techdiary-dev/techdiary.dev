@@ -1,8 +1,31 @@
-import { meilisearchClient } from "@/lib/meilisearch.admin.client";
+import {
+  algoliaAdminClient,
+  ARTICLES_INDEX,
+} from "@/lib/algolia.admin.client";
 import { and, eq, neq } from "sqlkit";
 import { persistenceRepository } from "../persistence/persistence-repositories";
 
-const index = meilisearchClient.index("articles");
+// Algolia free records are 10KB. Keep body for relevance, drop the rest.
+const BODY_INDEX_LIMIT = 4000;
+
+function toRecord(article: {
+  id: string;
+  title?: string | null;
+  body?: string | null;
+  handle?: string | null;
+  cover_image?: unknown;
+  user?: unknown;
+}) {
+  return {
+    objectID: article.id,
+    id: article.id,
+    title: article.title ?? "",
+    handle: article.handle ?? "",
+    body: (article.body ?? "").slice(0, BODY_INDEX_LIMIT),
+    cover_image: article.cover_image ?? null,
+    user: article.user ?? null,
+  };
+}
 
 /**
  * Sync all articles to the search index
@@ -11,7 +34,7 @@ const index = meilisearchClient.index("articles");
 export const syncAllArticles = async () => {
   try {
     const articles = await persistenceRepository.article.find({
-      columns: ["id", "title", "body", "user", "cover_image"],
+      columns: ["id", "title", "body", "handle", "cover_image"],
       where: and(neq("published_at", null), neq("approved_at", null)),
       joins: [
         {
@@ -27,8 +50,9 @@ export const syncAllArticles = async () => {
       ],
     });
 
-    const syncArticle = await index.addDocuments(articles, {
-      primaryKey: "id",
+    const syncArticle = await algoliaAdminClient.saveObjects({
+      indexName: ARTICLES_INDEX,
+      objects: articles.map(toRecord),
     });
 
     console.log({ syncArticle });
@@ -37,7 +61,7 @@ export const syncAllArticles = async () => {
       message: "Articles synced successfully",
       count: articles.length,
       timestamp: new Date().toISOString(),
-      index: "articles",
+      index: ARTICLES_INDEX,
     };
   } catch (error) {
     console.error("Error syncing articles:", error);
@@ -75,8 +99,9 @@ export const syncArticleById = async (articleId: string) => {
       );
     }
 
-    const syncArticleByIdRes = await index.addDocuments([article], {
-      primaryKey: "id",
+    const syncArticleByIdRes = await algoliaAdminClient.saveObjects({
+      indexName: ARTICLES_INDEX,
+      objects: [toRecord(article)],
     });
 
     console.log({ syncArticleByIdRes, article });
@@ -85,7 +110,7 @@ export const syncArticleById = async (articleId: string) => {
       message: `Article ${articleId} synced successfully`,
       article,
       timestamp: new Date().toISOString(),
-      index: "articles",
+      index: ARTICLES_INDEX,
     };
   } catch (error) {
     console.error(`Error syncing article ${articleId}:`, error);
@@ -94,13 +119,16 @@ export const syncArticleById = async (articleId: string) => {
 
 export const deleteArticleById = async (articleId: string) => {
   try {
-    const response = await index.deleteDocument(articleId);
+    const response = await algoliaAdminClient.deleteObject({
+      indexName: ARTICLES_INDEX,
+      objectID: articleId,
+    });
     console.log(`Article ${articleId} deleted successfully`);
     return {
       message: `Article ${articleId} deleted successfully`,
       response,
       timestamp: new Date().toISOString(),
-      index: "articles",
+      index: ARTICLES_INDEX,
     };
   } catch (error) {
     console.error(`Error deleting article ${articleId}:`, error);

@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     profile_photo: uploadedFileResponse.success
       ? {
           key: uploadedFileResponse.data.key,
-          provider: uploadedFileResponse.data.provider,
+          provider: "r2" as const,
         }
       : undefined,
     bio: githubUser?.data?.bio ?? "",

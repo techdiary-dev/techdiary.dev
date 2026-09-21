@@ -1,8 +1,16 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Docker/Node uses standalone; OpenNext on Workers ignores this path.
   output: "standalone",
   cacheComponents: true,
+  // File tracing often drops pg-cloudflare's workerd entry; include it for OpenNext.
+  outputFileTracingIncludes: {
+    "/**": [
+      "./node_modules/pg-cloudflare/dist/**/*",
+      "./node_modules/pg-cloudflare/esm/**/*",
+    ],
+  },
   reactStrictMode: false,
   logging: {
     fetches: { fullUrl: true },
@@ -75,3 +83,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
+initOpenNextCloudflareForDev();

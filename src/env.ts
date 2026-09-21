@@ -20,7 +20,8 @@ export const env = createEnv({
       .optional()
       .transform((v) => (v === "" ? undefined : v)),
     DATABASE_URL: z.string(),
-    MEILISEARCH_ADMIN_API_KEY: z.string(),
+    ALGOLIA_APP_ID: z.string().min(1),
+    ALGOLIA_ADMIN_API_KEY: z.string().min(1),
 
     // S3
     S3_ENDPOINT: z.string().min(1),
@@ -74,8 +75,8 @@ export const env = createEnv({
     ),
   },
   client: {
-    NEXT_PUBLIC_MEILISEARCH_API_HOST: z.url(),
-    NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY: z.string(),
+    NEXT_PUBLIC_ALGOLIA_APP_ID: z.string().min(1),
+    NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY: z.string().min(1),
 
     NEXT_PUBLIC_PUSHER_APP_KEY: z.string().min(1),
     NEXT_PUBLIC_PUSHER_CLUSTER: z
@@ -93,11 +94,11 @@ export const env = createEnv({
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL,
     DATABASE_URL: process.env.DATABASE_URL,
-    NEXT_PUBLIC_MEILISEARCH_API_HOST:
-      process.env.NEXT_PUBLIC_MEILISEARCH_API_HOST,
-    MEILISEARCH_ADMIN_API_KEY: process.env.MEILISEARCH_ADMIN_API_KEY,
-    NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY:
-      process.env.NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY,
+    ALGOLIA_APP_ID: process.env.ALGOLIA_APP_ID,
+    ALGOLIA_ADMIN_API_KEY: process.env.ALGOLIA_ADMIN_API_KEY,
+    NEXT_PUBLIC_ALGOLIA_APP_ID: process.env.NEXT_PUBLIC_ALGOLIA_APP_ID,
+    NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY:
+      process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY,
     UNSPLASH_API_KEY: process.env.UNSPLASH_API_KEY,
 
     S3_ENDPOINT: process.env.S3_ENDPOINT,

@@ -26,7 +26,7 @@ TechDiary is a feature-rich blogging platform that empowers developers and tech 
 - **Language preference** persisted via cookie and client state
 
 ### Search
-- **Full-text search** powered by Meilisearch
+- **Full-text search** powered by Algolia
 - **Filtering** by tags, authors, and dates
 - **Fast, typo-tolerant** queries
 
@@ -63,7 +63,7 @@ TechDiary is a feature-rich blogging platform that empowers developers and tech 
 - **[PostgreSQL](https://www.postgresql.org/)** — primary database
 
 ### Search, storage, and jobs
-- **[Meilisearch](https://www.meilisearch.com/)** — search index and queries
+- **[Algolia](https://www.algolia.com/)** — search index and queries
 - **[Cloudflare R2](https://developers.cloudflare.com/r2/)** — S3-compatible uploads (presigned URLs)
 - **[Inngest](https://www.inngest.com/)** — scheduled jobs (e.g. article cleanup) and notification queueing
 - **Pusher-compatible WebSockets** — managed Pusher or self-hosted **[Soketi](https://soketi.app/)** (same wire protocol and client libraries; point `PUSHER_*` / `NEXT_PUBLIC_PUSHER_*` at your Soketi host)
@@ -83,7 +83,7 @@ TechDiary is a feature-rich blogging platform that empowers developers and tech 
 ### Prerequisites
 - **Bun** (recommended) or **Node.js 22+** (aligned with dev dependencies)
 - **PostgreSQL 14+**
-- **Meilisearch** instance
+- **Algolia** application
 - **WorkOS** account (AuthKit) for primary login, and/or **GitHub OAuth** app for legacy flow
 - **Cloudflare R2** for uploads (see env below)
 
@@ -116,10 +116,11 @@ S3_BUCKET=""
 S3_ACCESS_KEY_ID=""
 S3_ACCESS_SECRET=""
 
-# Meilisearch
-MEILISEARCH_ADMIN_API_KEY=""
-NEXT_PUBLIC_MEILISEARCH_API_HOST="http://localhost:7700"
-NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY=""
+# Algolia
+ALGOLIA_APP_ID=""
+ALGOLIA_ADMIN_API_KEY=""
+NEXT_PUBLIC_ALGOLIA_APP_ID=""
+NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY=""
 
 # Inngest (optional in schema — omit or leave empty for local-only)
 INNGEST_EVENT_KEY=""
@@ -216,7 +217,7 @@ NEXT_PUBLIC_PUSHER_WS_HOST=""
 ## Deployment
 
 - **Runtime:** Node-compatible host for Next.js (e.g. Vercel) or your platform of choice.
-- **Data:** Managed PostgreSQL; Meilisearch (cloud or self-hosted).
+- **Data:** Managed PostgreSQL; Algolia for search.
 - **Auth:** Set WorkOS production redirect URI and cookie secret; align `NEXT_PUBLIC_WORKOS_REDIRECT_URI` with your domain.
 - **Storage:** R2 credentials for production uploads.
 - **Inngest:** Configure event and signing keys for production workers.
@@ -236,7 +237,7 @@ For deeper conventions (actions, repositories, i18n), see [CLAUDE.md](CLAUDE.md)
 
 ## Acknowledgments
 
-Next.js, shadcn/ui, Meilisearch, WorkOS, and the open-source ecosystem this project builds on.
+Next.js, shadcn/ui, Algolia, WorkOS, and the open-source ecosystem this project builds on.
 
 ## Links
 

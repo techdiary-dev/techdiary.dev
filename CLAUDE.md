@@ -34,7 +34,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Backend**: Next.js Server Actions, Drizzle ORM (migrations only)
 - **Database**: PostgreSQL
 - **Authentication**: WorkOS (primary), GitHub OAuth (legacy fallback)
-- **Search**: MeilSearch
+- **Search**: Algolia
 - **File Storage**: Cloudflare R2
 - **State Management**: Jotai, TanStack Query, React Hook Form with Zod validation
 
@@ -88,7 +88,7 @@ Key entities and their relationships:
 
 - **Rich Text**: Markdoc for markdown parsing and rendering
 - **File Uploads**: Cloudflare R2
-- **Search**: MeilSearch for full-text search capabilities
+- **Search**: Algolia for full-text search capabilities
 - **Internationalization**: Custom i18n implementation (Bengali/English)
 
 ### File Storage Strategy
@@ -126,14 +126,15 @@ Server-side:
 - `GITHUB_CLIENT_ID` - GitHub OAuth client ID (legacy flow)
 - `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret (legacy flow)
 - `GITHUB_CALLBACK_URL` - GitHub OAuth callback URL (legacy flow)
-- `MEILISEARCH_ADMIN_API_KEY` - MeilSearch admin API key
+- `ALGOLIA_APP_ID` - Algolia application ID
+- `ALGOLIA_ADMIN_API_KEY` - Algolia admin API key (indexing only)
 - `UNSPLASH_API_KEY` - Unsplash API key (required by env schema)
 
 Client-side:
 
 - `NEXT_PUBLIC_WORKOS_REDIRECT_URI` - WorkOS callback URL
-- `NEXT_PUBLIC_MEILISEARCH_API_HOST` - MeilSearch API host URL
-- `NEXT_PUBLIC_MEILISEARCH_SEARCH_API_KEY` - MeilSearch search API key
+- `NEXT_PUBLIC_ALGOLIA_APP_ID` - Algolia application ID
+- `NEXT_PUBLIC_ALGOLIA_SEARCH_API_KEY` - Algolia search-only API key
 
 Cloudflare R2 (S3-compatible):
 
@@ -194,7 +195,7 @@ The app uses **WorkOS** (`@workos-inc/authkit-nextjs`) as the primary auth provi
 
 ### Search Implementation
 
-- MeilSearch for full-text search across articles
+- Algolia for full-text search across articles
 - Search configuration and indexing handled in backend services
 - Client-side search interface with real-time results
 

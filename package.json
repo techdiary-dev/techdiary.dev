@@ -11,8 +11,12 @@
     "db:push": "npx drizzle-kit push",
     "db:studio": "npx drizzle-kit studio",
     "play": "npx tsx ./src/backend/play.ts",
-    "wrangler:dev": "wrangler dev",
-    "cf-typegen": "wrangler types"
+    "preview": "bun run cf:build && opennextjs-cloudflare preview",
+    "deploy": "bun run cf:build && opennextjs-cloudflare deploy",
+    "upload": "bun run cf:build && opennextjs-cloudflare upload",
+    "cf:build": "bun scripts/opennext-build.mjs",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "postinstall": "bun scripts/patch-opennext-otel.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.828.0",
@@ -27,6 +31,7 @@
     "@hookform/error-message": "^2.0.1",
     "@hookform/resolvers": "^5.2.1",
     "@markdoc/markdoc": "^0.5.1",
+    "@opennextjs/cloudflare": "^1.20.6",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-avatar": "^1.1.3",
     "@radix-ui/react-dialog": "^1.1.6",
@@ -45,6 +50,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/react-query": "^5.69.0",
     "@workos-inc/authkit-nextjs": "^2.12.2",
+    "algoliasearch": "^5.59.0",
     "class-variance-authority": "^0.7.1",
     "cloudinary": "^2.6.0",
     "clsx": "^2.1.1",
@@ -58,10 +64,10 @@
     "jotai": "^2.12.2",
     "lottie-react": "^2.4.1",
     "lucide-react": "^0.484.0",
-    "meilisearch": "^0.51.0",
     "modern-screenshot": "^4.6.8",
     "next": "^16.2.1",
     "pg": "^8.14.1",
+    "pg-cloudflare": "^1.4.0",
     "pusher": "^5.3.3",
     "pusher-js": "^8.5.0",
     "react": "^19",
@@ -96,6 +102,6 @@
     "tailwindcss": "^4.1.1",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
-    "wrangler": "^4.20.0"
+    "wrangler": "^4.135.0"
   }
 }

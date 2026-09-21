@@ -55,7 +55,7 @@ TechDiary integrates with third-party services that have their own privacy polic
 - **GitHub** — OAuth login (docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement)
 - **Google Analytics** — Usage analytics (policies.google.com/privacy)
 - **Cloudflare** — Content delivery and storage (cloudflare.com/privacypolicy)
-- **MeilSearch** — Search functionality
+- **Algolia** — Search functionality
 
 ---
 

@@ -36,6 +36,11 @@ yarn-error.log*
 .env
 .dev.vars
 
+# OpenNext / Cloudflare
+.open-next
+.wrangler
+cloudflare-env.d.ts
+
 # vercel
 .vercel
 
@@ -45,3 +50,5 @@ next-env.d.ts
 .vscode/mcp.json
 # Sentry Config File
 .env.sentry-build-plugin
+.cf-secrets.json
+.cf-vars.json

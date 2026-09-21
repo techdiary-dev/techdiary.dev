@@ -1,7 +1,10 @@
 "use client";
 
 import { useTranslation } from "@/i18n/use-translation";
-import { meilisearchClient } from "@/lib/meilisearch.client";
+import {
+  algoliaSearchClient,
+  ARTICLES_INDEX,
+} from "@/lib/algolia.client";
 
 import { useDebouncedCallback } from "@/hooks/use-debounced-callback";
 import { useMutation } from "@tanstack/react-query";
@@ -18,10 +21,17 @@ import {
 import { useAtom } from "jotai";
 import { searchBarAtom } from "@/store/search-bar.atom";
 
+type ArticleHit = {
+  objectID: string;
+  id?: string;
+  title?: string;
+  handle?: string;
+  user?: { username?: string };
+};
+
 const SearchInput = () => {
   const { _t } = useTranslation();
   const router = useRouter();
-  const index = meilisearchClient.index("articles");
 
   const [open, setOpen] = useAtom(searchBarAtom);
 
@@ -31,18 +41,23 @@ const SearchInput = () => {
 
   const mutation = useMutation({
     mutationKey: ["searchIndex"],
-    mutationFn: async (query: string) => {
-      const response = await index.search(query, {
-        limit: 10,
-        attributesToRetrieve: ["id", "title", "user", "handle"],
+    mutationFn: async (query: string): Promise<ArticleHit[]> => {
+      if (!query.trim()) return [];
+      const { results } = await algoliaSearchClient.searchForHits({
+        requests: [
+          {
+            indexName: ARTICLES_INDEX,
+            query,
+            hitsPerPage: 10,
+            attributesToRetrieve: ["id", "title", "user", "handle"],
+          },
+        ],
       });
-      return response.hits;
+      return (results[0]?.hits ?? []) as ArticleHit[];
     },
   });
 
-  const handleSelect = (hit: any) => {
-    // Handle the selection of a search result
-    console.log("Selected hit:", hit);
+  const handleSelect = (hit: ArticleHit) => {
     router.push(`/@${hit?.user?.username}/${hit.handle}`);
     setOpen(false);
   };
@@ -68,7 +83,10 @@ const SearchInput = () => {
           <CommandEmpty>No results found.</CommandEmpty>
           <CommandGroup>
             {mutation.data?.map((hit) => (
-              <CommandItem onSelect={() => handleSelect(hit)} key={hit.id}>
+              <CommandItem
+                onSelect={() => handleSelect(hit)}
+                key={hit.id ?? hit.objectID}
+              >
                 <span>{hit.title}</span>
               </CommandItem>
             ))}
