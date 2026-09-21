@@ -1,4 +1,4 @@
-import { signOut, getWorkOS } from "@workos-inc/authkit-nextjs";
+import { signOut } from "@workos-inc/authkit-nextjs";
 import { cookies } from "next/headers";
 import { eq } from "sqlkit";
 import { persistenceRepository } from "@/backend/persistence/persistence-repositories";

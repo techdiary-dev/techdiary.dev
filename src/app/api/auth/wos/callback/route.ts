@@ -1,4 +1,4 @@
-import { getWorkOS } from "@workos-inc/authkit-nextjs";
+import { getWorkOS, saveSession } from "@workos-inc/authkit-nextjs";
 import { NextResponse } from "next/server";
 import * as sessionActions from "@/backend/services/session.actions";
 import * as userActions from "@/backend/services/user.action";
@@ -20,12 +20,13 @@ export const GET = async (request: Request) => {
   try {
     const workos = getWorkOS();
 
-    // Exchange code for user info
-    const { user: workosUser } =
-      await workos.userManagement.authenticateWithCode({
-        code,
-        clientId: process.env.WORKOS_CLIENT_ID!,
-      });
+    const authResponse = await workos.userManagement.authenticateWithCode({
+      code,
+      clientId: process.env.WORKOS_CLIENT_ID!,
+    });
+    const { user: workosUser } = authResponse;
+
+    await saveSession(authResponse, request.url);
 
     // Upload profile picture to our storage if available
     let profilePhoto:
