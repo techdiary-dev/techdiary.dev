@@ -9,58 +9,75 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 declare global {
   var pgClient: PostgresAdapter | undefined;
   var __techdiaryPool: Pool | undefined;
-  var __techdiaryDbUrl: string | undefined;
+  var __techdiaryPoolUrl: string | undefined;
   var __techdiaryDrizzle: ReturnType<typeof drizzle> | undefined;
 }
 
-function resolveDatabaseUrl(): string {
-  if (globalThis.__techdiaryDbUrl) return globalThis.__techdiaryDbUrl;
+type HyperdriveBinding = { connectionString?: string };
 
-  // During `next build` prerender, stay on DATABASE_URL.
+/**
+ * Prefer Hyperdrive on Workers. Never permanently cache the DATABASE_URL
+ * fallback — an early resolve without CF context used to stick forever and
+ * bypass Hyperdrive (connection timeouts → React #441 in RSC).
+ */
+function resolveDatabaseUrl(): string {
   if (process.env.NEXT_PHASE === "phase-production-build") {
-    globalThis.__techdiaryDbUrl = env.DATABASE_URL;
-    return globalThis.__techdiaryDbUrl;
+    return env.DATABASE_URL;
   }
 
   try {
     const { env: cfEnv } = getCloudflareContext();
-    const hd = (
-      cfEnv as { HYPERDRIVE?: { connectionString?: string } }
-    ).HYPERDRIVE;
+    const hd = (cfEnv as { HYPERDRIVE?: HyperdriveBinding }).HYPERDRIVE;
     if (hd?.connectionString) {
-      globalThis.__techdiaryDbUrl = hd.connectionString;
-      return globalThis.__techdiaryDbUrl;
+      return hd.connectionString;
     }
   } catch {
-    // next dev / no request context yet
+    // next dev / no request context yet — fall through
   }
 
-  globalThis.__techdiaryDbUrl = env.DATABASE_URL;
-  return globalThis.__techdiaryDbUrl;
+  return env.DATABASE_URL;
+}
+
+function resetPool() {
+  const old = globalThis.__techdiaryPool;
+  globalThis.__techdiaryPool = undefined;
+  globalThis.__techdiaryPoolUrl = undefined;
+  globalThis.pgClient = undefined;
+  globalThis.__techdiaryDrizzle = undefined;
+  void old?.end().catch(() => {});
 }
 
 function getPool(): Pool {
-  if (!globalThis.__techdiaryPool) {
+  const url = resolveDatabaseUrl();
+  if (!globalThis.__techdiaryPool || globalThis.__techdiaryPoolUrl !== url) {
+    if (globalThis.__techdiaryPool) resetPool();
+    globalThis.__techdiaryPoolUrl = url;
     globalThis.__techdiaryPool = new Pool({
-      connectionString: resolveDatabaseUrl(),
+      connectionString: url,
       max: 1,
-      connectionTimeoutMillis: 10_000,
-      idleTimeoutMillis: 10_000,
+      // Hyperdrive origin connect timeout is 15s; match that.
+      connectionTimeoutMillis: 15_000,
+      idleTimeoutMillis: 5_000,
+      allowExitOnIdle: true,
     });
   }
   return globalThis.__techdiaryPool;
 }
 
 function getAdapter(): PostgresAdapter {
+  const pool = getPool();
   if (!globalThis.pgClient) {
-    globalThis.pgClient = new PostgresAdapter(getPool());
+    globalThis.pgClient = new PostgresAdapter(pool);
   }
   return globalThis.pgClient;
 }
 
 export const drizzleClient = new Proxy({} as ReturnType<typeof drizzle>, {
   get(_target, prop, receiver) {
-    if (!globalThis.__techdiaryDrizzle) {
+    if (
+      !globalThis.__techdiaryDrizzle ||
+      globalThis.__techdiaryPoolUrl !== resolveDatabaseUrl()
+    ) {
       globalThis.__techdiaryDrizzle = drizzle(getPool(), { schema });
     }
     return Reflect.get(globalThis.__techdiaryDrizzle as object, prop, receiver);
