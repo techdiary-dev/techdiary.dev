@@ -16,7 +16,17 @@ export async function GET() {
     const hd = (cfEnv as { HYPERDRIVE?: { connectionString?: string } })
       .HYPERDRIVE;
     out.hasHyperdrive = Boolean(hd?.connectionString);
+    if (hd?.connectionString) {
+      try {
+        const u = new URL(hd.connectionString);
+        out.hyperdriveHost = u.hostname;
+        out.hyperdrivePort = u.port || "5432";
+      } catch {
+        out.hyperdriveHost = "unparsed";
+      }
+    }
 
+    const started = Date.now();
     const { pgClient } = await import(
       "@/backend/persistence/clients"
     );
@@ -24,6 +34,7 @@ export async function GET() {
       "select count(*)::int as n from users",
       [],
     );
+    out.queryMs = Date.now() - started;
     out.users = rows.rows?.[0] ?? rows;
     out.ok = true;
     return NextResponse.json(out);

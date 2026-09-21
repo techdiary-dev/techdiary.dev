@@ -264,8 +264,8 @@ export async function getUserByEmail(email: string): Promise<User | null> {
  * @throws {RepositoryException} If query fails
  */
 export async function getUsers(page: number = 1, limit: number = 10) {
-  "use cache";
-  cacheTag("latest-users");
+  // `"use cache"` disabled on Workers until OpenNext incremental cache is configured
+  // (Dummy cache + Cache Components hang). Re-enable with R2/KV cache.
   try {
     return persistenceRepository.user.paginate({
       limit,
