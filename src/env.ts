@@ -6,7 +6,6 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "production", "test"]),
     UNSPLASH_API_KEY: z.string(),
-    CLOUDINARY_URL: z.string(),
     // Legacy GitHub OAuth only. WorkOS is primary — leave unset.
     GITHUB_CLIENT_ID: z
       .string()
@@ -90,7 +89,6 @@ export const env = createEnv({
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    CLOUDINARY_URL: process.env.CLOUDINARY_URL,
     GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
     GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
     GITHUB_CALLBACK_URL: process.env.GITHUB_CALLBACK_URL,

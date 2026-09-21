@@ -29,9 +29,7 @@ export const GET = async (request: Request) => {
     await saveSession(authResponse, request.url);
 
     // Upload profile picture to our storage if available
-    let profilePhoto:
-      | { key: string; provider: "r2" | "cloudinary" | "direct" }
-      | undefined;
+    let profilePhoto: { key: string; provider: "r2" } | undefined;
 
     if (workosUser.profilePictureUrl) {
       const uploadResult = await storageActions.uploadByUrl({
@@ -42,10 +40,7 @@ export const GET = async (request: Request) => {
       if (uploadResult.success) {
         profilePhoto = {
           key: uploadResult.data.key,
-          provider: uploadResult.data.provider as
-            | "r2"
-            | "cloudinary"
-            | "direct",
+          provider: "r2",
         };
       }
     }

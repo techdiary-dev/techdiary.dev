@@ -35,7 +35,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Database**: PostgreSQL
 - **Authentication**: WorkOS (primary), GitHub OAuth (legacy fallback)
 - **Search**: MeilSearch
-- **File Storage**: Cloudinary / Cloudflare R2
+- **File Storage**: Cloudflare R2
 - **State Management**: Jotai, TanStack Query, React Hook Form with Zod validation
 
 ### Backend & Database
@@ -87,16 +87,16 @@ Key entities and their relationships:
 ### Content Management
 
 - **Rich Text**: Markdoc for markdown parsing and rendering
-- **File Uploads**: Cloudflare R2 (primary) + Cloudinary (legacy/image optimization)
+- **File Uploads**: Cloudflare R2
 - **Search**: MeilSearch for full-text search capabilities
 - **Internationalization**: Custom i18n implementation (Bengali/English)
 
 ### File Storage Strategy
 
-Two storage providers coexist. `getFileUrl(fileSource)` (`src/utils/getFileUrl.ts`) routes by `fileSource.provider`:
+Uploads go to R2. `getFileUrl(fileSource)` (`src/utils/getFileUrl.ts`) routes by `fileSource.provider`:
 
-- **`r2`** → returns `https://cdn.techdiary.dev/${key}` directly (no transforms)
-- **`cloudinary`** → builds URL with auto quality/format via Cloudinary SDK (supports blur placeholders)
+- **`r2`** → `https://cdn.techdiary.dev/${key}`
+- **`cloudinary`** → Cloudinary SDK URL (cloud `techdiary-dev`) for leftover DB rows. New writes never set this. No `CLOUDINARY_URL` env.
 
 **Upload flow for R2**: Client calls `POST /api/storage/sign` with `{ keys: string[] }` → server generates presigned S3-compatible URLs → client uploads directly to R2.
 
@@ -126,7 +126,6 @@ Server-side:
 - `GITHUB_CLIENT_ID` - GitHub OAuth client ID (legacy flow)
 - `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret (legacy flow)
 - `GITHUB_CALLBACK_URL` - GitHub OAuth callback URL (legacy flow)
-- `CLOUDINARY_URL` - Cloudinary configuration
 - `MEILISEARCH_ADMIN_API_KEY` - MeilSearch admin API key
 - `UNSPLASH_API_KEY` - Unsplash API key (required by env schema)
 
@@ -189,7 +188,7 @@ The app uses **WorkOS** (`@workos-inc/authkit-nextjs`) as the primary auth provi
 ### Content Creation
 
 - Rich markdown editor with drag-and-drop support
-- Image upload and optimization via Cloudinary
+- Image upload via Cloudflare R2
 - Article series management for content organization
 - Tag-based categorization system
 

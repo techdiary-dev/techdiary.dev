@@ -12,7 +12,7 @@ TechDiary is a feature-rich blogging platform that empowers developers and tech 
 
 ### Content creation
 - **Rich Markdown editor** with Markdoc parsing, live preview, and auto-save
-- **Drag-and-drop image upload** with cropping (Cloudinary and Cloudflare R2)
+- **Drag-and-drop image upload** with cropping (Cloudflare R2)
 - **Series support** for organizing related articles
 - **Draft management** with periodic autosave
 - **SEO** with meta tags and structured data
@@ -65,7 +65,6 @@ TechDiary is a feature-rich blogging platform that empowers developers and tech 
 ### Search, storage, and jobs
 - **[Meilisearch](https://www.meilisearch.com/)** — search index and queries
 - **[Cloudflare R2](https://developers.cloudflare.com/r2/)** — S3-compatible uploads (presigned URLs)
-- **[Cloudinary](https://cloudinary.com/)** — image URLs and transforms (legacy paths)
 - **[Inngest](https://www.inngest.com/)** — scheduled jobs (e.g. article cleanup) and notification queueing
 - **Pusher-compatible WebSockets** — managed Pusher or self-hosted **[Soketi](https://soketi.app/)** (same wire protocol and client libraries; point `PUSHER_*` / `NEXT_PUBLIC_PUSHER_*` at your Soketi host)
 
@@ -86,7 +85,7 @@ TechDiary is a feature-rich blogging platform that empowers developers and tech 
 - **PostgreSQL 14+**
 - **Meilisearch** instance
 - **WorkOS** account (AuthKit) for primary login, and/or **GitHub OAuth** app for legacy flow
-- **Cloudinary** and/or **Cloudflare R2** for uploads (see env below)
+- **Cloudflare R2** for uploads (see env below)
 
 ### Environment variables
 
@@ -109,9 +108,6 @@ GITHUB_CALLBACK_URL="http://localhost:3000/api/auth/github/callback"
 
 # Unsplash (required by env schema — used for integrations)
 UNSPLASH_API_KEY=""
-
-# Cloudinary
-CLOUDINARY_URL="cloudinary://api_key:api_secret@cloud_name"
 
 # Cloudflare R2 (S3-compatible — names match src/env.ts)
 S3_ENDPOINT=""
@@ -222,7 +218,7 @@ NEXT_PUBLIC_PUSHER_WS_HOST=""
 - **Runtime:** Node-compatible host for Next.js (e.g. Vercel) or your platform of choice.
 - **Data:** Managed PostgreSQL; Meilisearch (cloud or self-hosted).
 - **Auth:** Set WorkOS production redirect URI and cookie secret; align `NEXT_PUBLIC_WORKOS_REDIRECT_URI` with your domain.
-- **Storage:** R2 credentials and/or Cloudinary for production URLs.
+- **Storage:** R2 credentials for production uploads.
 - **Inngest:** Configure event and signing keys for production workers.
 
 ## Contributing
